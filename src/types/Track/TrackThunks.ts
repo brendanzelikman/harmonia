@@ -14,12 +14,9 @@ import {
 import { addPatternClip, addPoseClip, updateClips } from "types/Clip/ClipSlice";
 import {
   Clip,
-  ClipType,
   initializeClip,
   isPatternClip,
-  isPatternClipId,
   isPoseClip,
-  isPoseClipId,
 } from "types/Clip/ClipTypes";
 import {
   LiveAudioInstance,
@@ -32,7 +29,6 @@ import {
 import { initializeInstrument } from "types/Instrument/InstrumentTypes";
 import { initializePattern, PatternStream } from "types/Pattern/PatternTypes";
 import { selectPortalsByTrackIds } from "types/Portal/PortalSelectors";
-import { removePortals } from "types/Portal/PortalSlice";
 import { Thunk } from "types/Project/ProjectTypes";
 import { addScale, removeScale, updateScale } from "types/Scale/ScaleSlice";
 import {
@@ -428,45 +424,6 @@ export const duplicateTrack =
       dispatch(addTrack({ data: track, undoType }));
     }
     return newTrackMap[track.id];
-  };
-
-/** Clear a track of all media and its children. */
-export const clearTrack =
-  (
-    payload: Payload<{
-      trackId: TrackId;
-      type?: ClipType;
-      cascade?: boolean;
-    }>
-  ): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const { trackId, type, cascade } = unpackData(payload);
-    const track = selectTrackById(project, trackId);
-    if (!track) return;
-    const undoType = createUndoType("clearTrack", trackId);
-
-    // Get all clip IDs matching the type if specified
-    const clips = selectClipsByTrackIds(project, [track.id]);
-    if (cascade) {
-      const children = selectTrackDescendantIds(project, trackId);
-      clips.push(...selectClipsByTrackIds(project, children));
-    }
-    const clipIds = clips
-      .map((c) => c.id)
-      .filter((id) =>
-        type === "pattern" ? isPatternClipId(id) : isPoseClipId(id)
-      );
-
-    // Remove all clips
-    dispatch(deleteMedia({ data: { clipIds }, undoType }));
-
-    // Remove all portals if no type is specified
-    if (!type) {
-      const portals = selectPortalsByTrackIds(project, [track.id]);
-      const portalIds = portals.map((p) => p.id);
-      dispatch(removePortals({ data: portalIds, undoType }));
-    }
   };
 
 /** Delete a track. */

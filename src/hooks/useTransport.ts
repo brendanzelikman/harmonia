@@ -8,10 +8,7 @@ import {
   unloadTransport,
 } from "types/Transport/TransportLoader";
 import { useToggle } from "hooks/useToggle";
-import {
-  broadcastStopRecordingTransport,
-  stopRecordingTransport,
-} from "types/Transport/TransportRecorder";
+import { stopRecordingTransport } from "types/Transport/TransportRecorder";
 
 export function useTransport() {
   const dispatch = useAppDispatch();

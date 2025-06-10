@@ -1,5 +1,3 @@
-import { createDeepSelector } from "types/redux";
-import { initializeProjectDiary, DIARY_PAGE_COUNT } from "./MetaTypes";
 import { Project } from "../Project/ProjectTypes";
 import { createSelector } from "reselect";
 
@@ -25,13 +23,4 @@ export const selectProjectDateCreated = createSelector(
 export const selectProjectLastUpdated = createSelector(
   [selectMeta],
   (meta) => meta.lastUpdated
-);
-
-/** Select the project diary and constrain it to the page. */
-export const selectProjectDiary = createDeepSelector(
-  [selectMeta],
-  (meta) =>
-    Array.from({ length: DIARY_PAGE_COUNT }).map(
-      (_, i) => meta.diary?.[i] ?? ""
-    ) ?? initializeProjectDiary()
 );

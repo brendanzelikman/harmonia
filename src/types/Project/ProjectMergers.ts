@@ -17,6 +17,7 @@ import { BaseProject, SafeBaseProject } from "app/reducer";
 import dayjs from "dayjs";
 import { isScaleTrack, Track } from "types/Track/TrackTypes";
 import { PatternClip, PoseClip } from "types/Clip/ClipTypes";
+import { defaultGame } from "types/Game/GameTypes";
 
 // Sanitize the base project by merging with default values
 export const sanitizeBaseProject = (
@@ -166,6 +167,7 @@ export const mergeBaseProjects = (
     subdivision: p1?.timeline?.subdivision ?? defaultTimeline.subdivision,
   };
   const transport = merge({}, defaultTransport, p1?.transport);
+  const game = merge({}, defaultGame, p1?.game);
 
   // Return the new base project
   return {
@@ -180,5 +182,6 @@ export const mergeBaseProjects = (
     instruments,
     timeline,
     transport,
+    game,
   };
 };

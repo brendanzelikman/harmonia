@@ -1,0 +1,171 @@
+import { Thunk } from "types/Project/ProjectTypes";
+import { defaultGameRanks, GameAction, GameRank } from "./GameTypes";
+import {
+  selectPoseClipMap,
+  selectPoseClips,
+  selectPoseClipTickMap,
+} from "types/Clip/ClipSelectors";
+import { secondsToTicks } from "utils/duration";
+import { selectTransportBPM } from "types/Transport/TransportSelectors";
+import { selectPoseById, selectPoseMap } from "types/Pose/PoseSelectors";
+import { selectScaleTrackChainIdsMap } from "types/Track/TrackSelectors";
+import { selectSelectedPoseClips } from "types/Timeline/TimelineSelectors";
+import { PoseVectorId } from "types/Pose/PoseTypes";
+import { addGameActions, updateGame } from "./GameSlice";
+import { selectGame, selectHasGame } from "./GameSelectors";
+import { PoseClipId } from "types/Clip/ClipTypes";
+import { removePoseClip } from "types/Clip/ClipSlice";
+import { createUndoType } from "types/redux";
+import { nanoid } from "@reduxjs/toolkit";
+import { Tick } from "types/units";
+import { updateTimelineTick } from "types/Timeline/TimelineSlice";
+
+export const addPosesToGame =
+  ({ replace }: { replace: boolean } = { replace: false }): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const selectedPoseClips = selectSelectedPoseClips(project);
+    const chainMap = selectScaleTrackChainIdsMap(project);
+
+    const trackId = selectedPoseClips.at(0)?.trackId;
+    if (!trackId) return;
+
+    const poseClips = selectedPoseClips.filter(
+      (clip) => clip.trackId === trackId
+    );
+
+    const actions: GameAction[] = [];
+    const addedIds: PoseClipId[] = [];
+    for (const clip of poseClips) {
+      const pose = selectPoseById(project, clip.poseId);
+      if (!pose?.vector) continue;
+      if (Object.keys(pose.vector || {}).length !== 1) continue;
+      const tick = clip.tick;
+      const poseKey = Object.keys(pose.vector)[0] as PoseVectorId;
+      const chain = chainMap[clip.trackId];
+      const keyMap = {
+        [chain.at(0) ?? "q"]: "q",
+        [chain.at(1) ?? "w"]: "w",
+        [chain.at(2) ?? "e"]: "e",
+        chordal: "r",
+        chromatic: "t",
+        octave: "y",
+      };
+      const key = keyMap[poseKey];
+      if (!key) continue;
+      const value = pose.vector[poseKey] ?? 0;
+      const action: GameAction = { tick, key, value };
+      actions.push(action);
+      addedIds.push(clip.id);
+    }
+
+    if (actions.length === 0) return;
+    const undoType = createUndoType(nanoid());
+    for (const id of addedIds) {
+      dispatch(removePoseClip({ data: id, undoType }));
+    }
+    if (replace) {
+      dispatch(updateGame({ actions, trackId, undoType }));
+    } else {
+      dispatch(addGameActions({ actions, undoType }));
+    }
+  };
+
+export const evaluateGameRank = (): Thunk<GameRank> => (_, getProject) => {
+  const project = getProject();
+  const bpm = selectTransportBPM(project);
+  const game = selectGame(project);
+  const leniency = Math.round(secondsToTicks(game.leniency / 1000, bpm));
+
+  const poseMap = selectPoseMap(project);
+  const poseClipMap = selectPoseClipMap(project);
+  const poseClipTickMap = selectPoseClipTickMap(project);
+  const chainMap = selectScaleTrackChainIdsMap(project);
+
+  const total = game.actions.length;
+  let correct = 0;
+
+  game.actions.forEach((action) => {
+    if (!action) return;
+    const { tick, key, value } = action;
+    for (let i = tick - leniency; i <= tick + leniency; i++) {
+      if (i < 0) continue; // Skip negative ticks
+      const clipIds = poseClipTickMap[i];
+      if (!clipIds?.length) continue;
+      const current = correct;
+      for (const clipId of clipIds) {
+        const clip = poseClipMap[clipId];
+        if (!clip) continue;
+        const pose = poseMap[clip.poseId];
+        if (!pose?.vector) continue;
+        if (key === "q") {
+          const chain = chainMap[clip.trackId];
+          if (!chain) continue;
+          const trackId = chain.at(0);
+          if (!trackId) continue;
+          if (pose.vector[trackId] === value) {
+            correct++;
+            break;
+          }
+        } else if (key === "w") {
+          const chain = chainMap[clip.trackId];
+          if (!chain) continue;
+          const trackId = chain.at(1);
+          if (!trackId) continue;
+          if (pose.vector[trackId] === value) {
+            correct++;
+            break;
+          }
+        } else if (key === "e") {
+          const chain = chainMap[clip.trackId];
+          if (!chain) continue;
+          const trackId = chain.at(2);
+          if (!trackId) continue;
+          if (pose.vector[trackId] === value) {
+            correct++;
+            break;
+          }
+        } else if (key === "r") {
+          if (pose.vector.chordal === value) {
+            correct++;
+            break;
+          }
+        } else if (key === "t") {
+          if (pose.vector.chromatic === value) {
+            correct++;
+            break;
+          }
+        } else if (key === "y") {
+          if (pose.vector.octave === value) {
+            correct++;
+            break;
+          }
+        }
+      }
+      // If we found a match, no need to check further ticks
+      if (correct > current) {
+        return;
+      }
+    }
+  });
+  const score = correct / total;
+  return (
+    game.ranks.findLast((rank) => score >= rank.percent) ?? defaultGameRanks[0]
+  );
+};
+
+export const resetGame = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const hasGame = selectHasGame(project);
+  if (hasGame) {
+    const undoType = createUndoType("clearGame", nanoid());
+    dispatch(updateTimelineTick({ data: null, undoType }));
+    const game = selectGame(project);
+    if (!game.trackId) return;
+    const poseClips = selectPoseClips(project);
+    for (const clip of poseClips) {
+      if (clip.trackId !== game.trackId) continue;
+      dispatch(removePoseClip({ data: clip.id, undoType }));
+    }
+  }
+};

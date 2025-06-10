@@ -5,7 +5,7 @@ import {
   TRACK_WIDTH,
 } from "utils/constants";
 import { TimelinePlayhead } from "./TimelinePlayhead";
-import { useAppValue } from "hooks/useRedux";
+import { useAppDispatch, useAppValue } from "hooks/useRedux";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
   selectCellWidth,
@@ -18,17 +18,28 @@ import {
   selectIsAddingPortals,
   selectHasPortalFragment,
   selectSelectedClips,
+  selectSelectedTrackId,
 } from "types/Timeline/TimelineSelectors";
 import {
   selectTrackIds,
   selectCollapsedTrackMap,
+  selectTrackLabelMap,
 } from "types/Track/TrackSelectors";
 import { TimelineCursor } from "./TimelineCursor";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import classNames from "classnames";
 import { useToggle } from "hooks/useToggle";
 import { useTick } from "types/Transport/TransportTick";
 import { clamp } from "lodash";
+import { selectGame } from "types/Game/GameSelectors";
+import {
+  STOP_TRANSPORT,
+  useTransportState,
+} from "types/Transport/TransportState";
+import { GameRank } from "types/Game/GameTypes";
+import { evaluateGameRank, resetGame } from "types/Game/GameThunks";
+import { GiStarSwirl } from "react-icons/gi";
+import { useEvent } from "hooks/useEvent";
 
 interface BackgroundProps {
   element?: HTMLDivElement;
@@ -116,48 +127,83 @@ const TimelineTopLeftCorner = () => {
   const hasFragment = useAppValue(selectHasPortalFragment);
   const isSlicingClips = useAppValue(selectIsSlicingClips);
   const tree = useToggle("inputTree");
+  const selectedTrackId = useAppValue(selectSelectedTrackId);
+  const labelMap = useAppValue(selectTrackLabelMap);
   const hasClips = !!useAppValue(selectSelectedClips).length;
 
+  const dispatch = useAppDispatch();
   const tick = useTick();
+  const state = useTransportState();
+  const game = useAppValue(selectGame);
+  const actions = game?.actions ?? [];
+  const hasGame = !!game && actions.length > 0;
+  const canGame = selectedTrackId === game.trackId;
+  const lastTick = Math.max(0, ...actions.map((a) => a?.tick ?? 0));
+  const [rank, setRank] = useState<GameRank | undefined>();
+  const [shouldRank, setShouldRank] = useState(false);
+  useEvent(STOP_TRANSPORT, () => dispatch(resetGame()));
+  useEffect(() => {
+    if (state !== "started") {
+      setShouldRank(false);
+      setRank(undefined);
+    } else if (tick > lastTick && !shouldRank) {
+      setShouldRank(true);
+      setRank(dispatch(evaluateGameRank()));
+    }
+  }, [state, tick, shouldRank]);
 
-  const actions = [] as {
-    tick: number;
-    vector: string;
-    key: string;
-  }[];
-  //  const actions = [
-  //   { tick: 96 * 1, vector: "Q", key: "4" },
-  //   { tick: 96 * 2, vector: "W", key: "-2" },
-  //   { tick: 96 * 3, vector: "Q", key: "4" },
-  //   { tick: 96 * 4, vector: "W", key: "-2" },
-  //   { tick: 96 * 5, vector: "Q", key: "4" },
-  //   { tick: 96 * 6, vector: "W", key: "-2" },
-  //   { tick: 96 * 7, vector: "Q", key: "4" },
-  //   { tick: 96 * 8, vector: "W", key: "-2" },
-  // ];
-  const [game, setGame] = useState(!!actions.length);
+  const Rank = rank ? (
+    <div className="flex gap-2 text-2xl">
+      {new Array(rank.rank).fill(0).map((_, i) => (
+        <GiStarSwirl key={i} />
+      ))}
+    </div>
+  ) : (
+    "Fail!"
+  );
 
   const Game = (
     <div className="w-full relative overflow-hidden">
       <div className="w-2 rounded-sm h-16 ml-4 bg-emerald-500" />
-      {actions.map((action, i) => (
-        <div
-          key={i}
-          className="absolute w-min flex flex-col border border-fuchsia-300 text-xl rounded inset-0 font-bold bg-fuchsia-400/50 p-2"
-          style={{
-            left: action.tick - tick,
-            opacity:
-              tick + 8 > action.tick || tick - action.tick > TRACK_WIDTH
-                ? 0
-                : !tick || action.tick - tick < 30
-                ? 1
-                : clamp(tick / action.tick, 0, 1),
-          }}
-        >
-          <span>{action.vector}</span>
-          <span>{action.key}</span>
+      {tick === 0 && (
+        <div className="absolute flex flex-col top-2.5 left-8">
+          <div className="text-fuchsia-300 text-base">
+            {" "}
+            Rhythm Game Available
+          </div>
+          <div className="text-slate-300 font-light text-sm">
+            {!canGame
+              ? `Select Track (${labelMap[game.trackId!]}) To Play`
+              : `Ready When You Are!`}
+          </div>
         </div>
-      ))}
+      )}
+      {canGame &&
+        !!tick &&
+        actions.map((action, i) =>
+          !!action ? (
+            <div
+              key={i}
+              className="absolute capitalize w-min flex flex-col border border-fuchsia-300 text-xl rounded inset-0 font-bold bg-fuchsia-400/50 p-2"
+              style={{
+                left: action.tick - tick,
+                opacity:
+                  tick + 8 > action.tick || tick - action.tick > TRACK_WIDTH
+                    ? 0
+                    : !tick || action.tick - tick < 30
+                    ? 1
+                    : clamp(
+                        (TRACK_WIDTH - (action.tick - tick)) / TRACK_WIDTH,
+                        0,
+                        1
+                      ),
+              }}
+            >
+              <span>{action.key}</span>
+              <span>{action.value}</span>
+            </div>
+          ) : null
+        )}
     </div>
   );
 
@@ -222,7 +268,7 @@ const TimelineTopLeftCorner = () => {
       )}
       style={{ width: TRACK_WIDTH, height: HEADER_HEIGHT }}
     >
-      {game ? Game : Action}
+      {hasGame && (!tick || canGame) ? (shouldRank ? Rank : Game) : Action}
     </div>
   );
 };

@@ -25,7 +25,10 @@ import Waterfall from "lib/demos/waterfall.json";
 import Wave from "lib/demos/wave.json";
 import WaveSnark from "lib/demos/waveAlt.json";
 import WaveLong from "lib/demos/waveLong.json";
-import { GiFire, GiQuill, GiTrumpet } from "react-icons/gi";
+import GameBarry from "lib/demos/game_barry.json";
+import GameCool from "lib/demos/game_cool.json";
+import GameMoonlight from "lib/demos/game_moonlight.json";
+import GameWave from "lib/demos/game_wave.json";
 
 type DemoProject = {
   project: BaseProject;
@@ -155,6 +158,30 @@ const TanDemo: DemoProject = {
 };
 
 // -------------------------------------
+// Rhythm Games
+// -------------------------------------
+const GameBarryDemo: DemoProject = {
+  project: GameBarry as unknown as BaseProject,
+  blurb: "The rhythm game of Fly Me to Barry.",
+  aliases: ["game_barry", "barry_game"],
+};
+const GameCoolDemo: DemoProject = {
+  project: GameCool as unknown as BaseProject,
+  blurb: "The rhythm game of Cool Beat.",
+  aliases: ["game_cool", "cool_game"],
+};
+const GameMoonlightDemo: DemoProject = {
+  project: GameMoonlight as unknown as BaseProject,
+  blurb: "The rhythm game of Moonlight Sonata, Mvt. 3.",
+  aliases: ["game_moonlight", "moonlight_game"],
+};
+const GameWaveDemo: DemoProject = {
+  project: GameWave as unknown as BaseProject,
+  blurb: "The rhythm game of Tidal Waves.",
+  aliases: ["game_wave", "wave_game"],
+};
+
+// -------------------------------------
 // Bach with Math
 // -------------------------------------
 
@@ -189,31 +216,31 @@ export const DEMO_GENRES = [
   {
     key: "Classical",
     color: "border-sky-400 text-sky-400",
-    icon: <GiQuill />,
     demos: [PreludeDemo, WaterfallDemo, MoonlightDemo, ReminiscenzaDemo],
   },
   {
     key: "Jazz",
     color: "border-orange-300 text-orange-300",
-    icon: <GiTrumpet />,
     demos: [FonteDemo, BirdDemo, CarouselDemo, BarryDemo],
   },
   {
     key: "Electronic",
     color: "border-red-400 text-red-400",
-    icon: <GiFire />,
     demos: [WaveDemo, WaveSnarkDemo, ExaltedDemo, LavosDemo],
   },
   {
     key: "Basic Scripts",
     color: "border-red-400 text-red-400",
-    icon: <GiFire />,
     demos: [SinDemo, CosDemo, TanDemo],
   },
   {
-    key: "Bach with Math",
+    key: "Rhythm Games",
     color: "border-red-400 text-red-400",
-    icon: <GiFire />,
+    demos: [GameWaveDemo, GameBarryDemo, GameMoonlightDemo],
+  },
+  {
+    key: "Math Remixes",
+    color: "border-red-400 text-red-400",
     demos: [
       BachPiDemo,
       BachSinDemo,

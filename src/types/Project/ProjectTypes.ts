@@ -13,6 +13,7 @@ import {
 import { store } from "app/store";
 import dayjs from "dayjs";
 import { sanitizeBaseProject } from "./ProjectMergers";
+import { defaultGame } from "types/Game/GameTypes";
 
 // ------------------------------------------------------------
 // Project Definitions
@@ -39,6 +40,7 @@ export const defaultBaseProject: BaseProject = {
   ...defaultArrangement,
   timeline: defaultTimeline,
   transport: defaultTransport,
+  game: defaultGame,
 };
 
 // The default project state.

@@ -17,7 +17,7 @@ export const TerminalFile = () => {
       className="size-full min-w-fit"
       theme={[githubDarkTheme, terminalTheme]}
       rootName="project"
-      restrictAdd={restrictInput}
+      restrictAdd={true}
       restrictEdit={restrictInput}
       restrictDelete={restrictInput}
       restrictDrag={restrictInput}

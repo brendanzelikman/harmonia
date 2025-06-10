@@ -28,14 +28,12 @@ import {
 } from "types/Timeline/thunks/TimelineClipThunks";
 import {
   GiCrystalWand,
-  GiFilmProjector,
-  GiImplosion,
   GiPencil,
   GiPineTree,
-  GiPlantSeed,
   GiSeedling,
-  GiStapler,
 } from "react-icons/gi";
+import { addPosesToGame } from "types/Game/GameThunks";
+import { resetGame } from "types/Game/GameSlice";
 
 // -----------------------------------------------
 // Timeline Hotkeys
@@ -124,6 +122,27 @@ export const MergeClipsHotkey: Hotkey = {
   callback: (dispatch) => dispatch(mergeSelectedMedia()),
 };
 
+export const CreateGameFromClipsHotkey: Hotkey = {
+  name: "Create Came From Clips",
+  description: "Create a new game from the selected clips",
+  shortcut: "meta+g",
+  callback: (dispatch) => dispatch(addPosesToGame({ replace: true })),
+};
+
+export const AddClipsToGameHotkey: Hotkey = {
+  name: "Add Clips to Game",
+  description: "Add the selected clips to the game",
+  shortcut: "meta+shift+g",
+  callback: (dispatch) => dispatch(addPosesToGame({ replace: false })),
+};
+
+export const ResetGameHotkey: Hotkey = {
+  name: "Reset Game",
+  description: "Reset the game to its initial state",
+  shortcut: "meta+h",
+  callback: (dispatch) => dispatch(resetGame()),
+};
+
 // --------------------------------------------------
 // Export Hotkeys
 // --------------------------------------------------
@@ -140,6 +159,9 @@ export const TimelineHotkeys = [
   ToggleScissorsHotkey,
   SliceClipsHotkey,
   MergeClipsHotkey,
+  CreateGameFromClipsHotkey,
+  AddClipsToGameHotkey,
+  ResetGameHotkey,
 ];
 
 // -----------------------------------------------

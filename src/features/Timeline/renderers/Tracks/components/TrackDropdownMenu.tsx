@@ -28,7 +28,6 @@ import {
   collapseTracks,
   duplicateTrack,
   deleteTrack,
-  clearTrack,
   quantizeTrackClips,
   popTrack,
   selectTrackClips,
@@ -36,6 +35,7 @@ import {
   collapseTrackAncestors,
   collapseTrackDescendants,
 } from "types/Track/TrackThunks";
+import { clearTrack } from "types/Arrangement/ArrangementThunks";
 import { TrackDropdownButton } from "./TrackDropdownButton";
 import { isPatternTrack, Track } from "types/Track/TrackTypes";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";

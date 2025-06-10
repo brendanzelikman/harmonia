@@ -25,7 +25,7 @@ import {
   patternClipAdapter,
   poseClipAdapter,
 } from "./ClipSlice";
-import { Timed } from "types/units";
+import { Tick, Timed } from "types/units";
 import { mapValues, pick, uniqBy, values } from "lodash";
 import { getClipMotifId } from "./ClipTypes";
 import {
@@ -244,3 +244,45 @@ export const selectTimedClipById = (project: Project, id: ClipId) => {
   const duration = selectClipDuration(project, id) ?? Infinity;
   return { ...clip, duration } as Timed<Clip>;
 };
+
+/** Select the map of ticks to clips */
+export const selectClipTickMap = createDeepSelector(
+  [selectClipMap],
+  (clipMap) => {
+    return Object.entries(clipMap).reduce((acc, [id, clip]) => {
+      if (!clip) return acc;
+      const tick = clip.tick ?? 0;
+      if (!acc[tick]) acc[tick] = [];
+      acc[tick].push(id as ClipId);
+      return acc;
+    }, {} as Record<Tick, ClipId[]>);
+  }
+);
+
+/** Select the map of ticks to clips */
+export const selectPatternClipTickMap = createDeepSelector(
+  [selectPatternClipMap],
+  (clipMap) => {
+    return Object.entries(clipMap).reduce((acc, [id, clip]) => {
+      if (!clip) return acc;
+      const tick = clip.tick ?? 0;
+      if (!acc[tick]) acc[tick] = [];
+      acc[tick].push(id as PatternClipId);
+      return acc;
+    }, {} as Record<Tick, PatternClipId[]>);
+  }
+);
+
+/** Select the map of ticks to clips */
+export const selectPoseClipTickMap = createDeepSelector(
+  [selectPoseClipMap],
+  (clipMap) => {
+    return Object.entries(clipMap).reduce((acc, [id, clip]) => {
+      if (!clip) return acc;
+      const tick = clip.tick ?? 0;
+      if (!acc[tick]) acc[tick] = [];
+      acc[tick].push(id as PoseClipId);
+      return acc;
+    }, {} as Record<Tick, PoseClipId[]>);
+  }
+);

@@ -12,6 +12,8 @@ export const AppRouter = () => (
     <Routes>
       <Route path={SPLASH} element={<LandingPage />} />
       <Route path={CALCULATOR} element={<CalculatorPage />} />
+      <Route path="/demo/:id" element={<CalculatorPage />} />
+      <Route path="/tutorial" element={<CalculatorPage />} />
     </Routes>
   </HashRouter>
 );

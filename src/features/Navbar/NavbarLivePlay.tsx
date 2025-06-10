@@ -32,6 +32,7 @@ import { getKeyCode } from "hooks/useHeldkeys";
 import { ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
+import { selectHasGame } from "types/Game/GameSelectors";
 
 export const LivePlayIcon = GiHand;
 
@@ -438,8 +439,13 @@ export const NavbarLivePlay = () => {
   );
 
   const hasTracks = useAppValue(selectHasTracks);
+  const hasGame = useAppValue(selectHasGame);
   const working =
-    isMixing || isVoiceLeadingClosest || isVoiceLeadingDegree || isHoldingScale;
+    !hasGame &&
+    (isMixing ||
+      isVoiceLeadingClosest ||
+      isVoiceLeadingDegree ||
+      isHoldingScale);
 
   const signal = useToggle("livePlay");
   const isActive = working || hasTracks || signal.isOpen;

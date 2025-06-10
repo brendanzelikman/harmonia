@@ -14,10 +14,7 @@ import { selectTransport } from "./TransportSelectors";
 import { dispatchTick } from "./TransportTick";
 import { Thunk } from "types/Project/ProjectTypes";
 import { getDestination, getTransport } from "tone";
-import {
-  selectCellsPerTick,
-  selectSubdivisionTicks,
-} from "types/Timeline/TimelineSelectors";
+import { selectCellsPerTick } from "types/Timeline/TimelineSelectors";
 import {
   getRecordingStart,
   RECORD_TRANSPORT,
@@ -43,7 +40,6 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
   scheduleId = getTransport().scheduleRepeat((time) => {
     const project = getProject();
     const transport = selectTransport(project);
-    const ticks = selectSubdivisionTicks(project);
     const cellWidth = selectCellsPerTick(project);
     const {
       bpm,

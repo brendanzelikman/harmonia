@@ -23,6 +23,7 @@ import { scalesSlice } from "types/Scale/ScaleSlice";
 import { trackSlice } from "types/Track/TrackSlice";
 import { Safe } from "types/utils";
 import { metaSlice } from "types/Meta/MetaSlice";
+import { gameSlice } from "types/Game/GameSlice";
 
 export const SET_PROJECT = "setProject";
 export const UNDO_PROJECT = "undoProject";
@@ -46,6 +47,7 @@ export type BaseProject = {
   portals: ReturnType<typeof portalSlice.reducer>;
   timeline: ReturnType<typeof timelineSlice.reducer>;
   transport: ReturnType<typeof transportSlice.reducer>;
+  game: ReturnType<typeof gameSlice.reducer>;
 };
 export type SafeBaseProject = Safe<BaseProject>;
 
@@ -62,6 +64,7 @@ export const baseProjectReducer = combineReducers({
   portals: portalSlice.reducer,
   timeline: timelineSlice.reducer,
   transport: transportSlice.reducer,
+  game: gameSlice.reducer,
 });
 
 /** The base project reducer wrapped with history. */

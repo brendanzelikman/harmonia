@@ -1,5 +1,8 @@
 import {
+  ClipType,
+  isPatternClipId,
   isPortaledPatternClipId,
+  isPoseClipId,
   PatternClipId,
   PortaledPatternClipId,
 } from "types/Clip/ClipTypes";
@@ -13,8 +16,16 @@ import {
   selectPortaledClipIds,
 } from "./ArrangementSelectors";
 import { selectPortaledPatternClipTransformation } from "./ArrangementClipSelectors";
-import { createUndoType, Payload, unpackUndoType } from "types/redux";
-import { selectPoseClips } from "types/Clip/ClipSelectors";
+import {
+  createUndoType,
+  Payload,
+  unpackData,
+  unpackUndoType,
+} from "types/redux";
+import {
+  selectClipsByTrackIds,
+  selectPoseClips,
+} from "types/Clip/ClipSelectors";
 import { selectSelectedClipIds } from "types/Timeline/TimelineSelectors";
 import { updatePose } from "types/Pose/PoseSlice";
 import { sumVectors } from "utils/vector";
@@ -22,6 +33,14 @@ import { selectPoseById, selectPoses } from "types/Pose/PoseSelectors";
 import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 import { PoseVectorId } from "types/Pose/PoseTypes";
 import { createNewPoseClip } from "types/Track/PatternTrack/PatternTrackThunks";
+import { deleteMedia } from "types/Media/MediaThunks";
+import { selectPortalsByTrackIds } from "types/Portal/PortalSelectors";
+import { removePortals } from "types/Portal/PortalSlice";
+import {
+  selectTrackById,
+  selectTrackDescendantIds,
+} from "types/Track/TrackSelectors";
+import { TrackId } from "types/Track/TrackTypes";
 
 export const walkPatternClip =
   (
@@ -108,5 +127,44 @@ export const walkSelectedPatternClips =
           undoType,
         })
       );
+    }
+  };
+
+/** Clear a track of all media and its children. */
+export const clearTrack =
+  (
+    payload: Payload<{
+      trackId: TrackId;
+      type?: ClipType;
+      cascade?: boolean;
+    }>
+  ): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const { trackId, type, cascade } = unpackData(payload);
+    const track = selectTrackById(project, trackId);
+    if (!track) return;
+    const undoType = createUndoType("clearTrack", trackId);
+
+    // Get all clip IDs matching the type if specified
+    const clips = selectClipsByTrackIds(project, [track.id]);
+    if (cascade) {
+      const children = selectTrackDescendantIds(project, trackId);
+      clips.push(...selectClipsByTrackIds(project, children));
+    }
+    const clipIds = clips
+      .map((c) => c.id)
+      .filter((id) =>
+        type === "pattern" ? isPatternClipId(id) : isPoseClipId(id)
+      );
+
+    // Remove all clips
+    dispatch(deleteMedia({ data: { clipIds }, undoType }));
+
+    // Remove all portals if no type is specified
+    if (!type) {
+      const portals = selectPortalsByTrackIds(project, [track.id]);
+      const portalIds = portals.map((p) => p.id);
+      dispatch(removePortals({ data: portalIds, undoType }));
     }
   };

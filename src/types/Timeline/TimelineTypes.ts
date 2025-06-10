@@ -53,7 +53,7 @@ export const defaultTimelineSelection: TimelineSelection = {
 export const defaultTimeline: Required<Timeline> = {
   state: "idle",
   type: "pattern",
-  tick: 0,
+  tick: null,
   fragment: {},
   clipboard: defaultMediaClipboard,
   selection: defaultTimelineSelection,
