@@ -137,7 +137,7 @@ const TimelineTopLeftCorner = () => {
   const game = useAppValue(selectGame);
   const actions = game?.actions ?? [];
   const hasGame = !!game && actions.length > 0;
-  const canGame = selectedTrackId === game.trackId;
+  const canGame = selectedTrackId === game?.trackId;
   const lastTick = Math.max(0, ...actions.map((a) => a?.tick ?? 0));
   const [rank, setRank] = useState<GameRank | undefined>();
   const [shouldRank, setShouldRank] = useState(false);
