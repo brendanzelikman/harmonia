@@ -29,7 +29,7 @@ import { useEffect, useMemo, useState } from "react";
 import classNames from "classnames";
 import { useToggle } from "hooks/useToggle";
 import { useTick } from "types/Transport/TransportTick";
-import { clamp } from "lodash";
+import { clamp, some } from "lodash";
 import { selectGame } from "types/Game/GameSelectors";
 import {
   startTransport,
@@ -40,6 +40,7 @@ import { GameRank } from "types/Game/GameTypes";
 import { evaluateGameRank, deleteGamePoses } from "types/Game/GameThunks";
 import { GiStarSwirl } from "react-icons/gi";
 import { useEvent } from "hooks/useEvent";
+import { resetGame } from "types/Game/GameSlice";
 
 interface BackgroundProps {
   element?: HTMLDivElement;
@@ -150,6 +151,12 @@ const TimelineTopLeftCorner = () => {
       setRank(dispatch(evaluateGameRank()));
     }
   }, [state, tick, shouldRank]);
+
+  useEffect(() => {
+    if (!some(labelMap)) {
+      dispatch(resetGame());
+    }
+  }, [labelMap]);
 
   const Rank = rank ? (
     <div className="flex gap-2 text-2xl">
