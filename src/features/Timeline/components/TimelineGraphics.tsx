@@ -153,7 +153,7 @@ const TimelineTopLeftCorner = () => {
   }, [state, tick, shouldRank]);
 
   useEffect(() => {
-    if (!some(labelMap)) {
+    if (!some(labelMap) || (game.trackId && !labelMap[game.trackId])) {
       dispatch(resetGame());
     }
   }, [labelMap]);
