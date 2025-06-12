@@ -8,12 +8,7 @@ import {
 } from "features/Navbar/components/NavbarForm";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 import { NavbarFileGroup, NavbarFileLabel } from "./NavbarProject";
-import {
-  BsGear,
-  BsJournalRichtext,
-  BsQuestionCircle,
-  BsTerminal,
-} from "react-icons/bs";
+import { BsQuestionCircle, BsTerminal } from "react-icons/bs";
 import { SyncedNumericalForm } from "components/SyncedForm";
 import { useToggle } from "hooks/useToggle";
 import {
@@ -42,7 +37,7 @@ export function NavbarSettings() {
       {/* Tooltip */}
       <NavbarHoverTooltip
         className="min-w-64 -left-16"
-        bgColor="bg-radial from-slate-900 to-zinc-900 backdrop-blur"
+        bgColor="bg-radial from-slate-900 to-zinc-900"
       >
         <div className="size-full py-1 space-y-3">
           <NavbarFormGroup>

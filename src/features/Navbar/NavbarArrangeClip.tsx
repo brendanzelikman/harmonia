@@ -34,8 +34,10 @@ export const NavbarArrangeClip = (props: { type: ClipType }) => {
   return (
     <NavbarTooltipButton
       keepTooltipOnClick
+      disabled={!hasTracks}
       className={classNames(
-        "size-9 bg-radial border",
+        "bg-radial border",
+        !hasTracks ? "opacity-50" : "",
         active ? "ring-2 ring-offset-2 ring-offset-black" : "",
         background,
         borderColor

@@ -17,9 +17,7 @@ import { selectClipWidth } from "types/Arrangement/ArrangementClipSelectors";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
   selectIsAddingClips,
-  selectIsAddingPatternClips,
   selectIsAddingPortals,
-  selectIsAddingPoseClips,
   selectIsClipSelected,
   selectIsClipSelectedLast,
   selectTimelineState,
@@ -37,7 +35,6 @@ import { useDrag } from "react-dnd";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
 import { replaceClipIdsInSelection } from "types/Timeline/thunks/TimelineSelectionThunks";
 import { useHeldKeys } from "hooks/useHeldkeys";
-import classNames from "classnames";
 import { POSE_NOTCH_HEIGHT } from "utils/constants";
 
 export interface PoseClipRendererProps extends ClipComponentProps {
@@ -164,7 +161,7 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
       {isMenuOpen && (
         <div
           style={{ left: menuLeft, top: top + POSE_NOTCH_HEIGHT }}
-          className="absolute select-none flex z-[31] text-xs flex-col gap-0.5 *:border-b font-light animate-in fade-in whitespace-nowrap w-48 p-[3px] px-1 rounded bg-slate-900/90 backdrop-blur text-emerald-300/80"
+          className="absolute select-none flex z-[31] text-xs flex-col gap-0.5 *:border-b font-light animate-in fade-in whitespace-nowrap w-48 p-[3px] px-1 rounded bg-slate-900 text-emerald-300/80"
         >
           <div className="text-fuchsia-300/80">Left Click to Edit Pose</div>
           <div className="text-cyan-300/80">Right Click to Edit Clips</div>

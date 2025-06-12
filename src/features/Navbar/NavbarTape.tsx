@@ -1,5 +1,8 @@
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
-import { selectSelectedClips } from "types/Timeline/TimelineSelectors";
+import {
+  selectSelectedClips,
+  selectSelectedPatternClips,
+} from "types/Timeline/TimelineSelectors";
 import { mergeSelectedMedia } from "types/Media/MediaThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { FaTape } from "react-icons/fa";
@@ -9,7 +12,7 @@ import { selectHasClips } from "types/Clip/ClipSelectors";
 export const NavbarTape = () => {
   const dispatch = useAppDispatch();
   const hasClips = useAppValue(selectHasClips);
-  const disabled = useAppValue(selectSelectedClips).length < 2;
+  const disabled = useAppValue(selectSelectedPatternClips).length < 2;
   return (
     <div className="flex flex-col relative group/tooltip">
       <NavbarTooltipButton

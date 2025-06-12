@@ -68,7 +68,7 @@ export const TrackSlider = (props: SliderProps) => {
           style={{ top: props.tooltipTop }}
           className={`${
             props.tooltipClassName ?? ""
-          } absolute left-7 w-16 h-5 flex font-semibold items-center justify-center backdrop-blur border border-slate-300 rounded text-xs`}
+          } absolute left-7 w-16 h-5 flex font-semibold items-center justify-center border border-slate-300 rounded text-xs`}
         >
           {props.tooltipContent}
         </div>
@@ -121,7 +121,7 @@ export const VolumeSlider = (props: { trackId: TrackId }) => {
         onMouseUp={() => setDraggingVolume(false)}
         showTooltip={draggingVolume}
         tooltipTop={sliderTop}
-        tooltipClassName="bg-emerald-700/80"
+        tooltipClassName="bg-emerald-700"
         tooltipContent={`${volume.toFixed(0)}dB`}
       />
     </div>
@@ -180,7 +180,7 @@ export const PanSlider = (props: { trackId: TrackId }) => {
         onMouseUp={() => setDraggingPan(false)}
         showTooltip={draggingPan}
         tooltipTop={sliderTop}
-        tooltipClassName="bg-teal-700/80"
+        tooltipClassName="bg-teal-700"
         tooltipContent={`${leftPercent}L • ${rightPercent}R`}
       />
     </div>

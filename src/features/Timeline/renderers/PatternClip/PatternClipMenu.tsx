@@ -10,7 +10,7 @@ export const PatternClipMenu = (props: { left: number; top: number }) => {
   return (
     <div
       style={{ left, top }}
-      className="absolute z-[31] text-xs flex flex-col gap-0.5 *:border-b font-light animate-in fade-in whitespace-nowrap w-48 p-[3px] px-1 rounded bg-slate-900/90 backdrop-blur text-emerald-300/80"
+      className="absolute z-[31] text-xs flex flex-col gap-0.5 *:border-b font-light animate-in fade-in whitespace-nowrap w-48 p-[3px] px-1 rounded bg-slate-900 text-emerald-300/80"
     >
       <div className="text-emerald-300/80">Left Click to Edit Pattern</div>
       <div className="text-cyan-300/80">Right Click to Edit Clips</div>

@@ -145,7 +145,6 @@ export const promptUserForPattern =
         </span>,
         promptLineBreak,
         `Rule #5: You can import from file (with "midi" or "wav")`,
-        `Rule #6: You can record with your microphone (with "record")`,
         promptLineBreak,
         `Please input your request:`,
       ],

@@ -7,7 +7,6 @@ import {
   GiCompactDisc,
   GiLoad,
   GiMirrorMirror,
-  GiSave,
   GiSoundWaves,
 } from "react-icons/gi";
 import classNames from "classnames";
@@ -15,7 +14,6 @@ import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { setProjectName } from "types/Meta/MetaSlice";
 import { selectProjectId, selectProjectName } from "types/Meta/MetaSelectors";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
-import { promptUserForProjects } from "types/Project/ProjectLoaders";
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { exportProjectToMIDI } from "types/Project/ProjectExporters";
 import {
@@ -64,7 +62,7 @@ export function NavbarProjectMenu() {
       <NavbarHoverTooltip
         borderColor="border-indigo-500"
         top="top-8"
-        bgColor="bg-radial from-slate-900 to-zinc-900 -left-8 backdrop-blur"
+        bgColor="bg-radial from-slate-900 to-zinc-900 -left-8"
       >
         <div className="size-full py-1 space-y-1.5 min-w-48">
           {/* Project Name */}

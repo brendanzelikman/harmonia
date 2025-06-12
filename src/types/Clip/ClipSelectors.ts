@@ -1,7 +1,7 @@
 import { createSelector } from "reselect";
 import { createDeepSelector, createValueSelector } from "types/redux";
 import { getPatternDuration } from "types/Pattern/PatternFunctions";
-import { isPattern, Pattern, PatternId } from "types/Pattern/PatternTypes";
+import { isPattern } from "types/Pattern/PatternTypes";
 import { isPose } from "types/Pose/PoseTypes";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { TrackId } from "types/Track/TrackTypes";
@@ -26,10 +26,9 @@ import {
   poseClipAdapter,
 } from "./ClipSlice";
 import { Tick, Timed } from "types/units";
-import { mapValues, pick, uniqBy, values } from "lodash";
+import { mapValues, pick, values } from "lodash";
 import { getClipMotifId } from "./ClipTypes";
 import {
-  selectPatternById,
   selectPatternIds,
   selectPatternMap,
   selectPatternState,
@@ -278,10 +277,7 @@ export const selectPoseClipTickMap = createDeepSelector(
   [selectPoseClipMap],
   (clipMap) => {
     return Object.entries(clipMap).reduce((acc, [id, clip]) => {
-      if (!clip) return acc;
-      const tick = clip.tick ?? 0;
-      if (!acc[tick]) acc[tick] = [];
-      acc[tick].push(id as PoseClipId);
+      (acc[clip.tick] ??= []).push(id as PoseClipId);
       return acc;
     }, {} as Record<Tick, PoseClipId[]>);
   }

@@ -17,7 +17,6 @@ import {
   selectIsSlicingClips,
   selectIsAddingPortals,
   selectHasPortalFragment,
-  selectSelectedClips,
   selectSelectedTrackId,
 } from "types/Timeline/TimelineSelectors";
 import {
@@ -33,11 +32,12 @@ import { useTick } from "types/Transport/TransportTick";
 import { clamp } from "lodash";
 import { selectGame } from "types/Game/GameSelectors";
 import {
+  startTransport,
   STOP_TRANSPORT,
   useTransportState,
 } from "types/Transport/TransportState";
 import { GameRank } from "types/Game/GameTypes";
-import { evaluateGameRank, resetGame } from "types/Game/GameThunks";
+import { evaluateGameRank, deleteGamePoses } from "types/Game/GameThunks";
 import { GiStarSwirl } from "react-icons/gi";
 import { useEvent } from "hooks/useEvent";
 
@@ -129,7 +129,6 @@ const TimelineTopLeftCorner = () => {
   const tree = useToggle("inputTree");
   const selectedTrackId = useAppValue(selectSelectedTrackId);
   const labelMap = useAppValue(selectTrackLabelMap);
-  const hasClips = !!useAppValue(selectSelectedClips).length;
 
   const dispatch = useAppDispatch();
   const tick = useTick();
@@ -141,7 +140,7 @@ const TimelineTopLeftCorner = () => {
   const lastTick = Math.max(0, ...actions.map((a) => a?.tick ?? 0));
   const [rank, setRank] = useState<GameRank | undefined>();
   const [shouldRank, setShouldRank] = useState(false);
-  useEvent(STOP_TRANSPORT, () => dispatch(resetGame()));
+  useEvent(STOP_TRANSPORT, () => dispatch(deleteGamePoses()));
   useEffect(() => {
     if (state !== "started") {
       setShouldRank(false);
@@ -164,17 +163,25 @@ const TimelineTopLeftCorner = () => {
 
   const Game = (
     <div className="w-full relative overflow-hidden">
-      <div className="w-2 rounded-sm h-16 ml-4 bg-emerald-500" />
+      <div
+        className="rounded-sm h-16 bg-emerald-500"
+        style={{ width: GAME_CURSOR_WIDTH, marginLeft: GAME_CURSOR_LEFT }}
+      />
       {tick === 0 && (
-        <div className="absolute flex flex-col top-2.5 left-8">
+        <div
+          className={classNames(
+            "absolute flex flex-col top-2.5 left-8",
+            canGame ? "cursor-pointer" : "cursor-default"
+          )}
+          onClick={() => (canGame ? dispatch(startTransport()) : null)}
+        >
           <div className="text-fuchsia-300 text-base">
-            {" "}
             Rhythm Game Available
           </div>
           <div className="text-slate-300 font-light text-sm">
             {!canGame
               ? `Select Track (${labelMap[game.trackId!]}) To Play`
-              : `Ready When You Are!`}
+              : `Start When You Are Ready!`}
           </div>
         </div>
       )}
@@ -182,26 +189,30 @@ const TimelineTopLeftCorner = () => {
         !!tick &&
         actions.map((action, i) =>
           !!action ? (
-            <div
-              key={i}
-              className="absolute capitalize w-min flex flex-col border border-fuchsia-300 text-xl rounded inset-0 font-bold bg-fuchsia-400/50 p-2"
-              style={{
-                left: action.tick - tick,
-                opacity:
-                  tick + 8 > action.tick || tick - action.tick > TRACK_WIDTH
-                    ? 0
-                    : !tick || action.tick - tick < 30
-                    ? 1
-                    : clamp(
-                        (TRACK_WIDTH - (action.tick - tick)) / TRACK_WIDTH,
-                        0,
-                        1
-                      ),
-              }}
-            >
-              <span>{action.key}</span>
-              <span>{action.value}</span>
-            </div>
+            tick - GAME_CURSOR_LEFT + GAME_CURSOR_WIDTH + GAME_OPACITY_PADDING >
+              action.tick ||
+            tick - action.tick - GAME_CURSOR_LEFT - GAME_OPACITY_PADDING >
+              TRACK_WIDTH ? null : (
+              <div
+                key={i}
+                className="absolute capitalize w-min flex flex-col border border-fuchsia-300 text-xl rounded inset-0 font-bold bg-fuchsia-400/50 p-2"
+                style={{
+                  marginLeft: GAME_CURSOR_LEFT,
+                  left: action.tick - tick,
+                  opacity:
+                    !tick || action.tick - tick < 30
+                      ? 1
+                      : clamp(
+                          (TRACK_WIDTH - (action.tick - tick)) / TRACK_WIDTH,
+                          0,
+                          1
+                        ),
+                }}
+              >
+                <span>{action.key}</span>
+                <span>{action.value}</span>
+              </div>
+            )
           ) : null
         )}
     </div>
@@ -238,18 +249,13 @@ const TimelineTopLeftCorner = () => {
       </div>
       <div className="text-slate-400 text-sm">(Click on a Cell in a Track)</div>
     </>
-  ) : hasClips ? (
-    <>
-      <div className="text-base font-light">Selected Clips</div>
-      <div className="text-slate-400 text-sm">(Drag and Drop to Move )</div>
-    </>
   ) : (
     <></>
   );
   return (
     <div
       className={classNames(
-        "sticky border-2 *:animate-in *:fade-in *:select-none *:duration-300 transition-colors duration-300 size-full total-center-col text-white inset-0 -mb-20 z-[95] bg-gray-900",
+        "sticky border-2 *:animate-in *:fade-in *:duration-300 transition-colors duration-300 size-full total-center-col text-white inset-0 -mb-20 z-[95] bg-gray-900",
         tree.isOpen
           ? "border-sky-500"
           : isAddingPatterns
@@ -262,8 +268,6 @@ const TimelineTopLeftCorner = () => {
           ? hasFragment
             ? "border-orange-500"
             : "border-sky-500"
-          : hasClips
-          ? "border-teal-500"
           : "border-white/0"
       )}
       style={{ width: TRACK_WIDTH, height: HEADER_HEIGHT }}
@@ -272,3 +276,7 @@ const TimelineTopLeftCorner = () => {
     </div>
   );
 };
+
+const GAME_CURSOR_WIDTH = 8;
+const GAME_CURSOR_LEFT = 16;
+const GAME_OPACITY_PADDING = 2;

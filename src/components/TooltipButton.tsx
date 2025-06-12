@@ -42,7 +42,7 @@ export const NavbarTooltipButton = (props: TooltipButtonProps) => (
     {...props}
     className={classNames(
       props.className,
-      `rounded-full min-w-8 min-h-8 shrink-0 transition-all`
+      `rounded-full size-9 shrink-0 transition-all`
     )}
     direction="vertical"
   />

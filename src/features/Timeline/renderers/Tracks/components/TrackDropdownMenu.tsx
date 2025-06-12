@@ -91,7 +91,7 @@ export const TrackDropdownMenu = (props: {
             </MenuButton>
           </div>
           <MenuItems
-            className="absolute top-0 -right-[14rem] w-52 bg-zinc-900/95 border border-slate-600 backdrop-blur rounded py-2 select-none focus:outline-none animate-in fade-in"
+            className="absolute top-0 -right-[14rem] w-52 bg-slate-900 border border-slate-600 rounded py-2 select-none focus:outline-none animate-in fade-in"
             onClick={(e) => e.stopPropagation()}
           >
             <TabGroup>

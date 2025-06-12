@@ -46,7 +46,7 @@ export function NavbarVolume() {
       <div className="animate-in fade-in absolute hidden group-hover:block -left-8 p-4 top-8 w-32 h-48">
         <div
           className={classNames(
-            "bg-slate-900 backdrop-blur flex flex-col rounded size-full transition-all duration-300 relative border-2 border-emerald-500/80"
+            "bg-slate-900 flex flex-col rounded size-full transition-all duration-300 relative border-2 border-emerald-500/80"
           )}
         >
           <input

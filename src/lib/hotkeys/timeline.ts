@@ -28,9 +28,16 @@ import {
 } from "types/Timeline/thunks/TimelineClipThunks";
 import {
   GiCrystalWand,
+  GiEating,
+  GiFilmProjector,
+  GiGhost,
+  GiLightProjector,
+  GiLinkedRings,
+  GiMailbox,
   GiPencil,
   GiPineTree,
   GiSeedling,
+  GiWateringCan,
 } from "react-icons/gi";
 import { addPosesToGame } from "types/Game/GameThunks";
 import { resetGame } from "types/Game/GameSlice";
@@ -40,20 +47,20 @@ import { resetGame } from "types/Game/GameSlice";
 // -----------------------------------------------
 
 export const WaterTreeHotkey: Hotkey = {
-  name: "Develop Tree",
+  name: "Grow Tree",
   description: "Quickstart and develop a project",
   shortcut: "g",
   callback: (dispatch) => dispatch(toggleLivePlay()),
 };
-export const WaterTreeIcon = GiSeedling;
+export const WaterTreeIcon = GiWateringCan;
 
 export const SampleProjectHotkey: Hotkey = {
-  name: "Import Project",
+  name: "Encapsulate Project",
   description: "Upload the notes of a project by file",
-  shortcut: "i",
+  shortcut: "u",
   callback: (dispatch) => dispatch(sampleProject()),
 };
-export const SampleProjectIcon = GiPineTree;
+export const SampleProjectIcon = GiMailbox;
 
 export const ArrangePatternsHotkey: Hotkey = {
   name: "Create Pattern",

@@ -316,115 +316,124 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   return (
     <div
       data-open={isOpen}
-      className="w-full bg-gradient-to-t from-sky-950/95 to-sky-900/90 top-6 min-w-[600px] [data-open=false]:hidden [data-open=true]:flex bg-transparent animate-in fade-in slide-in-from-top-2 slide-in-from-left-2 flex-col rounded-b-lg cursor-default z-20 font-thin whitespace-nowrap"
+      data-projection={!!pattern.projectId}
+      className="w-full bg-gradient-to-t from-sky-950 to-sky-900 data-[projection=true]:to-emerald-900 top-6 min-w-[600px] [data-open=false]:hidden [data-open=true]:flex bg-transparent animate-in fade-in slide-in-from-top-2 slide-in-from-left-2 flex-col rounded-b-lg cursor-default z-20 font-thin whitespace-nowrap"
       onClick={cancelEvent}
     >
       <div className="relative flex flex-col size-full min-w-min">
         {Score}
-        <div className="flex gap-12 p-2 px-4">
-          <div
-            className={"flex flex-col items-center gap-1 *:last:mt-3 relative"}
-          >
-            <div className="text-emerald-300 capitalize">Inputting {input}</div>
-            <DropdownDurationButtons
-              id={patternId}
-              index={index}
-              duration={duration}
-              setDuration={setDuration}
-              holdingDot={heldKeys[getKeyCode(".")]}
-              holdingTriplet={heldKeys[getKeyCode("/")]}
-            />
-            <DropdownDurationShortcuts />
-          </div>
-          <div className={"total-center-col gap-1 relative"}>
-            <div className="text-emerald-300">
-              {isEditing
-                ? `Selected: ${labels}`
-                : isEmpty
-                ? "Add Note to Edit Pattern"
-                : "Click Note to Edit Properties"}
-            </div>
-            <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
-              {ToggleInsert}
-              {ToggleLock}
-              {ToggleCursor}
-              {BindNote}
-              {EraseNote}
-              {TogglePiano}
-            </div>
-            <div className="mx-auto capitalize text-emerald-300 max-w-64 overflow-scroll">
-              {mode === "piano" ? "Play Piano" : "Click Buttons"} to{" "}
-              {isInserting ? "Insert" : isEditing ? "Edit" : "Add"}{" "}
-              {isBinding ? "Scale" : "Pedal"} Note
-            </div>
-            <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
-              {GeneratePattern}
-              {InputPattern}
-              {TransformPattern}
-              {BindNotes}
-              {LockNotes}
-              {ClearPattern}
-            </div>
-          </div>
-        </div>
-        {mode === "piano" ? (
-          <Piano
-            className="animate-in border-t-8 border-t-emerald-500 fade-in w-min max-w-[600px] overflow-scroll"
-            show
-            noteRange={noteRange}
-            playNote={(_, midi) =>
-              playNote({
-                MIDI: midi,
-                trackId: type === "scale" ? trackId : undefined,
-              })
-            }
-            scale={scale}
-            width={896}
-            keyWidthToHeight={0.14}
-          />
-        ) : (
-          <div className="w-[600px] min-h-38 border-t-8 border-t-emerald-500 bg-slate-800 flex flex-col p-2 gap-2 text-slate-50 overflow-scroll">
-            {chain.map((scale, i) => (
-              <div className="flex" key={scale.id}>
-                <div className="flex font-bold flex-col gap-1">
-                  Scale {chainLabels[i]}:
-                  <div className="flex gap-2 font-light overflow-scroll">
-                    {scale.notes.map((_, j) => (
-                      <div
-                        className="size-8 rounded-full border border-slate-400 bg-sky-800 hover:opacity-85 shrink-0 total-center cursor-pointer"
-                        key={`${scale.id}-${j}`}
-                        onClick={() =>
-                          playNote({
-                            scaleId: scale.id,
-                            degree: j,
-                            offset: chainOffsets,
-                          })
-                        }
-                      >
-                        {j + 1}
-                      </div>
-                    ))}
-                  </div>
+        {!pattern.projectId && (
+          <>
+            <div className="flex gap-12 p-2 px-4">
+              <div
+                className={
+                  "flex flex-col items-center gap-1 *:last:mt-3 relative"
+                }
+              >
+                <div className="text-emerald-300 capitalize">
+                  Inputting {input}
                 </div>
-                <div className="flex font-bold flex-col gap-1 ml-auto text-right">
-                  Offset {chainLabels[i]}:
-                  <div className="flex gap-2 items-center">
-                    <SyncedNumericalForm
-                      value={chainOffsets[scale.id] ?? 0}
-                      setValue={(value) => setChainOffset(scale.id, value)}
-                      min={-12}
-                      max={12}
-                      className="w-12 h-7 font-light rounded-md border bg-sky-800 shrink-0 total-center"
-                    />
-                    <BsArrowClockwise
-                      className="bg-sky-800/50 size-7 p-1.5 rounded-lg cursor-pointer hover:text-slate-300 border border-slate-500"
-                      onClick={() => setChainOffset(scale.id, 0)}
-                    />
-                  </div>
+                <DropdownDurationButtons
+                  id={patternId}
+                  index={index}
+                  duration={duration}
+                  setDuration={setDuration}
+                  holdingDot={heldKeys[getKeyCode(".")]}
+                  holdingTriplet={heldKeys[getKeyCode("/")]}
+                />
+                <DropdownDurationShortcuts />
+              </div>
+              <div className={"total-center-col gap-1 relative"}>
+                <div className="text-emerald-300">
+                  {isEditing
+                    ? `Selected: ${labels}`
+                    : isEmpty
+                    ? "Add Note to Edit Pattern"
+                    : "Click Note to Edit Properties"}
+                </div>
+                <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
+                  {ToggleInsert}
+                  {ToggleLock}
+                  {ToggleCursor}
+                  {BindNote}
+                  {EraseNote}
+                  {TogglePiano}
+                </div>
+                <div className="mx-auto capitalize text-emerald-300 max-w-64 overflow-scroll">
+                  {mode === "piano" ? "Play Piano" : "Click Buttons"} to{" "}
+                  {isInserting ? "Insert" : isEditing ? "Edit" : "Add"}{" "}
+                  {isBinding ? "Scale" : "Pedal"} Note
+                </div>
+                <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
+                  {GeneratePattern}
+                  {InputPattern}
+                  {TransformPattern}
+                  {BindNotes}
+                  {LockNotes}
+                  {ClearPattern}
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+            {mode === "piano" ? (
+              <Piano
+                className="animate-in border-t-8 border-t-emerald-500 fade-in w-min max-w-[600px] overflow-scroll"
+                show
+                noteRange={noteRange}
+                playNote={(_, midi) =>
+                  playNote({
+                    MIDI: midi,
+                    trackId: type === "scale" ? trackId : undefined,
+                  })
+                }
+                scale={scale}
+                width={896}
+                keyWidthToHeight={0.14}
+              />
+            ) : (
+              <div className="w-[600px] min-h-38 border-t-8 border-t-emerald-500 bg-slate-800 flex flex-col p-2 gap-2 text-slate-50 overflow-scroll">
+                {chain.map((scale, i) => (
+                  <div className="flex" key={scale.id}>
+                    <div className="flex font-bold flex-col gap-1">
+                      Scale {chainLabels[i]}:
+                      <div className="flex gap-2 font-light overflow-scroll">
+                        {scale.notes.map((_, j) => (
+                          <div
+                            className="size-8 rounded-full border border-slate-400 bg-sky-800 hover:opacity-85 shrink-0 total-center cursor-pointer"
+                            key={`${scale.id}-${j}`}
+                            onClick={() =>
+                              playNote({
+                                scaleId: scale.id,
+                                degree: j,
+                                offset: chainOffsets,
+                              })
+                            }
+                          >
+                            {j + 1}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex font-bold flex-col gap-1 ml-auto text-right">
+                      Offset {chainLabels[i]}:
+                      <div className="flex gap-2 items-center">
+                        <SyncedNumericalForm
+                          value={chainOffsets[scale.id] ?? 0}
+                          setValue={(value) => setChainOffset(scale.id, value)}
+                          min={-12}
+                          max={12}
+                          className="w-12 h-7 font-light rounded-md border bg-sky-800 shrink-0 total-center"
+                        />
+                        <BsArrowClockwise
+                          className="bg-sky-800/50 size-7 p-1.5 rounded-lg cursor-pointer hover:text-slate-300 border border-slate-500"
+                          onClick={() => setChainOffset(scale.id, 0)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -513,7 +522,7 @@ const DropdownButton = (props: {
         <div
           className={classNames(
             theme.dropdownColor,
-            "absolute px-2 peer-hover:flex hidden animate-in fade-in top-10 z-10 backdrop-blur border overflow-hidden text-slate-50 rounded-lg gap-2"
+            "absolute px-2 peer-hover:flex hidden animate-in fade-in top-10 z-10 border overflow-hidden text-slate-50 rounded-lg gap-2"
           )}
         >
           {props.dropdown}

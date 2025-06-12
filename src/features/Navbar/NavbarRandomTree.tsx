@@ -14,7 +14,7 @@ export const NavbarRandomTree = () => {
     <NavbarTooltipButton
       keepTooltipOnClick
       className={classNames(
-        "select-none bg-radial from-fuchsia-900/70 to-fuchsia-500/70 border border-fuchsia-500 hover:ring-2 hover:ring-slate-300 size-9 p-1"
+        "select-none bg-radial from-fuchsia-900/70 to-fuchsia-500/70 border border-fuchsia-500 hover:ring-2 hover:ring-slate-300 p-1"
       )}
       borderColor="border-fuchsia-400/80"
       onClick={() => dispatch(createRandomTree())}

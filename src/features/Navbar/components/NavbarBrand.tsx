@@ -75,7 +75,7 @@ export function NavbarBrand() {
   return (
     <>
       {show && (
-        <div className="fixed w-[303px] h-screen overflow-scroll bg-slate-950/80 border-r-2 border-r-slate-700 animate-in fade-in duration-150 backdrop-blur top-nav left-0">
+        <div className="fixed w-[303px] h-screen overflow-scroll bg-slate-900 border-r-2 border-r-slate-700 animate-in fade-in duration-150 top-nav left-0">
           <div className="flex flex-col h-full p-4 gap-4">
             <Link
               to={onMain ? SPLASH : CALCULATOR}

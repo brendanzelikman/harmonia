@@ -94,6 +94,7 @@ export const zerodown = (): Thunk => (dispatch, getProject) => {
   // Handle mixing events
   if (getHeldKey("m") || getHeldKey("s")) {
     dispatch(resetSamplersGesture());
+    return;
   }
 
   // Handle pose updates for selected pose clips
