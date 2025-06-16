@@ -29,5 +29,6 @@ export function useTransport() {
     };
   }, [projectId]);
 
+  // Return the load state of the transport
   return !!transport.isOpen;
 }

@@ -5,8 +5,7 @@ import { REDO_PROJECT, reducer, SET_PROJECT, UNDO_PROJECT } from "./reducer";
 import { sanitizeProject, timestampProject } from "types/Project/ProjectTypes";
 import { defaultProject, Project } from "types/Project/ProjectTypes";
 import { convertProjectToNotes } from "types/Timeline/TimelineThunks";
-import { autoBindNoteToTrack } from "types/Track/TrackUtils";
-import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
+import { autoBindStreamToTrack } from "types/Track/TrackUtils";
 import { selectPatternClips } from "types/Clip/ClipSelectors";
 
 // ------------------------------------------------------------
@@ -27,26 +26,25 @@ store.subscribe(async () => {
   updateProject(updatedProject);
 });
 
-/** Directly set the project */
+/** Directly set the project with a payload */
 export const setProject = async (payload: Project) => {
   const patterns = payload.present.patterns;
+
+  // Populate the encapsulated patterns of the project
   for (const id of patterns.ids) {
     const pattern = patterns.entities[id];
-    if (pattern.projectId) {
-      const project = await getProject(pattern.projectId);
-      if (!project) continue;
-      const stream = convertProjectToNotes(project);
-      const clip = selectPatternClips(payload).find(
-        (clip) => clip.patternId === pattern.id
-      );
-      const boundStream = stream.map((b) =>
-        getPatternBlockWithNewNotes(b, (n) =>
-          n.map((n) => store.dispatch(autoBindNoteToTrack(clip?.trackId, n)))
-        )
-      );
-      pattern.stream = boundStream;
-    }
+    if (!pattern?.projectId) continue;
+    const project = await getProject(pattern.projectId);
+    if (!project) continue;
+    const stream = convertProjectToNotes(project);
+    const patternClips = selectPatternClips(payload);
+    const clip = patternClips.find((clip) => clip.patternId === pattern.id);
+    const trackId = clip?.trackId;
+    const boundStream = store.dispatch(autoBindStreamToTrack(trackId, stream));
+    pattern.stream = boundStream;
   }
+
+  // Dispatch the action
   store.dispatch({ type: SET_PROJECT, payload });
 };
 

@@ -5,7 +5,8 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { loadDemoProject } from "types/Project/ProjectLoaders";
 
-export const useRedirects = () => {
+/** Redirect the user to the calculator on specific routes. */
+export const useCalculatorAliases = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const redirect = () => navigate(CALCULATOR);

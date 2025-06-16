@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { dispatchClose } from "hooks/useToggle";
 import { m } from "framer-motion";
 import { TutorialExposition } from "./TutorialExposition";
 import { TutorialDevelopment } from "./TutorialDevelopment";
@@ -7,20 +6,18 @@ import { TutorialRecapitulation } from "./TutorialRecapitulation";
 import { TutorialCoda } from "./TutorialCoda";
 import { TutorialIntroduction } from "./TutorialIntroduction";
 import Background from "/background.png";
+import { useAppValue } from "hooks/useRedux";
+import { selectHasTracks } from "types/Track/TrackSelectors";
 
 export default function Tutorial() {
+  const hasTracks = useAppValue(selectHasTracks);
+
   // Keep track of the current viewed
   const [view, setView] = useState("introduction");
   const [tutorial, setTutorial] = useState(true);
 
   // Keep track of which tabs the user has visited
-  const [visited, setVisited] = useState<Record<string, boolean>>({
-    introduction: true,
-    exposition: false,
-    development: false,
-    recapitulation: false,
-    coda: false,
-  });
+  const [visited, setVisited] = useState<Record<string, boolean>>(defaultState);
   const visit = (view: string) => {
     setView(view);
     if (!visited[view]) setVisited((prev) => ({ ...prev, [view]: true }));
@@ -28,11 +25,13 @@ export default function Tutorial() {
 
   // Close the live play menu when the component unmounts
   useEffect(() => {
-    return () => {
-      setTimeout(() => dispatchClose("livePlay"), 50);
-    };
-  }, []);
+    if (hasTracks) {
+      setView("introduction");
+      setVisited(defaultState);
+    }
+  }, [hasTracks]);
 
+  if (hasTracks) return null;
   return (
     <div className="size-full flex flex-col overflow-scroll items-center gap-8 max-lg:px-10 pt-8 pb-4 fixed z-[200] inset-0 top-35 bg-slate-950/60">
       <img
@@ -135,4 +134,12 @@ export default function Tutorial() {
 const variants = {
   hidden: { scaleX: 0 },
   visible: { scaleX: 1 },
+};
+
+const defaultState = {
+  introduction: true,
+  exposition: false,
+  development: false,
+  recapitulation: false,
+  coda: false,
 };

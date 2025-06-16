@@ -31,7 +31,10 @@ export async function getProject(id?: string): Promise<Project | undefined> {
 }
 
 /** Upload a project, resolving to true if successful. */
-export async function uploadProject(project?: Project, newId = false) {
+export async function uploadProject(
+  project?: Project,
+  newId = false
+): Promise<Project | undefined> {
   const db = await getDatabase();
   if (!db) return;
   let newProject = project || (newId ? undefined : initializeProject());
@@ -42,6 +45,7 @@ export async function uploadProject(project?: Project, newId = false) {
   const id = await db.put(PROJECT_STORE, newProject);
   setCurrentProjectId(id.toString());
   dispatchCustomEvent(UPDATE_PROJECT_EVENT);
+  return newProject;
 }
 
 /** Update the project, resolving to true if successful. */

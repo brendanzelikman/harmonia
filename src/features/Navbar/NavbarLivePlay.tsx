@@ -1,11 +1,6 @@
 import classNames from "classnames";
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
-import {
-  GiCalculator,
-  GiHand,
-  GiJackPlug,
-  GiMisdirection,
-} from "react-icons/gi";
+import { GiHand, GiJackPlug, GiMisdirection } from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
   selectIsSelectingPoseClips,
@@ -26,8 +21,7 @@ import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSe
 import { useGestures } from "lib/gestures";
 import { TooltipButton } from "components/TooltipButton";
 import { selectHasTracks } from "types/Track/TrackSelectors";
-import { CHORDAL_KEY, TRACK_WIDTH } from "utils/constants";
-import { useToggle } from "hooks/useToggle";
+import { CHORDAL_KEY } from "utils/constants";
 import { getKeyCode } from "hooks/useHeldkeys";
 import { ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
@@ -447,8 +441,7 @@ export const NavbarLivePlay = () => {
       isVoiceLeadingDegree ||
       isHoldingScale);
 
-  const signal = useToggle("livePlay");
-  const isActive = working || hasTracks || signal.isOpen;
+  const isActive = working || hasTracks;
 
   const Span = useCallback((label: string, active = false, slow = false) => {
     return (
@@ -487,9 +480,8 @@ export const NavbarLivePlay = () => {
   return (
     <TooltipButton
       direction="vertical"
-      override={signal.isOpen}
-      active={hasTracks && (working || signal.isOpen)}
-      freezeInside={working || signal.isOpen}
+      active={hasTracks && working}
+      freezeInside={working}
       hideRing
       activeLabel={
         isMixing ? (
@@ -543,7 +535,7 @@ export const NavbarLivePlay = () => {
       className={classNames(
         "shrink-0 relative rounded-full select-none cursor-pointer",
         "flex total-center hover:text-fuchsia-300 p-1 bg-fuchsia-700/80 border border-fuchsia-500 font-light",
-        working || signal.isOpen ? "text-fuchsia-200" : "text-fuchsia-100"
+        working ? "text-fuchsia-200" : "text-fuchsia-100"
       )}
       label={
         <div className="text-white animate-in fade-in duration-300">

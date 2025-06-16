@@ -59,9 +59,8 @@ export const getDegreeOfNoteInTrack =
   };
 
 export const autoBindStreamToTrack =
-  (trackId?: TrackId, stream?: PatternStream): Thunk<PatternStream> =>
+  (trackId?: TrackId, stream: PatternStream = []): Thunk<PatternStream> =>
   (dispatch) => {
-    if (!trackId || !stream) return [];
     return stream.map((b) =>
       getPatternBlockWithNewNotes(b, (n) =>
         n.map((n) => dispatch(autoBindNoteToTrack(trackId, n)))

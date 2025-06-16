@@ -11,7 +11,7 @@ import { selectProjectId } from "types/Meta/MetaSelectors";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 
 /** Load the current project or upload a new one */
-export function useProjects() {
+export function useCurrentProject() {
   const { data } = useFetch(async () => {
     const id = getCurrentProjectId();
     const project = await getProject(id);
@@ -30,10 +30,11 @@ export function useProjects() {
       setProject(project);
       return project;
     } else {
-      uploadProject();
+      return uploadProject();
     }
   }, UPDATE_PROJECT_EVENT);
 
   // Return the load state
-  return !!data;
+  const isLoaded = !!data;
+  return isLoaded;
 }

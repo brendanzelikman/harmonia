@@ -1,21 +1,15 @@
 import { useAppDispatch } from "hooks/useRedux";
-import { HotkeyMap, hotkeyMap } from "lib/hotkeys";
+import { HotkeyMap } from "lib/hotkeys";
 import { useEffect } from "react";
 import { isInputEvent } from "utils/event";
-import { useToggle } from "./useToggle";
-import { ToggleKeyboardHotkey } from "lib/hotkeys/global";
 
 type HotkeyEvent = "keydown" | "keypress" | "keyup";
 
 export function useHotkeys(
   hotkeyMap: HotkeyMap,
-  event: HotkeyEvent = "keydown",
-  scope: string = "all"
+  event: HotkeyEvent = "keydown"
 ) {
   const dispatch = useAppDispatch();
-  const onKeyboard = useToggle(`keyboard`).isOpen;
-  const outOfScope = onKeyboard !== (scope === "keyboard");
-  const disabled = scope !== "all" && outOfScope;
 
   useEffect(() => {
     // Register non-input keydown event listener
@@ -29,9 +23,6 @@ export function useHotkeys(
       if (metaKey && key !== "Meta") comboKey = "meta+" + comboKey;
       else if (ctrlKey && key !== "Ctrl") comboKey = "meta+" + comboKey;
       if (altKey && key !== "Alt") comboKey = "alt+" + comboKey;
-
-      // Check if the hotkeys are disabled
-      if (disabled && comboKey !== ToggleKeyboardHotkey.shortcut) return;
 
       // Check if the combo exists in the hotkey map
       const action = (hotkeyMap ?? hotkeyMap)[comboKey];
@@ -48,5 +39,5 @@ export function useHotkeys(
     return () => {
       document.removeEventListener(event, handleKeyPress);
     };
-  }, [hotkeyMap, disabled, dispatch, scope]);
+  }, [hotkeyMap, dispatch]);
 }

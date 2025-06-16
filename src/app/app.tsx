@@ -6,7 +6,7 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { LazyMotion, domAnimation } from "framer-motion";
 import _ from "lodash";
-import { useProjects } from "hooks/useProjects";
+import { useCurrentProject } from "hooks/useProjects";
 import { AppRouter } from "./router";
 
 // The root container for the application.
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // The app handles routes and sets up the projects
 function App() {
-  const isLoaded = useProjects();
+  const isLoaded = useCurrentProject();
   if (!isLoaded) return null;
   return (
     <Provider store={store}>

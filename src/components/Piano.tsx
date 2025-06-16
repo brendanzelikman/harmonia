@@ -9,7 +9,6 @@ import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { Sampler } from "tone";
 import { cancelEvent } from "utils/event";
 import { ScaleObject } from "types/Scale/ScaleTypes";
-import { useHotkeys } from "hooks/useHotkeys";
 import { useAppValue } from "hooks/useRedux";
 import { selectIsEditingTracks } from "types/Timeline/TimelineSelectors";
 import { HotkeyMap } from "lib/hotkeys";
@@ -118,11 +117,11 @@ export const Piano: React.FC<PianoProps> = (props) => {
       midiNumber: octave * 12 + i,
     }));
   }, [octave, onKeyboard, onEditor, override]);
-  const hotkeyMap = useMemo(() => {
-    if (onEditor && !override) return {} as HotkeyMap;
-    return { z: decreaseOctave, x: increaseOctave };
-  }, [onEditor, override]);
-  useHotkeys(hotkeyMap, "keydown", "keyboard");
+  // const hotkeyMap = useMemo(() => {
+  //   if (onEditor && !override) return {} as HotkeyMap;
+  //   return { z: decreaseOctave, x: increaseOctave };
+  // }, [onEditor, override]);
+  // useHotkeys(hotkeyMap, "keydown");
 
   if (!props.show) return null;
   return (

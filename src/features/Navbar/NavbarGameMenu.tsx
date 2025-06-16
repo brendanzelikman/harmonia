@@ -36,9 +36,9 @@ export function NavbarGameMenu() {
         bgColor="bg-radial from-slate-900 to-zinc-900 -left-8"
       >
         <div className="size-full min-w-60">
-          <div className="text-xl p-2 pb-0">Keyboard Challenges</div>
+          <div className="text-xl p-2 pb-0">Rhythm Games</div>
           <div className="text-base p-2 pt-0 text-fuchsia-300/80">
-            Pose-Based Rhythm Games
+            Press Keys To The Beat
           </div>
           <NavbarGameGroup
             disabled={!canGame}
@@ -59,7 +59,7 @@ export function NavbarGameMenu() {
 
           {!hasGame && (
             <p className="text-xs mt-1 px-1 text-slate-500">
-              Poses can only have one transposition.
+              Poses can only have one scalar offset.
             </p>
           )}
         </div>
