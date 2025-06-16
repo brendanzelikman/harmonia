@@ -1,5 +1,5 @@
 import { ComponentProps } from "react";
-import { GiCrystalWand, GiDrum } from "react-icons/gi";
+import { GiCrystalWand, GiDrum, GiJackPlug } from "react-icons/gi";
 import classNames from "classnames";
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
 import {
@@ -8,15 +8,17 @@ import {
 } from "features/Navbar/components/NavbarForm";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 import { addPosesToGame } from "types/Game/GameThunks";
-import { resetGame } from "types/Game/GameSlice";
+import { addGameActions, resetGame } from "types/Game/GameSlice";
 import { selectCanGame, selectHasGame } from "types/Game/GameSelectors";
 import { BsEraser } from "react-icons/bs";
+import { promptUserForString } from "lib/prompts/html";
+import { selectCurrentTimelineTick } from "types/Timeline/TimelineSelectors";
 
 export function NavbarGameMenu() {
   const dispatch = useAppDispatch();
   const hasGame = useAppValue(selectHasGame);
   const canGame = useAppValue(selectCanGame);
-
+  const tick = useAppValue(selectCurrentTimelineTick);
   return (
     <div className="group/tooltip relative shrink-0">
       {/* Button */}
@@ -35,7 +37,7 @@ export function NavbarGameMenu() {
         top="top-8"
         bgColor="bg-radial from-slate-900 to-zinc-900 -left-8"
       >
-        <div className="size-full min-w-60">
+        <div className="size-full min-w-60 space-y-1">
           <div className="text-xl p-2 pb-0">Rhythm Games</div>
           <div className="text-base p-2 pt-0 text-fuchsia-300/80">
             Press Keys To The Beat
@@ -48,6 +50,28 @@ export function NavbarGameMenu() {
               {!canGame ? "Select Poses for Game" : "Add Poses to Game"}
             </NavbarGameLabel>
             <GiCrystalWand className="ml-auto text-2xl" />
+          </NavbarGameGroup>
+
+          <NavbarGameGroup
+            onClick={promptUserForString({
+              title: "Add Command to Game",
+              description: "Enter a key and a value (e.g. Q5 or M0)",
+              callback: (string) => {
+                const regex = /^([a-zA-Z0-9]+)(-?\d+)$/;
+                if (!regex.test(string)) return;
+                const match = string.match(regex);
+                if (!match) return;
+                const key = match[1]?.toLowerCase();
+                const value = parseInt(match[2], 10);
+                if (!key || isNaN(value)) return;
+                dispatch(
+                  addGameActions({ data: { actions: [{ key, value, tick }] } })
+                );
+              },
+            })}
+          >
+            <NavbarGameLabel>Add Command to Game</NavbarGameLabel>
+            <GiJackPlug className="ml-auto text-2xl" />
           </NavbarGameGroup>
 
           {!!hasGame && (

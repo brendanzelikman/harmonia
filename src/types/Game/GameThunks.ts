@@ -62,11 +62,11 @@ export const addPosesToGame =
     for (const id of addedIds) {
       dispatch(removePoseClip({ data: id, undoType }));
     }
-    dispatch(updateGame({ trackId, undoType }));
+    dispatch(updateGame({ data: { trackId }, undoType }));
     if (replace) {
-      dispatch(updateGame({ actions, undoType }));
+      dispatch(updateGame({ data: { actions }, undoType }));
     } else {
-      dispatch(addGameActions({ actions, undoType }));
+      dispatch(addGameActions({ data: { actions }, undoType }));
     }
   };
 

@@ -5,6 +5,7 @@ import * as Tone from "tone";
 import { Thunk } from "types/Project/ProjectTypes";
 import { scheduleTransport } from "./TransportScheduler";
 import { dispatchTick } from "./TransportTick";
+import { getTransport } from "tone";
 
 // --------------------------------------------------------------
 // Events
@@ -65,8 +66,8 @@ export const pauseTransport = () => {
 export const stopTransport = () => {
   dispatchStopTransport();
   dispatchTick(0);
-  Tone.getTransport().cancel();
-  Tone.getTransport().stop();
+  getTransport().cancel();
+  getTransport().stop();
 };
 
 /** Toggle the transport between playing and paused/stopped. */
