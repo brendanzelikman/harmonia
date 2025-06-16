@@ -22,7 +22,7 @@ export function TimelineCursor() {
   const width = 2;
   const height = track?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
   const style = { height, top, width, left };
-  const bgColor = onPatternTrack ? "bg-emerald-500" : "bg-sky-500";
+  const bgColor = onPatternTrack ? "bg-emerald-600" : "bg-sky-500";
 
   // Hide the cursor if no track is selected
   if (!track) return null;

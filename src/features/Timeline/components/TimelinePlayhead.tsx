@@ -12,7 +12,7 @@ export function TimelinePlayhead() {
   const state = useTransportState();
   const cellWidth = useAppValue(selectCellWidth);
 
-  const width = cellWidth - 4;
+  const width = cellWidth / 2;
   const height = HEADER_HEIGHT;
   const marginTop = -HEADER_HEIGHT;
   const left = useAppValue((_) => selectTimelineTickLeft(_, tick));
@@ -24,7 +24,7 @@ export function TimelinePlayhead() {
       className="sticky w-full inset-0 z-50 pointer-events-none"
       style={{ height }}
     >
-      <div className="relative bg-green-500" style={style} />
+      <div className="relative bg-emerald-500 rounded-sm" style={style} />
     </div>
   );
 }
