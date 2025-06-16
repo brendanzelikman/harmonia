@@ -31,6 +31,7 @@ import {
   GiEating,
   GiFilmProjector,
   GiGhost,
+  GiLightBulb,
   GiLightProjector,
   GiLinkedRings,
   GiMailbox,
@@ -60,7 +61,7 @@ export const SampleProjectHotkey: Hotkey = {
   shortcut: "u",
   callback: (dispatch) => dispatch(sampleProject()),
 };
-export const SampleProjectIcon = GiMailbox;
+export const SampleProjectIcon = GiLightBulb;
 
 export const ArrangePatternsHotkey: Hotkey = {
   name: "Create Pattern",
