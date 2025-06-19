@@ -6,12 +6,14 @@ import Timeline from "features/Timeline/Timeline";
 
 export default function Calculator() {
   return (
-    <div className="size-full relative pt-nav">
-      <Timeline />
-      <Tutorial />
-      <Editor />
-      <Terminal />
-      <Shortcuts />
+    <div className="size-full pt-nav">
+      <div className="size-full relative">
+        <Timeline />
+        <Tutorial />
+        <Editor />
+        <Terminal />
+        <Shortcuts />
+      </div>
     </div>
   );
 }
