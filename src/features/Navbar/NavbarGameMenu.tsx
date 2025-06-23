@@ -1,5 +1,5 @@
 import { ComponentProps } from "react";
-import { GiCrystalWand, GiDrum, GiJackPlug } from "react-icons/gi";
+import { GiDrum, GiJackPlug } from "react-icons/gi";
 import classNames from "classnames";
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
 import {
@@ -13,6 +13,7 @@ import { selectCanGame, selectHasGame } from "types/Game/GameSelectors";
 import { BsEraser } from "react-icons/bs";
 import { promptUserForString } from "lib/prompts/html";
 import { selectCurrentTimelineTick } from "types/Timeline/TimelineSelectors";
+import { ArrangePoseIcon } from "lib/hotkeys/timeline";
 
 export function NavbarGameMenu() {
   const dispatch = useAppDispatch();
@@ -49,10 +50,11 @@ export function NavbarGameMenu() {
             <NavbarGameLabel>
               {!canGame ? "Select Poses for Game" : "Add Poses to Game"}
             </NavbarGameLabel>
-            <GiCrystalWand className="ml-auto text-2xl" />
+            <ArrangePoseIcon className="ml-auto text-2xl" />
           </NavbarGameGroup>
 
           <NavbarGameGroup
+            disabled={!hasGame}
             onClick={promptUserForString({
               title: "Add Command to Game",
               description: "Enter a key and a value (e.g. Q5 or M0)",
