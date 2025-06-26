@@ -5,7 +5,7 @@ import { tutorialVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
 import { LivePlayIcon } from "features/Navbar/NavbarLivePlay";
 import { useAppDispatch } from "hooks/useRedux";
-import { toggleLivePlay } from "types/Timeline/TimelineThunks";
+import { growTree } from "types/Timeline/TimelineThunks";
 
 export const TutorialDevelopment = (props: { view: string }) => {
   const dispatch = useAppDispatch();
@@ -23,7 +23,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
         title="Goal: Develop Your Scales"
         stripColor="border-b border-b-indigo-500/80"
         Icon={GiPineTree}
-        onClick={() => dispatch(toggleLivePlay())}
+        onClick={() => dispatch(growTree())}
         description={
           <>
             <div>Poses will have cascading effects in Trees.</div>
@@ -65,7 +65,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
         className="rounded-lg w-84"
         title="Goal: Develop Your Patterns"
         stripColor="border-b border-b-teal-500/80"
-        onClick={() => dispatch(toggleLivePlay())}
+        onClick={() => dispatch(growTree())}
         Icon={GiAbacus}
         description={
           <>
@@ -120,7 +120,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
         border="ring-fuchsia-600/80"
         title="Goal: Develop With Gestures"
         stripColor="border-b border-b-fuchsia-500/80"
-        onClick={() => dispatch(toggleLivePlay())}
+        onClick={() => dispatch(growTree())}
         Icon={() => <LivePlayIcon />}
         description={
           <>

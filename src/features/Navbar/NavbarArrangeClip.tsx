@@ -44,7 +44,45 @@ export const NavbarArrangeClip = (props: { type: ClipType }) => {
       )}
       borderColor={borderColor}
       label={
-        hasTracks ? undefined : (
+        hasTracks ? (
+          props.type === "pose" ? (
+            <>
+              Pose (Musical Effect)
+              <br />
+              <span className="text-gray-400 text-xs normal-case">
+                Press <span className="uppercase">P</span> to arrange a new
+                pose.
+              </span>
+              <br />
+              <span className="text-gray-400 text-xs normal-case">
+                Press V + 1-9 to store a pose.
+              </span>
+              <br />
+              <span className="text-gray-400 text-xs normal-case">
+                Press B + 1-9 to place a pose.
+              </span>
+              <br />
+            </>
+          ) : (
+            <>
+              Pattern (Musical Passage)
+              <br />
+              <span className="text-gray-400 text-xs normal-case">
+                Press <span className="uppercase">O</span> to arrange a new
+                pattern.
+              </span>
+              <br />
+              <span className="text-gray-400 text-xs normal-case">
+                Press Z + 1-9 to store a pattern.
+              </span>
+              <br />
+              <span className="text-gray-400 text-xs normal-case">
+                Press X + 1-9 to place a pattern.
+              </span>
+              <br />
+            </>
+          )
+        ) : (
           <span className={textColor}>Create Tree to Create {props.type}</span>
         )
       }

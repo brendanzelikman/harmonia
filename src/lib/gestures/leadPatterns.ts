@@ -47,9 +47,6 @@ export const leadPatternsToClosestNthPose =
       keys.push(...chainIds.slice(0, count));
     }
 
-    // If one key is pressed, push chordal as well
-    if (keys[0] !== "chordal" && !keys[1]) keys.push("chordal");
-
     // Construct the options
     const step = isNegative() ? -number : number;
     const spread = Math.max(5, number);

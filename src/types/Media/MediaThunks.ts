@@ -96,7 +96,7 @@ import { nanoid } from "@reduxjs/toolkit";
 import { removePattern } from "types/Pattern/PatternSlice";
 import { selectMidiChordsByTicks } from "types/Arrangement/ArrangementSelectors";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
-import { createCourtesyPatternClip } from "types/Track/PatternTrack/PatternTrackThunks";
+import { createNewPatternClip } from "types/Track/PatternTrack/PatternTrackThunks";
 
 /** Create a list of media and add it to the slice and hierarchy. */
 export const createMedia =
@@ -485,7 +485,7 @@ export const mergeSelectedMedia =
     const pattern = { stream };
     const clip = { trackId, tick };
     dispatch(
-      createCourtesyPatternClip({
+      createNewPatternClip({
         data: { pattern, clip, autobind: true },
         undoType,
       })

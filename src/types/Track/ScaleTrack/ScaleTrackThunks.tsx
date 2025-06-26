@@ -31,7 +31,7 @@ import {
 } from "types/redux";
 import { nanoid } from "@reduxjs/toolkit";
 import {
-  createCourtesyPatternClip,
+  createNewPatternClip,
   createPatternTrack,
 } from "../PatternTrack/PatternTrackThunks";
 import { addTrack } from "../TrackThunks";
@@ -190,7 +190,7 @@ export const createRandomTree = (): Thunk => (dispatch) => {
   );
   const clip = { trackId: track.id, tick: 0 };
   const options = { randomize: true, autobind: true };
-  dispatch(createCourtesyPatternClip({ data: { clip, ...options }, undoType }));
+  dispatch(createNewPatternClip({ data: { clip, ...options }, undoType }));
 };
 
 /** Create a hierarchy of drum-based Pattern Tracks within a chromatic Scale Track  */

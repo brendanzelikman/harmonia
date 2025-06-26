@@ -24,6 +24,8 @@ import { Action, unpackAction } from "types/redux";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { Portal } from "types/Portal/PortalTypes";
+import { Pattern } from "types/Pattern/PatternTypes";
+import { Pose } from "types/Pose/PoseTypes";
 
 // ------------------------------------------------------------
 // Timeline Slice Definition
@@ -136,6 +138,52 @@ export const timelineSlice = createSlice({
         state.selection.portalIds = portalIds;
       }
     },
+    /** Add a pattern to storage by index */
+    addPatternToStorage: (
+      state,
+      action: Action<{ index: number; pattern: Pattern | null }>
+    ) => {
+      const { index, pattern } = unpackAction(action);
+      if (!state.storage) state.storage = defaultTimeline.storage;
+      if (index < 0 || index >= state.storage.patterns.length) return;
+      state.storage.patterns[index] = pattern;
+    },
+    /** Add a pose to storage by index */
+    addPoseToStorage: (
+      state,
+      action: Action<{ index: number; pose: Pose | null }>
+    ) => {
+      const { index, pose } = unpackAction(action);
+      if (!state.storage) state.storage = defaultTimeline.storage;
+      if (index < 0 || index >= state.storage.poses.length) return;
+      state.storage.poses[index] = pose;
+    },
+    /** Remove a pattern from storage by index */
+    removePatternFromStorage: (state, action: Action<number>) => {
+      const index = unpackAction(action);
+      if (!state.storage) state.storage = defaultTimeline.storage;
+      if (index < 0 || index >= state.storage.patterns.length) return;
+      state.storage.patterns[index] = null;
+    },
+    /** Remove a pose from storage by index */
+    removePoseFromStorage: (state, action: Action<number>) => {
+      const index = unpackAction(action);
+      if (!state.storage) state.storage = defaultTimeline.storage;
+      if (index < 0 || index >= state.storage.poses.length) return;
+      state.storage.poses[index] = null;
+    },
+    /** Clear all patterns from storage */
+    clearPatternStorage: (state, _: Action<null>) => {
+      if (!state.storage) state.storage = defaultTimeline.storage;
+      state.storage.patterns = new Array(state.storage.patterns.length).fill(
+        null
+      );
+    },
+    /** Clear all poses from storage */
+    clearPoseStorage: (state, _: Action<null>) => {
+      if (!state.storage) state.storage = defaultTimeline.storage;
+      state.storage.poses = new Array(state.storage.poses.length).fill(null);
+    },
   },
 });
 
@@ -163,6 +211,12 @@ export const {
   updateClipboard,
   updateFragment,
   updateTimelineTick,
+  addPatternToStorage,
+  addPoseToStorage,
+  removePatternFromStorage,
+  removePoseFromStorage,
+  clearPatternStorage,
+  clearPoseStorage,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

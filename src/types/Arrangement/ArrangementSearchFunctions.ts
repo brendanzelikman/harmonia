@@ -118,6 +118,10 @@ export const getPatternStreamQuery = (
       vectorId = deps.chainIdsByTrack[deps.clip.trackId][1];
     } else if (vectorId === "scale-track_3") {
       vectorId = deps.chainIdsByTrack[deps.clip.trackId][2];
+    } else if (vectorId === "chordal") {
+      vectorId = "chordal";
+    } else if (vectorId === "octave") {
+      vectorId = "octave";
     } else {
       vectorId = "chromatic";
     }

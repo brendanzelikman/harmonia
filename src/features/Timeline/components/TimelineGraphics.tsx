@@ -40,7 +40,7 @@ import { GameRank } from "types/Game/GameTypes";
 import { evaluateGameRank, deleteGamePoses } from "types/Game/GameThunks";
 import { GiStarSwirl } from "react-icons/gi";
 import { useEvent } from "hooks/useEvent";
-import { resetGame } from "types/Game/GameSlice";
+import { resetGame, updateGame } from "types/Game/GameSlice";
 
 interface BackgroundProps {
   element?: HTMLDivElement;
@@ -202,7 +202,14 @@ const TimelineTopLeftCorner = () => {
               TRACK_WIDTH ? null : (
               <div
                 key={i}
-                className="absolute capitalize w-min flex flex-col border border-fuchsia-300 text-xl rounded inset-0 font-bold bg-fuchsia-400/50 p-2"
+                onClick={() =>
+                  dispatch(
+                    updateGame({
+                      data: { actions: actions.filter((_, j) => i !== j) },
+                    })
+                  )
+                }
+                className="absolute cursor-pointer capitalize w-min flex flex-col border border-fuchsia-300 text-xl rounded inset-0 font-bold bg-fuchsia-400/50 p-2"
                 style={{
                   marginLeft: GAME_CURSOR_LEFT,
                   left: action.tick - tick,

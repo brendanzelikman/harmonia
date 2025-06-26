@@ -11,7 +11,6 @@ import { cancelEvent } from "utils/event";
 import { ScaleObject } from "types/Scale/ScaleTypes";
 import { useAppValue } from "hooks/useRedux";
 import { selectIsEditingTracks } from "types/Timeline/TimelineSelectors";
-import { HotkeyMap } from "lib/hotkeys";
 import { useToggle } from "hooks/useToggle";
 
 interface PianoProps {
@@ -62,27 +61,6 @@ export const Piano: React.FC<PianoProps> = (props) => {
     return () => null;
   }, [props.stopNote, hasStop]);
 
-  // Synchronize with MIDI controller via WebMidi
-  // useEffect(() => {
-  //   // Attach a listener to each MIDI input
-  //   const onEnabled = () => {
-  //     WebMidi.inputs.forEach((input) => {
-  //       input.addListener("noteon", (e) => {
-  //         playNote(sampler, e.note.number);
-  //       });
-  //       input.addListener("noteoff", (e) => {
-  //         stopNote(sampler, e.note.number);
-  //       });
-  //     });
-  //   };
-  //   WebMidi.enable().then(onEnabled);
-  //   return () => {
-  //     WebMidi.inputs.forEach((input) => {
-  //       input.removeListener();
-  //     });
-  //   };
-  // }, [sampler, playNote, stopNote]);
-
   // Hotkeys for inputting sampler notes
   const onEditor = useAppValue(selectIsEditingTracks);
   const override = !!props.overrideHotkeys;
@@ -117,11 +95,6 @@ export const Piano: React.FC<PianoProps> = (props) => {
       midiNumber: octave * 12 + i,
     }));
   }, [octave, onKeyboard, onEditor, override]);
-  // const hotkeyMap = useMemo(() => {
-  //   if (onEditor && !override) return {} as HotkeyMap;
-  //   return { z: decreaseOctave, x: increaseOctave };
-  // }, [onEditor, override]);
-  // useHotkeys(hotkeyMap, "keydown");
 
   if (!props.show) return null;
   return (

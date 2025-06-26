@@ -3,7 +3,7 @@ import { TimelineButton } from "./components/TutorialButton";
 import { useAppDispatch } from "hooks/useRedux";
 import { CreateTreeIcon } from "lib/hotkeys/track";
 import { ArrangePatternIcon, ArrangePoseIcon } from "lib/hotkeys/timeline";
-import { toggleLivePlay } from "types/Timeline/TimelineThunks";
+import { growTree } from "types/Timeline/TimelineThunks";
 import { tutorialVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
 
@@ -58,7 +58,7 @@ export const TutorialRecapitulation = (props: { view: string }) => {
         title="Refresher: What is a Pattern?"
         stripColor="border-b border-b-teal-500/80"
         Icon={ArrangePatternIcon}
-        onClick={() => dispatch(toggleLivePlay())}
+        onClick={() => dispatch(growTree())}
         description={
           <>
             <div>
@@ -99,7 +99,7 @@ export const TutorialRecapitulation = (props: { view: string }) => {
         title="Refresher: What is a Pose?"
         stripColor="border-b border-b-fuchsia-500/80"
         Icon={ArrangePoseIcon}
-        onClick={() => dispatch(toggleLivePlay())}
+        onClick={() => dispatch(growTree())}
         description={
           <>
             <div>

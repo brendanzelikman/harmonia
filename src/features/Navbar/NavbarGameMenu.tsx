@@ -7,19 +7,26 @@ import {
   NavbarFormLabel,
 } from "features/Navbar/components/NavbarForm";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
-import { addPosesToGame } from "types/Game/GameThunks";
-import { addGameActions, resetGame } from "types/Game/GameSlice";
+import {
+  addPosesToGame,
+  promptUserForGameCommand,
+} from "types/Game/GameThunks";
+import { resetGame } from "types/Game/GameSlice";
 import { selectCanGame, selectHasGame } from "types/Game/GameSelectors";
 import { BsEraser } from "react-icons/bs";
-import { promptUserForString } from "lib/prompts/html";
-import { selectCurrentTimelineTick } from "types/Timeline/TimelineSelectors";
-import { ArrangePoseIcon } from "lib/hotkeys/timeline";
+import {
+  AddCommandToGameHotkey,
+  AddPosesToGameHotkey,
+  ArrangePoseIcon,
+  ResetGameHotkey,
+} from "lib/hotkeys/timeline";
+import { getHotkeyShortcut } from "lib/hotkeys";
+import { startTransport } from "types/Transport/TransportState";
 
 export function NavbarGameMenu() {
   const dispatch = useAppDispatch();
   const hasGame = useAppValue(selectHasGame);
   const canGame = useAppValue(selectCanGame);
-  const tick = useAppValue(selectCurrentTimelineTick);
   return (
     <div className="group/tooltip relative shrink-0">
       {/* Button */}
@@ -39,9 +46,13 @@ export function NavbarGameMenu() {
         bgColor="bg-radial from-slate-900 to-zinc-900 -left-8"
       >
         <div className="size-full min-w-60 space-y-1">
-          <div className="text-xl p-2 pb-0">Rhythm Games</div>
+          <div className="text-xl p-2 pb-0">Keyboard Challenges</div>
           <div className="text-base p-2 pt-0 text-fuchsia-300/80">
-            Press Keys To The Beat
+            Gesture-Based Rhythm Games
+          </div>
+          <div className="p-2 border border-slate-600 rounded text-slate-300 text-xs">
+            A Keyboard Challenge is a set of hotkeys scheduled to be shown
+            during playback.
           </div>
           <NavbarGameGroup
             disabled={!canGame}
@@ -52,41 +63,47 @@ export function NavbarGameMenu() {
             </NavbarGameLabel>
             <ArrangePoseIcon className="ml-auto text-2xl" />
           </NavbarGameGroup>
+          <div className="text-xs p-2 text-slate-300">
+            Add poses to the game by selecting the clips and pressing{" "}
+            {getHotkeyShortcut(AddPosesToGameHotkey)}.
+          </div>
 
           <NavbarGameGroup
             disabled={!hasGame}
-            onClick={promptUserForString({
-              title: "Add Command to Game",
-              description: "Enter a key and a value (e.g. Q5 or M0)",
-              callback: (string) => {
-                const regex = /^([a-zA-Z0-9]+)(-?\d+)$/;
-                if (!regex.test(string)) return;
-                const match = string.match(regex);
-                if (!match) return;
-                const key = match[1]?.toLowerCase();
-                const value = parseInt(match[2], 10);
-                if (!key || isNaN(value)) return;
-                dispatch(
-                  addGameActions({ data: { actions: [{ key, value, tick }] } })
-                );
-              },
-            })}
+            onClick={() => dispatch(promptUserForGameCommand())}
           >
-            <NavbarGameLabel>Add Command to Game</NavbarGameLabel>
+            <NavbarGameLabel>Add Gesture to Game</NavbarGameLabel>
             <GiJackPlug className="ml-auto text-2xl" />
           </NavbarGameGroup>
+          <div className="text-xs p-2 text-slate-300">
+            Add custom hotkeys (based on a gesture) by pressing{" "}
+            {getHotkeyShortcut(AddCommandToGameHotkey)}.
+          </div>
 
           {!!hasGame && (
-            <NavbarGameGroup onClick={() => dispatch(resetGame())}>
-              <NavbarGameLabel>Delete Game</NavbarGameLabel>
-              <BsEraser className="ml-auto text-2xl" />
-            </NavbarGameGroup>
+            <>
+              <NavbarGameGroup onClick={() => dispatch(startTransport())}>
+                <NavbarGameLabel>Start Game</NavbarGameLabel>
+                <BsEraser className="ml-auto text-2xl" />
+              </NavbarGameGroup>
+              <div className="text-xs p-2 text-slate-300">
+                Play the game by selecting the displayed track and pressing
+                Space.
+              </div>
+            </>
           )}
 
-          {!hasGame && (
-            <p className="text-xs mt-1 px-1 text-slate-500">
-              Poses can only have one scalar offset.
-            </p>
+          {!!hasGame && (
+            <>
+              <NavbarGameGroup onClick={() => dispatch(resetGame())}>
+                <NavbarGameLabel>Clear Game</NavbarGameLabel>
+                <BsEraser className="ml-auto text-2xl" />
+              </NavbarGameGroup>
+              <div className="text-xs p-2 text-slate-300">
+                Remove all commands from the game by pressing{" "}
+                {getHotkeyShortcut(ResetGameHotkey)}.
+              </div>
+            </>
           )}
         </div>
       </NavbarHoverTooltip>

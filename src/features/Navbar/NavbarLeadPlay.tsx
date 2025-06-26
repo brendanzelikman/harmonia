@@ -1,7 +1,8 @@
 import classNames from "classnames";
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
-import { GiMisdirection } from "react-icons/gi";
+import { GiMisdirection, GiPathDistance } from "react-icons/gi";
 import {
+  selectIsSelectingPatternClips,
   selectIsSelectingPoseClips,
   selectSomeTrackId,
 } from "types/Timeline/TimelineSelectors";
@@ -16,11 +17,11 @@ import { useCallback, useMemo } from "react";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 import { TooltipButton } from "components/TooltipButton";
 import { selectHasTracks } from "types/Track/TrackSelectors";
-import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
+import { getKeyCode } from "hooks/useHeldkeys";
 import { growTree } from "types/Timeline/TimelineThunks";
+import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { selectHasGame } from "types/Game/GameSelectors";
 import {
-  NavbarHotkeyDescription,
   NavbarHotkeyInstruction,
   NavbarHotkeyKey,
   NavbarInstructionDescription,
@@ -28,15 +29,14 @@ import {
   NavbarPoseDescription,
   NavbarScaleDescription,
 } from "./components/NavbarHotkeys";
-
-export const LivePlayIcon = GiMisdirection;
+import { useGestures } from "lib/gestures";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
-export const NavbarLivePlay = () => {
+export const NavbarLeadPlay = () => {
   const dispatch = useAppDispatch();
-  const holding = useHeldKeys([...qwertyKeys, "c", "d"]);
+  const holding = useGestures();
 
   // Get selected values
   const hasTracks = useAppValue(selectHasTracks);
@@ -47,10 +47,10 @@ export const NavbarLivePlay = () => {
   const instruments = useAppValue(selectTrackInstrumentMap);
   const labels = useAppValue(selectTrackLabelMap);
 
+  const isSelectingPatternClip = useAppValue(selectIsSelectingPatternClips);
   const isSelectingPoseClip = useAppValue(selectIsSelectingPoseClips);
 
   // Get the values of the held keys
-  const isNumerical = numericalKeys.some((key) => holding[getKeyCode(key)]);
   const isNegative = holding[getKeyCode("-")] || holding[getKeyCode("`")];
   const isExact = holding[getKeyCode("=")];
   const isMuting = holding[getKeyCode("m")];
@@ -62,8 +62,10 @@ export const NavbarLivePlay = () => {
   const scaleKey = qwertyKeys.find((key) => holding[getKeyCode(key)]);
   const isHoldingScale = !!scaleKey;
   const isPosing = isHoldingScale;
-  const isVoiceLeadingDegree = holding[getKeyCode("d")];
-  const isVoiceLeadingClosest = holding[getKeyCode("c")];
+  const holdingC = holding[getKeyCode("c")];
+  const holdingD = holding[getKeyCode("d")];
+  const isVoiceLeadingClosest = holdingC && isSelectingPatternClip;
+  const isVoiceLeadingDegree = holdingD && isSelectingPatternClip;
 
   // Get the first chain id
   const label1 = useAppValue((_) => selectTrackLabelById(_, chain[0]));
@@ -93,12 +95,9 @@ export const NavbarLivePlay = () => {
     y: "y",
   } as const;
 
-  const working =
-    !hasGame &&
-    isHoldingScale &&
-    !(isVoiceLeadingClosest || isVoiceLeadingDegree);
+  const working = !hasGame && (holdingC || holdingD);
 
-  const isActive = working || hasTracks;
+  const isActive = (working || hasTracks) && isSelectingPatternClip;
 
   const getKeycodeLabel = useCallback(
     (keycode: string) => {
@@ -106,6 +105,36 @@ export const NavbarLivePlay = () => {
       const steps = "Step" + (number === 1 ? "" : "s");
 
       let vector: string[] = [];
+
+      if (isMixing) {
+        const track = patternTracks.at(number - 1);
+        if (!track) return "No Sampler Available";
+        const instrument = instruments[track.id];
+        if (!instrument) return "No Track Instrument";
+        const { mute, solo } = instrument;
+        let action = "";
+        if (isMuting) {
+          action += mute ? "Unmute" : "Mute";
+        }
+        if (isMuting && isSoloing) action += "/";
+        if (isSoloing) {
+          action += solo ? "Unsolo" : "Solo";
+        }
+        const label = labels[track?.id];
+        const name = getInstrumentName(instrument.key);
+        return `${action} Sampler ${label} (${name})`;
+      }
+
+      if (isVoiceLeadingDegree) {
+        const sign = isNegative ? "-" : "";
+        return `Closest Pose With ${
+          labelMap[scaleKey ?? "q"]
+        }${sign}${keycode}`;
+      }
+
+      if (isVoiceLeadingClosest) {
+        return `${cardinalMap[keycode]} Closest Pose (By Distance)`;
+      }
 
       qwertyKeys.forEach((key) => {
         if (key === "q" && !hasScale1) return;
@@ -128,6 +157,7 @@ export const NavbarLivePlay = () => {
         return `Move ${keycode} ${steps} ${direction} Scale`;
       }
       return "No Effect Available";
+      // return `Shortcut #${keycode}`;
     },
     [
       holding,
@@ -146,6 +176,15 @@ export const NavbarLivePlay = () => {
   );
 
   const getZeroLabel = useCallback(() => {
+    if (isMixing) {
+      const action =
+        isMuting && isSoloing
+          ? "Unmute/Unsolo"
+          : isMuting
+          ? "Unmute"
+          : "Unsolo";
+      return `${action} All Tracks`;
+    }
     if (isPosing) {
       return "Clear Scalar Offsets";
     }
@@ -158,30 +197,29 @@ export const NavbarLivePlay = () => {
 
   const SelectScales = (
     <>
-      <div className="px-2 py-1 bg-gradient-to-r from-sky-500/40 to-sky-500/20 rounded">
-        Select Scales
+      <div className="px-2 py-1 bg-gradient-to-r from-emerald-500/40 to-emerald-500/20 rounded">
+        Select Scales (Default = Q+W+E)
       </div>
       <div data-mixing={isMixing} className="p-1 data-[mixing=true]:opacity-50">
-        {
-          <p>
-            <NavbarHotkeyInstruction
-              active={holding[getKeyCode("q")] && scaleName1 !== "No Scale"}
-              label="Hold Q:"
-            />{" "}
-            <NavbarScaleDescription
-              active={holding[getKeyCode("q")] && scaleName1 !== "No Scale"}
-              label={`Transpose By ${scaleName1}`}
-            />
-          </p>
-        }
+        <p>
+          <NavbarHotkeyInstruction
+            active={holding[getKeyCode("q")] && scaleName1 !== "No Scale"}
+            label="Hold Q:"
+          />{" "}
+          <NavbarPatternDescription
+            active={holding[getKeyCode("q")] && scaleName1 !== "No Scale"}
+            label={`Search By ${scaleName1}`}
+          />
+        </p>
+
         <p>
           <NavbarHotkeyInstruction
             active={holding[getKeyCode("w")]}
             label="Hold W:"
           />{" "}
-          <NavbarScaleDescription
+          <NavbarPatternDescription
             active={holding[getKeyCode("w")] && scaleName2 !== "No Scale"}
-            label={`Transpose By ${scaleName2}`}
+            label={`Search By ${scaleName2}`}
           />
         </p>
         <p>
@@ -189,9 +227,9 @@ export const NavbarLivePlay = () => {
             active={holding[getKeyCode("e")] && scaleName3 !== "No Scale"}
             label="Hold E:"
           />{" "}
-          <NavbarScaleDescription
+          <NavbarPatternDescription
             active={holding[getKeyCode("e")] && scaleName3 !== "No Scale"}
-            label={`Transpose By ${scaleName3}`}
+            label={`Search By ${scaleName3}`}
           />
         </p>
         <p className="normal-case">
@@ -199,9 +237,9 @@ export const NavbarLivePlay = () => {
             active={holding[getKeyCode("r")]}
             label="Hold R:"
           />{" "}
-          <NavbarScaleDescription
+          <NavbarPatternDescription
             active={holding[getKeyCode("r")]}
-            label={`Transpose By Rotation (r)`}
+            label={`Search By Rotation (r)`}
           />
         </p>
         <p className="normal-case">
@@ -209,9 +247,9 @@ export const NavbarLivePlay = () => {
             active={holding[getKeyCode("t")]}
             label="Hold T:"
           />{" "}
-          <NavbarScaleDescription
+          <NavbarPatternDescription
             active={holding[getKeyCode("t")]}
-            label={`Transpose By Semitone (t)`}
+            label={`Search By Semitone (t)`}
           />
         </p>
         <p className="normal-case">
@@ -219,9 +257,9 @@ export const NavbarLivePlay = () => {
             active={holding[getKeyCode("y")]}
             label="Hold Y:"
           />{" "}
-          <NavbarScaleDescription
+          <NavbarPatternDescription
             active={holding[getKeyCode("y")]}
-            label={`Transpose By Octave (y)`}
+            label={`Search By Octave (y)`}
           />
         </p>
       </div>
@@ -231,33 +269,55 @@ export const NavbarLivePlay = () => {
   const ApplyModifiers = (
     <>
       {" "}
-      <div className="px-2 py-1 bg-gradient-to-r from-emerald-500/40 to-emerald-500/20 rounded">
-        Apply Modifiers
+      <div className="px-2 py-1 bg-gradient-to-r from-sky-500/40 to-sky-500/20 rounded">
+        Select Mode
       </div>
       <div className="p-1">
-        <p data-dim={isMixing} className="data-[dim=true]:opacity-50">
-          <NavbarHotkeyDescription
-            active={(key) => holding[getKeyCode(key)]}
-            keycodes={["-", "`"]}
-            label={"Hold Minus:"}
-            activeClass="text-white"
-            defaultClass="text-slate-400"
-          />{" "}
-          <NavbarPatternDescription
-            active={(key) => holding[getKeyCode(key)]}
-            keycodes={["-", "`"]}
-            label="Input Negative Offset"
-          />
-        </p>
-        <p data-dim={isMixing} className="data-[dim=true]:opacity-50">
-          <NavbarHotkeyInstruction
-            active={holding[getKeyCode("=")]}
-            label="Hold Equal:"
-          />{" "}
-          <NavbarPatternDescription
-            active={holding[getKeyCode("=")]}
-            label="Input Exact Offset"
-          />
+        <p>
+          <p>
+            <NavbarHotkeyInstruction
+              active={holding[getKeyCode("c")]}
+              label="Hold C:"
+            />{" "}
+            <NavbarScaleDescription
+              active={holding[getKeyCode("c")]}
+              label="Voice Lead by Closeness"
+            />
+          </p>
+          <p>
+            <NavbarHotkeyInstruction
+              active={holding[getKeyCode("d")]}
+              label="Hold D:"
+            />{" "}
+            <NavbarScaleDescription
+              active={holding[getKeyCode("d")]}
+              label="Voice Lead by Degree"
+            />
+          </p>
+          <p>
+            <NavbarInstructionDescription
+              active={(key) => holding[getKeyCode(key)]}
+              keycodes={["-", "`"]}
+              label={"Hold Minus:"}
+            />{" "}
+            <NavbarScaleDescription
+              active={(key) => holding[getKeyCode(key)]}
+              keycodes={["-", "`"]}
+              label="Use Descending Motion"
+            />
+          </p>
+          <p>
+            <NavbarInstructionDescription
+              active={(key) => holding[getKeyCode(key)]}
+              keycodes={["-", "`"]}
+              label={"Hold Equal:"}
+            />{" "}
+            <NavbarScaleDescription
+              active={(key) => holding[getKeyCode(key)]}
+              keycodes={["="]}
+              label="Use Ascending Motion"
+            />
+          </p>
         </p>
       </div>
     </>
@@ -269,10 +329,12 @@ export const NavbarLivePlay = () => {
         <div
           className={`px-2 py-1 bg-gradient-to-r from-fuchsia-500/40 to-fuchsia-500/20 rounded`}
         >
-          {isSelectingPoseClip
+          {isMixing
+            ? "Mix Samplers"
+            : isVoiceLeadingClosest || isVoiceLeadingDegree
+            ? `Voice Lead Patterns`
+            : isSelectingPoseClip
             ? "Update Poses"
-            : isHoldingScale
-            ? "Create Poses"
             : "Create Poses"}
         </div>
         <div className="p-1">
@@ -338,7 +400,9 @@ export const NavbarLivePlay = () => {
       {Y}
     </>
   );
-  const Number = NavbarHotkeyKey("Press Number", isNumerical, true);
+
+  const C = NavbarHotkeyKey("C", holding[getKeyCode("c")]);
+  const D = NavbarHotkeyKey("D", holding[getKeyCode("d")]);
 
   return (
     <TooltipButton
@@ -347,18 +411,20 @@ export const NavbarLivePlay = () => {
       freezeInside={working}
       hideRing
       activeLabel={
-        isSelectingPoseClip ? (
+        isVoiceLeadingClosest ? (
           <div className="h-[68px] total-center-col">
-            <div className="text-base font-light">Updating Poses</div>
+            <div className="text-base font-light">
+              Voice Leading By Closeness
+            </div>
             <div className="text-slate-400 text-sm">
-              (Hold {QWERTY} + {Number})
+              (Hold {C} + {QWERTY} + Press Number)
             </div>
           </div>
-        ) : isHoldingScale ? (
+        ) : isVoiceLeadingDegree ? (
           <div className="h-[68px] total-center-col">
-            <div className="text-base font-light">Creating Poses</div>
+            <div className="text-base font-light">Voice Leading By Degree </div>
             <div className="text-slate-400 text-sm">
-              (Hold {QWERTY} + {Number})
+              (Hold {D} + {QWERTY} + Press Number)
             </div>
           </div>
         ) : null
@@ -368,58 +434,78 @@ export const NavbarLivePlay = () => {
       marginLeft={-50}
       onClick={() => !hasTracks && dispatch(growTree())}
       marginTop={0}
-      width={380}
+      width={350}
       backgroundColor="bg-radial from-slate-900 to-zinc-900"
-      borderColor="border-2 border-sky-500"
+      borderColor={`border-2 border-fuchsia-500`}
       rounding="rounded-lg"
       className={classNames(
-        "flex border p-1 total-center shrink-0 relative rounded-full select-none cursor-pointer font-light",
-        "hover:text-sky-300 bg-sky-700/80 border-sky-500",
-        working ? "text-sky-200" : "text-sky-100"
+        "shrink-0 relative rounded-full select-none cursor-pointer",
+        "flex total-center hover:text-fuchsia-300 p-1 bg-fuchsia-700/80 border border-fuchsia-500 font-light",
+        working ? "text-fuchsia-200" : "text-fuchsia-100"
       )}
       label={
-        <div className="text-white animate-in fade-in duration-300">
+        <div
+          data-indent={hasTracks || working}
+          className="text-white data-[indent=true]:mb-2 animate-in fade-in duration-300"
+        >
           <div
             data-indent={hasTracks || working}
             className="text-xl data-[indent=true]:pt-2 font-light"
           >
-            {isSelectingPoseClip
-              ? "Updating Poses"
-              : isHoldingScale
-              ? "Creating Poses"
-              : hasTracks
-              ? "Move Along Scales"
-              : ""}
+            {" "}
+            {isVoiceLeadingClosest
+              ? "Voice Lead By Closeness"
+              : isVoiceLeadingDegree
+              ? "Voice Lead by Degree"
+              : !isSelectingPatternClip
+              ? "Find Voice Leadings"
+              : "Find Voice Leadings"}
           </div>
           <div
             data-active={isActive}
-            className="text-base data-[active=false]:text-sm data-[active=true]:mb-4 text-sky-400/90"
+            className="text-base data-[active=false]:text-sm data-[active=true]:mb-4 text-fuchsia-300/80"
           >
             {!isActive ? (
               hasTracks ? (
-                "Select Track, Pattern, or Pose"
+                "Select a Pattern to Voice Lead"
               ) : (
                 "Create Tree to Unlock Keyboard Gestures"
               )
-            ) : isSelectingPoseClip ? (
-              <div>(Hold QWERTY + Press Number)</div>
-            ) : isHoldingScale ? (
-              <div>(Hold QWERTY + Press Number)</div>
+            ) : isVoiceLeadingClosest ? (
+              <div>(Hold C + Press Number)</div>
+            ) : isVoiceLeadingDegree ? (
+              <div>(Hold D + Press Number)</div>
             ) : (
-              "(Hold QWERTY + Press Number)"
+              "(Hold C/D + Press Number)"
             )}
           </div>
           {isActive && (
             <div className="flex flex-col w-full gap-2 mt-1.5">
-              {SelectScales}
               {ApplyModifiers}
+              {SelectScales}
               {Action}
             </div>
           )}
         </div>
       }
     >
-      <LivePlayIcon className="text-2xl" />
+      {isVoiceLeadingClosest || isVoiceLeadingDegree ? (
+        <GiMisdirection className="text-2xl" />
+      ) : (
+        <GiPathDistance className="text-2xl" />
+      )}
     </TooltipButton>
   );
+};
+
+const cardinalMap: Record<string, string> = {
+  1: "1st",
+  2: "2nd",
+  3: "3rd",
+  4: "4th",
+  5: "5th",
+  6: "6th",
+  7: "7th",
+  8: "8th",
+  9: "9th",
 };

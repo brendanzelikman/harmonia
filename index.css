@@ -106,10 +106,12 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
+/* react-d3-tree */
 .d3-path {
   stroke: #555 !important;
 }
 
+/* react-data-grid */
 .rdg-cell {
   outline: none;
   padding: 0;

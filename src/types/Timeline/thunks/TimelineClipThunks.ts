@@ -23,7 +23,6 @@ import {
   selectHasClips,
   selectClipDuration,
   selectClips,
-  selectClipDurationMap,
 } from "types/Clip/ClipSelectors";
 import { sliceClip } from "types/Clip/ClipThunks";
 import {
@@ -118,13 +117,12 @@ export const selectRightClip = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const allClips = selectClips(project);
   const clips = selectSelectedClips(project);
-  const durationMap = selectClipDurationMap(project);
   const trackId = selectSelectedTrackId(project) ?? clips[0]?.trackId;
   if (!trackId) return;
 
-  const maxTick = Math.max(...clips.map((c) => c.tick + durationMap[c.id]));
+  const maxTick = Math.max(...clips.map((c) => c.tick));
   const rightClip = allClips
-    .filter((c) => c.trackId === trackId && c.tick >= maxTick)
+    .filter((c) => c.trackId === trackId && c.tick > maxTick)
     .sort((a, b) => a.tick - b.tick)[0];
 
   if (!rightClip) return;

@@ -13,7 +13,11 @@ import {
   leadPatternsToNthClosestPose,
   leadPatternsToClosestNthPose,
 } from "./leadPatterns";
-import { mixSamplerByIndex, resetSamplersGesture } from "./mixSamplers";
+import {
+  muteTrackGesture,
+  resetSamplersGesture,
+  soloTrackGesture,
+} from "./mixSamplers";
 import {
   offsetSelectedPatternPoses,
   zeroSelectedPatternPoses,
@@ -21,10 +25,16 @@ import {
 import { offsetSelectedPoses, zeroSelectedPoses } from "./updatePoses";
 import { useMemo } from "react";
 import { HotkeyMap } from "lib/hotkeys";
+import { applyPatternFromSlot, savePatternToSlot } from "./storePatterns";
+import { applyPoseFromSlot, savePoseToSlot } from "./storePoses";
+import {
+  clearPatternStorage,
+  clearPoseStorage,
+} from "types/Timeline/TimelineSlice";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const trackKeys = ["m", "s"];
-const miscKeys = ["c", "d", "-", "`", "="];
+const miscKeys = ["c", "d", "z", "x", "v", "b", "-", "`", "="];
 const hotkeys = [...qwertyKeys, ...trackKeys, ...miscKeys];
 
 /** A custom hook to use keyboard gestures */
@@ -43,7 +53,7 @@ export const useGestures = () => {
       9: (dispatch) => dispatch(keydown(9)),
       0: (dispatch) => dispatch(zerodown()),
     };
-  }, [holding]);
+  }, []);
   useHotkeys(hotkeyMap, "keypress");
   return holding;
 };
@@ -54,21 +64,52 @@ export const keydown =
   (dispatch, getProject) => {
     const project = getProject();
 
-    // Handle mixing events for samplers
-    if (getHeldKey("m") || getHeldKey("s")) {
-      dispatch(mixSamplerByIndex(number));
+    // Handle mute and solo by index
+    const muting = getHeldKey("m");
+    const soloing = getHeldKey("s");
+    if (muting || soloing) {
+      if (muting) {
+        dispatch(muteTrackGesture(number));
+      }
+      if (soloing) {
+        dispatch(soloTrackGesture(number));
+      }
       return;
     }
 
-    // Handle voice leading by closeness (push chordal when one key)
+    // Handle voice leading by closeness
     if (getHeldKey("c")) {
       dispatch(leadPatternsToNthClosestPose(number));
       return;
     }
 
-    // Handle voice leading by degree (push chordal when one key)
+    // Handle voice leading by degree
     if (getHeldKey("d")) {
       dispatch(leadPatternsToClosestNthPose(number));
+      return;
+    }
+
+    // Handle pattern storage
+    if (getHeldKey("z")) {
+      dispatch(savePatternToSlot(number));
+      return;
+    }
+
+    // Handle pose storage
+    if (getHeldKey("v")) {
+      dispatch(savePoseToSlot(number));
+      return;
+    }
+
+    // Handle pattern applications
+    if (getHeldKey("x")) {
+      dispatch(applyPatternFromSlot(number));
+      return;
+    }
+
+    // Handle pose applications
+    if (getHeldKey("b")) {
+      dispatch(applyPoseFromSlot(number));
       return;
     }
 
@@ -94,6 +135,18 @@ export const zerodown = (): Thunk => (dispatch, getProject) => {
   // Handle mixing events
   if (getHeldKey("m") || getHeldKey("s")) {
     dispatch(resetSamplersGesture());
+    return;
+  }
+
+  // Handle pattern storage events
+  if (getHeldKey("z")) {
+    dispatch(clearPatternStorage());
+    return;
+  }
+
+  // Handle pose storage events
+  if (getHeldKey("v")) {
+    dispatch(clearPoseStorage());
     return;
   }
 

@@ -10,26 +10,16 @@ import { NavbarCreateTree } from "./NavbarCreateTree";
 import { NavbarLivePlay } from "./NavbarLivePlay";
 import { NavbarPortalGun } from "./NavbarPortalGun";
 import { NavbarScissors } from "./NavbarScissors";
-import { NavbarWaterTree } from "./NavbarWaterTree";
 import { NavbarTime } from "./NavbarTime";
 import { NavbarTransportControl } from "./NavbarTransportControl";
 import { NavbarVolume } from "./NavbarVolume";
 import { NavbarLink } from "./components/NavbarLink";
 import { NavbarSettings } from "./NavbarSettings";
 import { NavbarTape } from "./NavbarTape";
-import { NavbarSampleProject } from "./NavbarSampleProject";
 import { useLocation } from "react-router-dom";
 import { NavbarGameMenu } from "./NavbarGameMenu";
-import { NavbarRandomTree } from "./NavbarRandomTree";
-import {
-  BsFillQuestionCircleFill,
-  BsQuestionCircle,
-  BsQuestionCircleFill,
-} from "react-icons/bs";
-import { NavbarTooltipButton } from "components/TooltipButton";
-import { ToggleShortcutsHotkey } from "lib/hotkeys/global";
-import { dispatchToggle } from "hooks/useToggle";
-import { SampleProjectHotkey } from "lib/hotkeys/timeline";
+import { NavbarMixPlay } from "./NavbarMixPlay";
+import { NavbarLeadPlay } from "./NavbarLeadPlay";
 
 export function Navbar() {
   const { pathname } = useLocation();
@@ -51,7 +41,7 @@ export function Navbar() {
             <NavbarUndo />
             <NavbarRedo />
           </NavbarGroup>
-          <NavbarGroup className="bg-slate-950/30 border-l border-l-slate-500/50">
+          <NavbarGroup className="bg-slate-950/30">
             <NavbarVolume />
             <NavbarTime />
             <NavbarTransportControl />
@@ -66,20 +56,19 @@ export function Navbar() {
             hide={!hasTracks}
             className="bg-radial from-teal-800/15 to-teal-600/15"
           >
-            <div className="text-sm font-light pr-1">Trees</div>
-            <NavbarWaterTree />
-            <NavbarSampleProject />
-            <NavbarLivePlay />
-          </NavbarGroup>
-
-          <NavbarGroup
-            hide={!hasTracks}
-            className="bg-radial from-teal-800/15 to-teal-600/15"
-          >
             <div className="text-sm font-light pr-1">Clips</div>
             <NavbarTape />
             <NavbarScissors />
             <NavbarPortalGun />
+          </NavbarGroup>
+          <NavbarGroup
+            hide={!hasTracks}
+            className="bg-radial from-teal-800/15 to-teal-600/15"
+          >
+            <div className="text-sm font-light pr-1">Gestures</div>
+            <NavbarLivePlay />
+            <NavbarMixPlay />
+            <NavbarLeadPlay />
           </NavbarGroup>
         </div>
       )}

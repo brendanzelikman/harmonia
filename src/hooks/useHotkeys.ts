@@ -1,5 +1,5 @@
 import { useAppDispatch } from "hooks/useRedux";
-import { HotkeyMap } from "lib/hotkeys";
+import { codeCharMap, HotkeyMap } from "lib/hotkeys";
 import { useEffect } from "react";
 import { isInputEvent } from "utils/event";
 
@@ -15,17 +15,17 @@ export function useHotkeys(
     // Register non-input keydown event listener
     const handleKeyPress = (event: KeyboardEvent) => {
       if (isInputEvent(event) || event.repeat) return;
-      const { key, metaKey, shiftKey, ctrlKey, altKey } = event;
+      const { key, code, metaKey, shiftKey, ctrlKey, altKey } = event;
 
       // Construct the combination key string
-      let comboKey = key.toLowerCase();
+      let comboKey = codeCharMap[code] || key.toLowerCase();
       if (shiftKey && key !== "Shift") comboKey = "shift+" + comboKey;
       if (metaKey && key !== "Meta") comboKey = "meta+" + comboKey;
       else if (ctrlKey && key !== "Ctrl") comboKey = "meta+" + comboKey;
       if (altKey && key !== "Alt") comboKey = "alt+" + comboKey;
 
       // Check if the combo exists in the hotkey map
-      const action = (hotkeyMap ?? hotkeyMap)[comboKey];
+      const action = hotkeyMap[comboKey];
       if (action) {
         event.preventDefault();
         action(dispatch, event);

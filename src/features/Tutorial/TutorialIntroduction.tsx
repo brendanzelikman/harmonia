@@ -3,7 +3,7 @@ import { TimelineButton } from "./components/TutorialButton";
 import { useAppDispatch } from "hooks/useRedux";
 import { GiTreeDoor } from "react-icons/gi";
 import { promptUserForTree } from "lib/prompts/tree";
-import { toggleLivePlay } from "types/Timeline/TimelineThunks";
+import { growTree } from "types/Timeline/TimelineThunks";
 import { CreateTreeHotkey, CreateTreeIcon } from "lib/hotkeys/track";
 import { WaterTreeHotkey, WaterTreeIcon } from "lib/hotkeys/timeline";
 
@@ -64,7 +64,7 @@ export const TutorialIntroduction = (props: {
         background="hover:bg-cyan-500/5 bg-slate-950/25"
         Icon={WaterTreeIcon}
         iconClass="text-8xl max-lg:text-6xl"
-        onClick={() => dispatch(toggleLivePlay())}
+        onClick={() => dispatch(growTree())}
       />
       <TimelineButton
         className="lg:rounded-full flex-row lg:flex-col shadow-xl w-68 lg:py-12 lg:gap-3"

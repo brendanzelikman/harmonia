@@ -37,6 +37,8 @@ import {
   selectTrackMap,
   selectScaleTrackChainIdsMap,
   selectTrackById,
+  selectPatternTrackIds,
+  selectScaleTrackIds,
 } from "types/Track/TrackSelectors";
 import {
   defaultMediaClipboard,
@@ -101,6 +103,13 @@ export const selectSelectedTrackParents = createDeepSelector(
     const parents = chainIds[track.id] || [];
     return parents.map((id) => trackMap[id]).filter(Boolean) as Track[];
   }
+);
+
+/** Select some track ID if possible. */
+export const selectSomeTrackId = createSelector(
+  [selectSelectedTrackId, selectPatternTrackIds, selectScaleTrackIds],
+  (selectedId, patternTrackIds, scaleTrackIds) =>
+    selectedId ?? patternTrackIds.at(-1) ?? scaleTrackIds.at(-1)
 );
 
 // ------------------------------------------------------------
@@ -217,6 +226,34 @@ export const selectCopiedPortals = createDeepSelector(
   [selectClipboard],
   (clipboard) => clipboard?.portals ?? []
 );
+
+// ------------------------------------------------------------
+// Timeline Storage
+// ------------------------------------------------------------
+
+/** Select the currently stored patterns. */
+export const selectStoredPatterns = createDeepSelector(
+  [selectTimeline],
+  (timeline) => timeline.storage?.patterns || defaultTimeline.storage.patterns
+);
+
+/** Select the currently stored poses. */
+export const selectStoredPoses = createDeepSelector(
+  [selectTimeline],
+  (timeline) => timeline.storage?.poses || defaultTimeline.storage.poses
+);
+
+/** Select a stored pattern by index */
+export const selectStoredPatternByIndex = (project: Project, index: number) => {
+  const patterns = selectStoredPatterns(project);
+  return patterns[index] || null;
+};
+
+/** Select a stored pose by index */
+export const selectStoredPoseByIndex = (project: Project, index: number) => {
+  const poses = selectStoredPoses(project);
+  return poses[index] || null;
+};
 
 // ------------------------------------------------------------
 // Timeline Subdivision

@@ -10,15 +10,24 @@ import {
 } from "types/Track/PatternTrack/PatternTrackThunks";
 import { selectPatternTracks } from "types/Track/TrackSelectors";
 
-/* Gesture to mute and solo tracks by index */
-export const mixSamplerByIndex =
+/** Gesture to mute track by index */
+export const muteTrackGesture =
   (number: number): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const patternTracks = selectPatternTracks(project);
     const instrumentId = patternTracks[number - 1]?.instrumentId;
-    if (getHeldKey("m")) dispatch(toggleInstrumentMute(instrumentId));
-    if (getHeldKey("s")) dispatch(toggleInstrumentSolo(instrumentId));
+    dispatch(toggleInstrumentMute(instrumentId));
+  };
+
+/** Gesture to solo track by index */
+export const soloTrackGesture =
+  (number: number): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const patternTracks = selectPatternTracks(project);
+    const instrumentId = patternTracks[number - 1]?.instrumentId;
+    dispatch(toggleInstrumentSolo(instrumentId));
   };
 
 /** Gesture to unmute and unsolo all tracks */

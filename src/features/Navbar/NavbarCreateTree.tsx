@@ -1,7 +1,13 @@
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { CreateTreeHotkey, CreateTreeIcon } from "lib/hotkeys/track";
+import {
+  CreateRandomTreeHotkey,
+  CreateTreeHotkey,
+  CreateTreeIcon,
+} from "lib/hotkeys/track";
 import { useAppDispatch } from "hooks/useRedux";
 import { promptUserForTree } from "lib/prompts/tree";
+import { getHotkeyShortcut } from "lib/hotkeys";
+import { SampleProject } from "lib/hotkeys/timeline";
 
 export const NavbarCreateTree = () => {
   const dispatch = useAppDispatch();
@@ -11,6 +17,26 @@ export const NavbarCreateTree = () => {
       borderColor="border-cyan-400"
       onClick={() => dispatch(promptUserForTree)}
       hotkey={CreateTreeHotkey}
+      label={
+        <>
+          Tree (Musical Structure)
+          <br />
+          <span className="text-gray-400 text-xs normal-case">
+            Press {getHotkeyShortcut(CreateTreeHotkey)} to create a new tree by
+            prompt.
+          </span>
+          <br />
+          <span className="text-gray-400 text-xs normal-case">
+            Press {getHotkeyShortcut(CreateRandomTreeHotkey)} to create a random
+            tree.
+          </span>
+          <br />
+          <span className="text-gray-400 text-xs normal-case">
+            Press {getHotkeyShortcut(SampleProject)} to sample a project by
+            file.
+          </span>
+        </>
+      }
     >
       <CreateTreeIcon className="text-2xl" />
     </NavbarTooltipButton>

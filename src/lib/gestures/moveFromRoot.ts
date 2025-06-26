@@ -7,13 +7,12 @@ import { createUndoType } from "types/redux";
 import {
   selectCurrentTimelineTick,
   selectSelectedTrackId,
+  selectSomeTrackId,
 } from "types/Timeline/TimelineSelectors";
 import { createNewPoseClip } from "types/Track/PatternTrack/PatternTrackThunks";
 import {
-  selectScaleTrackIds,
   selectPatternTracks,
   selectTrackAncestorIdsMap,
-  selectPatternTrackIds,
 } from "types/Track/TrackSelectors";
 import { sumVectors } from "utils/vector";
 import { getMatch, isNegative, sumVector } from "./utils";
@@ -26,17 +25,15 @@ export const updatePoseAtCursorGesture =
   (dispatch, getProject) => {
     const project = getProject();
     const undoType = createUndoType(nanoid());
-    const scaleTrackIds = selectScaleTrackIds(project);
-    const patternTrackIds = selectPatternTrackIds(project);
-    const selectedTrackId = selectSelectedTrackId(project);
     const ancestorMap = selectTrackAncestorIdsMap(project);
     const poseClips = selectPoseClips(project);
     const poseMap = selectPoseMap(project);
     const value = number * (isNegative() ? -1 : 1);
     const isHoldingQwerty = ["q", "w", "e", "r", "t", "y"].some(getHeldKey);
+    if (!isHoldingQwerty) return;
 
     // If no clips are selected, try to find a track or return
-    const trackId = selectedTrackId ?? patternTrackIds[0] ?? scaleTrackIds[0];
+    const trackId = selectSomeTrackId(project);
     if (!trackId) return;
 
     // Get the vector based on the track

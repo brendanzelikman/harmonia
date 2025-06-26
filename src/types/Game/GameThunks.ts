@@ -8,7 +8,10 @@ import { secondsToTicks } from "utils/duration";
 import { selectTransportBPM } from "types/Transport/TransportSelectors";
 import { selectPoseById, selectPoseMap } from "types/Pose/PoseSelectors";
 import { selectScaleTrackChainIdsMap } from "types/Track/TrackSelectors";
-import { selectSelectedPoseClips } from "types/Timeline/TimelineSelectors";
+import {
+  selectCurrentTimelineTick,
+  selectSelectedPoseClips,
+} from "types/Timeline/TimelineSelectors";
 import { PoseVectorId } from "types/Pose/PoseTypes";
 import { addGameActions, updateGame } from "./GameSlice";
 import { selectGame, selectHasGame } from "./GameSelectors";
@@ -17,6 +20,7 @@ import { removePoseClip } from "types/Clip/ClipSlice";
 import { createUndoType } from "types/redux";
 import { nanoid } from "@reduxjs/toolkit";
 import { updateTimelineTick } from "types/Timeline/TimelineSlice";
+import { promptUserForString } from "lib/prompts/html";
 
 export const addPosesToGame =
   ({ replace }: { replace: boolean } = { replace: false }): Thunk =>
@@ -37,21 +41,30 @@ export const addPosesToGame =
     for (const clip of poseClips) {
       const pose = selectPoseById(project, clip.poseId);
       if (!pose?.vector) continue;
-      if (Object.keys(pose.vector || {}).length !== 1) continue;
       const tick = clip.tick;
-      const poseKey = Object.keys(pose.vector)[0] as PoseVectorId;
+      const poseKeys = Object.keys(pose.vector) as PoseVectorId[];
       const chain = chainMap[clip.trackId];
+      const id1 = chain.at(0);
+      const id2 = chain.at(1);
+      const id3 = chain.at(2);
       const keyMap = {
-        [chain.at(0) ?? "q"]: "q",
-        [chain.at(1) ?? "w"]: "w",
-        [chain.at(2) ?? "e"]: "e",
+        [id1 ?? "q"]: "q",
+        [id2 ?? "w"]: "w",
+        [id3 ?? "e"]: "e",
         chordal: "r",
         chromatic: "t",
         octave: "y",
       };
-      const key = keyMap[poseKey];
-      if (!key) continue;
-      const value = pose.vector[poseKey] ?? 0;
+      const key = poseKeys.reduce((acc, poseKey) => {
+        const key = keyMap[poseKey];
+        if (!key) return acc;
+        if (acc.length) acc += `+${key}`;
+        else acc = key;
+        return acc;
+      }, "");
+
+      if (!key.length) continue;
+      const value = pose.vector[poseKeys[0]] ?? 0;
       const action: GameAction = { tick, key, value };
       actions.push(action);
       addedIds.push(clip.id);
@@ -69,6 +82,18 @@ export const addPosesToGame =
       dispatch(addGameActions({ data: { actions }, undoType }));
     }
   };
+
+export const promptUserForGameCommand = (): Thunk => (dispatch, getProject) =>
+  promptUserForString({
+    title: "Add Command to Game",
+    description: "Enter a key and a value (e.g. Q 5 or M 0)",
+    callback: (string) => {
+      const [key, value] = string.split(" ");
+      if (!key || !value) return;
+      const tick = selectCurrentTimelineTick(getProject());
+      dispatch(addGameActions({ data: { actions: [{ key, value, tick }] } }));
+    },
+  })();
 
 export const evaluateGameRank = (): Thunk<GameRank> => (_, getProject) => {
   const project = getProject();

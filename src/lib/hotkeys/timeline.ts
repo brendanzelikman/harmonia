@@ -8,7 +8,7 @@ import { mergeSelectedMedia } from "types/Media/MediaThunks";
 import {
   toggleTimelineState,
   toggleAddingState,
-  toggleLivePlay,
+  growTree,
   sampleProject,
 } from "types/Timeline/TimelineThunks";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -27,20 +27,15 @@ import {
   sliceClips,
 } from "types/Timeline/thunks/TimelineClipThunks";
 import {
+  GiConcentrationOrb,
   GiCrystalWand,
-  GiEating,
-  GiFilmProjector,
-  GiGhost,
-  GiLightBulb,
-  GiLightProjector,
-  GiLinkedRings,
-  GiMailbox,
   GiPencil,
-  GiPineTree,
-  GiSeedling,
   GiWateringCan,
 } from "react-icons/gi";
-import { addPosesToGame } from "types/Game/GameThunks";
+import {
+  addPosesToGame,
+  promptUserForGameCommand,
+} from "types/Game/GameThunks";
 import { resetGame } from "types/Game/GameSlice";
 
 // -----------------------------------------------
@@ -51,17 +46,17 @@ export const WaterTreeHotkey: Hotkey = {
   name: "Grow Tree",
   description: "Quickstart and develop a project",
   shortcut: "g",
-  callback: (dispatch) => dispatch(toggleLivePlay()),
+  callback: (dispatch) => dispatch(growTree()),
 };
 export const WaterTreeIcon = GiWateringCan;
 
-export const SampleProjectHotkey: Hotkey = {
-  name: "Encapsulate Project",
+export const SampleProject: Hotkey = {
+  name: "Sample Project",
   description: "Upload the notes of a project by file",
-  shortcut: "u",
+  shortcut: "shift+i",
   callback: (dispatch) => dispatch(sampleProject()),
 };
-export const SampleProjectIcon = GiLightBulb;
+export const SampleProjectIcon = GiConcentrationOrb;
 
 export const ArrangePatternsHotkey: Hotkey = {
   name: "Create Pattern",
@@ -130,18 +125,18 @@ export const MergeClipsHotkey: Hotkey = {
   callback: (dispatch) => dispatch(mergeSelectedMedia()),
 };
 
-export const CreateGameFromClipsHotkey: Hotkey = {
-  name: "Create Came From Clips",
-  description: "Create a new game from the selected clips",
-  shortcut: "meta+g",
-  callback: (dispatch) => dispatch(addPosesToGame({ replace: true })),
-};
-
-export const AddClipsToGameHotkey: Hotkey = {
+export const AddPosesToGameHotkey: Hotkey = {
   name: "Add Clips to Game",
   description: "Add the selected clips to the game",
-  shortcut: "meta+shift+g",
+  shortcut: "meta+g",
   callback: (dispatch) => dispatch(addPosesToGame({ replace: false })),
+};
+
+export const AddCommandToGameHotkey: Hotkey = {
+  name: "Create Came From Clips",
+  description: "Create a new game from the selected clips",
+  shortcut: "meta+shift+g",
+  callback: (dispatch) => dispatch(promptUserForGameCommand()),
 };
 
 export const ResetGameHotkey: Hotkey = {
@@ -157,7 +152,7 @@ export const ResetGameHotkey: Hotkey = {
 
 export const TimelineHotkeys = [
   WaterTreeHotkey,
-  SampleProjectHotkey,
+  SampleProject,
   ArrangePatternsHotkey,
   ArrangePosesHotkey,
   SelectPatternsHotkey,
@@ -167,8 +162,8 @@ export const TimelineHotkeys = [
   ToggleScissorsHotkey,
   SliceClipsHotkey,
   MergeClipsHotkey,
-  CreateGameFromClipsHotkey,
-  AddClipsToGameHotkey,
+  AddCommandToGameHotkey,
+  AddPosesToGameHotkey,
   ResetGameHotkey,
 ];
 

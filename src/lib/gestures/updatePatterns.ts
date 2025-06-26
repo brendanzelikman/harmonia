@@ -30,6 +30,7 @@ export const offsetSelectedPatternPoses =
     const trackIds = selectSelectedClipTrackIds(project);
     const value = number * (isNegative() ? -1 : 1);
     const holdingQwerty = ["q", "w", "e", "r", "t", "y"].some(getHeldKey);
+    if (!holdingQwerty) return;
 
     // Pre-compute vectors for every selected track
     const initial = holdingQwerty ? {} : { chordal: value };

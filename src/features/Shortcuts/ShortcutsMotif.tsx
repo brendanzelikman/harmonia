@@ -8,7 +8,7 @@ import {
   ToggleScissorsHotkey,
   SliceClipsHotkey,
   WaterTreeHotkey,
-  SampleProjectHotkey,
+  SampleProject,
 } from "lib/hotkeys/timeline";
 import { CreateRandomTreeHotkey, CreateTreeHotkey } from "lib/hotkeys/track";
 
@@ -22,7 +22,7 @@ export function ToolShortcuts() {
         <Shortcut hotkey={ArrangePatternsHotkey} />,
         <Shortcut hotkey={ArrangePosesHotkey} />,
         <Shortcut hotkey={WaterTreeHotkey} />,
-        <Shortcut hotkey={SampleProjectHotkey} />,
+        <Shortcut hotkey={SampleProject} />,
         <Shortcut hotkey={ArrangePortalsHotkey} />,
         <Shortcut hotkey={ToggleScissorsHotkey} />,
         <Shortcut hotkey={MergeClipsHotkey} />,

@@ -12,6 +12,8 @@ import {
   DEFAULT_CELL_HEIGHT,
   DEFAULT_SUBDIVISION,
 } from "utils/constants";
+import { Pattern } from "types/Pattern/PatternTypes";
+import { Pose } from "types/Pose/PoseTypes";
 
 // ------------------------------------------------------------
 // Timeline Definitions
@@ -25,6 +27,7 @@ export type Timeline = Partial<{
 
   fragment: Partial<Portal>;
   clipboard: MediaClipboard;
+  storage: TimelineStorage;
   selection: TimelineSelection;
 
   subdivision: Subdivision;
@@ -41,6 +44,14 @@ export const TIMELINE_STATES = [
   "idle",
 ] as const;
 export type TimelineState = (typeof TIMELINE_STATES)[number];
+export type TimelineStorage = {
+  patterns: (Pattern | null)[];
+  poses: (Pose | null)[];
+};
+export const defaultTimelineStorage: TimelineStorage = {
+  patterns: new Array(9).fill(null),
+  poses: new Array(9).fill(null),
+};
 export type TimelineSelection = MediaSelection & { trackId?: TrackId };
 
 export const defaultTimelineSelection: TimelineSelection = {
@@ -57,6 +68,7 @@ export const defaultTimeline: Required<Timeline> = {
   fragment: {},
   clipboard: defaultMediaClipboard,
   selection: defaultTimelineSelection,
+  storage: defaultTimelineStorage,
   subdivision: DEFAULT_SUBDIVISION,
   cellWidth: DEFAULT_CELL_WIDTH,
   cellHeight: DEFAULT_CELL_HEIGHT,

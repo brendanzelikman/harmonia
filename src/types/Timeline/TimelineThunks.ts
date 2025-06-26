@@ -37,7 +37,7 @@ import { randomizePattern } from "types/Pattern/PatternThunks";
 import { TimelineState } from "./TimelineTypes";
 import { DEFAULT_CELL_WIDTH } from "utils/constants";
 import {
-  createCourtesyPatternClip,
+  createNewPatternClip,
   createNewPoseClip,
   createPatternTrack,
 } from "types/Track/PatternTrack/PatternTrackThunks";
@@ -149,11 +149,11 @@ export const toggleAddingState =
     }
   };
 
-export const DEFAULT_TRACK_PROMPT = `C => Cmaj => ${getInstrumentName(
+export const DEFAULT_TRACK_PROMPT = `C => C pentatonic => Cmaj => ${getInstrumentName(
   DEFAULT_INSTRUMENT_KEY
 )}`;
 
-export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
+export const growTree = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const patternTrackIds = selectPatternTrackIds(project);
   let trackId = selectSelectedTrackId(project);
@@ -214,7 +214,7 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
 
   // If no clip is selected, create a new clip and pose.
   if (!patternClip) {
-    const tick = selectCurrentTimelineTick(getProject());
+    const tick = 0;
 
     // Delete any patterns at the current tick in the track
     if (trackId) {
@@ -227,7 +227,7 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
     }
 
     const { patternId } = dispatch(
-      createCourtesyPatternClip({
+      createNewPatternClip({
         data: { clip: { trackId, tick } },
         undoType,
       })
@@ -332,7 +332,7 @@ export const sampleProjectByFile =
       const pattern = { name: file.name, stream, projectId };
       const clip = { trackId, tick };
       const { patternId } = dispatch(
-        createCourtesyPatternClip({ data: { pattern, clip }, undoType })
+        createNewPatternClip({ data: { pattern, clip }, undoType })
       );
 
       // Autobind the pattern

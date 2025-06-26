@@ -2,11 +2,13 @@ import { isArray, omit, pick } from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { isInputEvent } from "utils/event";
 
+export const HELD_KEYS: Record<string, boolean> = {};
+
 /** Create a record storing a map of keys to press states */
 export const useHeldKeys = (keys: string[]) => {
   const keyset: Set<string> = useMemo(
     () => new Set(Object.values(pick(KeyCodeMap, keys))),
-    []
+    [keys]
   );
   const [heldKeys, setHeldKeys] = useState<Record<string, boolean>>({});
 
@@ -16,7 +18,7 @@ export const useHeldKeys = (keys: string[]) => {
       if (isInputEvent(e) || e.repeat) return;
       if (keyset.has(e.code)) {
         setHeldKeys((prev) => ({ ...prev, [e.code]: true }));
-        window.localStorage.setItem(`holding-${e.code}`, "true");
+        HELD_KEYS[e.code] = true;
       }
     };
 
@@ -25,7 +27,7 @@ export const useHeldKeys = (keys: string[]) => {
       if (isInputEvent(e) || e.repeat) return;
       if (specialKeySet.has(e.key)) {
         setHeldKeys((prev) => ({ ...prev, [e.code]: true }));
-        window.localStorage.setItem(`holding-${e.code}`, "true");
+        HELD_KEYS[e.code] = true;
       }
     };
 
@@ -33,7 +35,7 @@ export const useHeldKeys = (keys: string[]) => {
     const remove = (e: KeyboardEvent) => {
       if (keyset.has(e.code)) {
         setHeldKeys((prev) => omit(prev, e.code));
-        window.localStorage.removeItem(`holding-${e.code}`);
+        HELD_KEYS[e.code] = false;
       }
     };
 
@@ -41,7 +43,7 @@ export const useHeldKeys = (keys: string[]) => {
     const clear = () => {
       setHeldKeys({});
       for (const key of keyset) {
-        window.localStorage.removeItem(`holding-${key}`);
+        delete HELD_KEYS[key];
       }
     };
 
@@ -50,14 +52,12 @@ export const useHeldKeys = (keys: string[]) => {
     document.addEventListener("keydown", addModifiers);
     document.addEventListener("keyup", remove);
     window.addEventListener("blur", clear);
-    // window.addEventListener("visibilitychange", clear);
 
     // Cleanup the event listeners
     return () => {
       document.removeEventListener("keydown", add);
       document.removeEventListener("keyup", remove);
       window.removeEventListener("blur", clear);
-      // window.removeEventListener("visibilitychange", clear);
       clear();
     };
   }, []);
@@ -68,7 +68,7 @@ export const useHeldKeys = (keys: string[]) => {
 /** Read the value of a key from local storage */
 export const getHeldKey = (key: string) => {
   const code = getKeyCode(key);
-  return window.localStorage.getItem(`holding-${code}`) === "true";
+  return HELD_KEYS[code];
 };
 
 const specialKeySet = new Set(["Control", "Shift", "Alt", "Meta"]);
@@ -136,9 +136,8 @@ export const isHolding = (
   keys: string | string[],
   strict = false
 ) =>
-  (isArray(keys)
+  isArray(keys)
     ? strict
       ? keys.every((key) => !!map[getKeyCode(key)])
       : keys.some((key) => !!map[getKeyCode(key)])
-    : !!map[getKeyCode(keys)]) ||
-  !!window.localStorage.getItem(`holding-${keys}`);
+    : !!map[getKeyCode(keys)] || !!HELD_KEYS[keys];

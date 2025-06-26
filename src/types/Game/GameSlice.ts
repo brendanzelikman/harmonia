@@ -18,7 +18,7 @@ export const gameSlice = createSlice({
     updateGame: (state, action: Action<Partial<Game>>) => {
       const { actions, ranks, leniency, trackId } = unpackAction(action);
       if (actions !== undefined) {
-        state.actions = union(state.actions, actions).toSorted();
+        state.actions = actions;
       }
       if (ranks !== undefined) {
         state.ranks = ranks;

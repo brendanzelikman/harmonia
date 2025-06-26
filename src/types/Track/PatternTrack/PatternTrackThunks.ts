@@ -94,7 +94,7 @@ export const createPatternTrack =
     return { track, instrument };
   };
 
-export const createCourtesyPatternClip =
+export const createNewPatternClip =
   (
     payload: Payload<
       Partial<{
@@ -108,7 +108,7 @@ export const createCourtesyPatternClip =
   (dispatch, getProject) => {
     const project = getProject();
     const { clip, autobind, randomize } = payload.data;
-    const undoType = unpackUndoType(payload, "createCourtesyPatternClip");
+    const undoType = unpackUndoType(payload, "createNewPatternClip");
     const patternId = payload.data?.pattern?.id;
     const initialPattern = patternId
       ? selectPatternById(project, patternId)

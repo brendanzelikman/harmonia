@@ -190,13 +190,17 @@ export function NavbarProjectMenu() {
                           onClick={() => {
                             dispatch(exportProjectToJSON());
                             deleteProject(projectId);
+                            close();
                           }}
                         >
                           Yes
                         </button>
                         <button
                           className="cursor-pointer border-indigo-500 hover:text-indigo-500"
-                          onClick={() => deleteProject(projectId)}
+                          onClick={() => {
+                            deleteProject(projectId);
+                            close();
+                          }}
                         >
                           No
                         </button>
