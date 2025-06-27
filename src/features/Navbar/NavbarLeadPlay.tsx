@@ -309,7 +309,7 @@ export const NavbarLeadPlay = () => {
           <p>
             <NavbarInstructionDescription
               active={(key) => holding[getKeyCode(key)]}
-              keycodes={["-", "`"]}
+              keycodes={["="]}
               label={"Hold Equal:"}
             />{" "}
             <NavbarScaleDescription
