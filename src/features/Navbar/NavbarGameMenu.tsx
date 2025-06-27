@@ -1,5 +1,5 @@
 import { ComponentProps } from "react";
-import { GiDrum, GiJackPlug } from "react-icons/gi";
+import { GiDrum, GiJackPlug, GiMisdirection } from "react-icons/gi";
 import classNames from "classnames";
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
 import {
@@ -17,7 +17,6 @@ import { BsEraser, BsPlay } from "react-icons/bs";
 import {
   AddCommandToGameHotkey,
   AddPosesToGameHotkey,
-  ArrangePoseIcon,
   ResetGameHotkey,
 } from "lib/hotkeys/timeline";
 import { getHotkeyShortcut } from "lib/hotkeys";
@@ -45,64 +44,74 @@ export function NavbarGameMenu() {
         top="top-8"
         bgColor="bg-radial from-slate-900 to-zinc-900 -left-8"
       >
-        <div className="size-full min-w-64 space-y-1">
+        <div className="size-full min-w-64 space-y-2">
           <div className="text-xl p-2 pb-0">Create Rhythm Games</div>
-          <div className="text-base p-2 pt-0 text-indigo-300/80">
+          <div className="text-base p-2 border-t border-t-fuchsia-500 text-fuchsia-300/80">
             Turn Gestures to Instructions
           </div>
-          <div className="p-2 border border-slate-600 rounded text-slate-300 text-xs">
-            A Rhythm Game can be created by displaying gestures as instructions.
-          </div>
-          <NavbarGameGroup
-            disabled={!canGame}
-            onClick={() => dispatch(addPosesToGame())}
-          >
-            <NavbarGameLabel>
-              {!canGame ? "Select Poses for Game" : "Add Poses to Game"}
-            </NavbarGameLabel>
-            <ArrangePoseIcon className="ml-auto text-2xl" />
-          </NavbarGameGroup>
-          <div className="text-xs p-2 text-slate-300">
-            Add gestures from Move Along Scales by selecting the poses and
-            pressing {getHotkeyShortcut(AddPosesToGameHotkey)}.
+
+          <div className="border border-slate-500 rounded">
+            <NavbarGameGroup
+              className="border-b border-b-sky-500"
+              disabled={!canGame}
+              onClick={() => dispatch(addPosesToGame())}
+            >
+              <NavbarGameLabel>
+                {!canGame ? "Move Along Scales" : "Add Poses to Game"}
+              </NavbarGameLabel>
+              <GiMisdirection className="ml-auto text-2xl" />
+            </NavbarGameGroup>
+            <div className="text-xs p-2 text-slate-400">
+              Add poses from Move Along Scales by selecting the clips and
+              pressing {getHotkeyShortcut(AddPosesToGameHotkey)}.
+            </div>
           </div>
 
-          <NavbarGameGroup
-            disabled={!hasGame}
-            onClick={() => dispatch(promptUserForGameCommand())}
-          >
-            <NavbarGameLabel>Add Gesture to Game</NavbarGameLabel>
-            <GiJackPlug className="ml-auto text-2xl" />
-          </NavbarGameGroup>
-          <div className="text-xs p-2 text-slate-300">
-            Add custom gestures by prompt (any key and value) by pressing{" "}
-            {getHotkeyShortcut(AddCommandToGameHotkey)}.
+          <div className="border border-slate-500 rounded">
+            <NavbarGameGroup
+              className="border-b border-b-emerald-500"
+              disabled={!hasGame}
+              onClick={() => dispatch(promptUserForGameCommand())}
+            >
+              <NavbarGameLabel>Add Gesture to Game</NavbarGameLabel>
+              <GiJackPlug className="ml-auto text-2xl" />
+            </NavbarGameGroup>
+            <div className="text-xs p-2 text-slate-400">
+              Add gestures by prompt (any key and value) by pressing{" "}
+              {getHotkeyShortcut(AddCommandToGameHotkey)}.
+            </div>
           </div>
 
           {!!hasGame && (
-            <>
-              <NavbarGameGroup onClick={() => dispatch(startTransport())}>
+            <div className="border border-slate-500 rounded">
+              <NavbarGameGroup
+                className="border-b border-b-fuchsia-500"
+                onClick={() => dispatch(startTransport())}
+              >
                 <NavbarGameLabel>Start Game</NavbarGameLabel>
                 <BsPlay className="ml-auto text-2xl" />
               </NavbarGameGroup>
-              <div className="text-xs p-2 text-slate-300">
-                Play the game by selecting the starting track and pressing Space
-                to start the timeline.
+              <div className="text-xs p-2 text-slate-400">
+                Play the game by selecting the track and pressing Space to start
+                the timeline.
               </div>
-            </>
+            </div>
           )}
 
           {!!hasGame && (
-            <>
-              <NavbarGameGroup onClick={() => dispatch(resetGame())}>
+            <div className="border border-slate-500 rounded">
+              <NavbarGameGroup
+                className="border-b border-b-slate-500"
+                onClick={() => dispatch(resetGame())}
+              >
                 <NavbarGameLabel>Clear Game</NavbarGameLabel>
                 <BsEraser className="ml-auto text-2xl" />
               </NavbarGameGroup>
-              <div className="text-xs p-2 text-slate-300">
+              <div className="text-xs p-2 text-slate-400">
                 Remove all instructions from the game by pressing{" "}
                 {getHotkeyShortcut(ResetGameHotkey)}.
               </div>
-            </>
+            </div>
           )}
         </div>
       </NavbarHoverTooltip>
