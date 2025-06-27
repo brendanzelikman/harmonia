@@ -37,7 +37,6 @@ export function Navbar() {
           <NavbarGroup className="pl-3 ml-3 border-l border-l-slate-500/50">
             <NavbarProjectMenu />
             <NavbarSettings />
-            <NavbarGameMenu />
             <NavbarUndo />
             <NavbarRedo />
           </NavbarGroup>
@@ -69,6 +68,7 @@ export function Navbar() {
             <NavbarLivePlay />
             <NavbarMixPlay />
             <NavbarLeadPlay />
+            <NavbarGameMenu />
           </NavbarGroup>
         </div>
       )}

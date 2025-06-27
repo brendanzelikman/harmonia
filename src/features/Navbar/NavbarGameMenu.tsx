@@ -13,7 +13,7 @@ import {
 } from "types/Game/GameThunks";
 import { resetGame } from "types/Game/GameSlice";
 import { selectCanGame, selectHasGame } from "types/Game/GameSelectors";
-import { BsEraser } from "react-icons/bs";
+import { BsEraser, BsPlay } from "react-icons/bs";
 import {
   AddCommandToGameHotkey,
   AddPosesToGameHotkey,
@@ -32,27 +32,26 @@ export function NavbarGameMenu() {
       {/* Button */}
       <div
         className={classNames(
-          hasGame ? "bg-fuchsia-800/50" : "",
-          "rounded-full size-9 total-center border border-fuchsia-400 p-1.5"
+          hasGame ? "bg-indigo-800/50" : "",
+          "rounded-full size-9 total-center border border-indigo-400 p-1.5"
         )}
       >
-        <GiDrum className="size-full shrink-0 text-2xl select-none cursor-pointer group-hover/tooltip:text-fuchsia-500" />
+        <GiDrum className="size-full shrink-0 text-2xl select-none cursor-pointer group-hover/tooltip:text-indigo-500" />
       </div>
 
       {/* Tooltip */}
       <NavbarHoverTooltip
-        borderColor="border-fuchsia-500"
+        borderColor="border-indigo-500"
         top="top-8"
         bgColor="bg-radial from-slate-900 to-zinc-900 -left-8"
       >
-        <div className="size-full min-w-60 space-y-1">
-          <div className="text-xl p-2 pb-0">Keyboard Challenges</div>
-          <div className="text-base p-2 pt-0 text-fuchsia-300/80">
-            Gesture-Based Rhythm Games
+        <div className="size-full min-w-64 space-y-1">
+          <div className="text-xl p-2 pb-0">Create Rhythm Games</div>
+          <div className="text-base p-2 pt-0 text-indigo-300/80">
+            Turn Gestures to Instructions
           </div>
           <div className="p-2 border border-slate-600 rounded text-slate-300 text-xs">
-            A Keyboard Challenge is a set of hotkeys scheduled to be shown
-            during playback.
+            A Rhythm Game can be created by displaying gestures as instructions.
           </div>
           <NavbarGameGroup
             disabled={!canGame}
@@ -64,8 +63,8 @@ export function NavbarGameMenu() {
             <ArrangePoseIcon className="ml-auto text-2xl" />
           </NavbarGameGroup>
           <div className="text-xs p-2 text-slate-300">
-            Add poses to the game by selecting the clips and pressing{" "}
-            {getHotkeyShortcut(AddPosesToGameHotkey)}.
+            Add gestures from Move Along Scales by selecting the poses and
+            pressing {getHotkeyShortcut(AddPosesToGameHotkey)}.
           </div>
 
           <NavbarGameGroup
@@ -76,7 +75,7 @@ export function NavbarGameMenu() {
             <GiJackPlug className="ml-auto text-2xl" />
           </NavbarGameGroup>
           <div className="text-xs p-2 text-slate-300">
-            Add custom hotkeys (based on a gesture) by pressing{" "}
+            Add custom gestures by prompt (any key and value) by pressing{" "}
             {getHotkeyShortcut(AddCommandToGameHotkey)}.
           </div>
 
@@ -84,11 +83,11 @@ export function NavbarGameMenu() {
             <>
               <NavbarGameGroup onClick={() => dispatch(startTransport())}>
                 <NavbarGameLabel>Start Game</NavbarGameLabel>
-                <BsEraser className="ml-auto text-2xl" />
+                <BsPlay className="ml-auto text-2xl" />
               </NavbarGameGroup>
               <div className="text-xs p-2 text-slate-300">
-                Play the game by selecting the displayed track and pressing
-                Space.
+                Play the game by selecting the starting track and pressing Space
+                to start the timeline.
               </div>
             </>
           )}
@@ -100,7 +99,7 @@ export function NavbarGameMenu() {
                 <BsEraser className="ml-auto text-2xl" />
               </NavbarGameGroup>
               <div className="text-xs p-2 text-slate-300">
-                Remove all commands from the game by pressing{" "}
+                Remove all instructions from the game by pressing{" "}
                 {getHotkeyShortcut(ResetGameHotkey)}.
               </div>
             </>
@@ -119,7 +118,7 @@ function NavbarGameGroup(
       {...props}
       className={classNames(
         !props.disabled
-          ? "hover:bg-fuchsia-500/25 cursor-pointer"
+          ? "hover:bg-indigo-500/25 cursor-pointer"
           : "opacity-70",
         "px-2 h-8 space-x-4",
         props.className

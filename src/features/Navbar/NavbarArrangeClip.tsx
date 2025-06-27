@@ -50,16 +50,16 @@ export const NavbarArrangeClip = (props: { type: ClipType }) => {
               Pose (Musical Effect)
               <br />
               <span className="text-gray-400 text-xs normal-case">
-                Press <span className="uppercase">P</span> to arrange a new
-                pose.
+                Press <span className="uppercase">P</span> to arrange a pose in
+                the timeline.
               </span>
               <br />
               <span className="text-gray-400 text-xs normal-case">
-                Press V + 1-9 to store a pose.
+                Press V + 1-9 to store a pose to slot 1-9.
               </span>
               <br />
               <span className="text-gray-400 text-xs normal-case">
-                Press B + 1-9 to place a pose.
+                Press B + 1-9 to arrange a pose from slot 1-9.
               </span>
               <br />
             </>
@@ -68,16 +68,16 @@ export const NavbarArrangeClip = (props: { type: ClipType }) => {
               Pattern (Musical Passage)
               <br />
               <span className="text-gray-400 text-xs normal-case">
-                Press <span className="uppercase">O</span> to arrange a new
-                pattern.
+                Press <span className="uppercase">O</span> to arrange a pattern
+                in the timeline.
               </span>
               <br />
               <span className="text-gray-400 text-xs normal-case">
-                Press Z + 1-9 to store a pattern.
+                Press Z + 1-9 to store a pattern to slot 1-9.
               </span>
               <br />
               <span className="text-gray-400 text-xs normal-case">
-                Press X + 1-9 to place a pattern.
+                Press X + 1-9 to arrange a pattern from slot 1-9.
               </span>
               <br />
             </>

@@ -188,7 +188,7 @@ const TimelineTopLeftCorner = () => {
           <div className="text-slate-300 font-light text-sm">
             {!canGame
               ? `Select Track (${labelMap[game.trackId!]}) To Play`
-              : `Start When You Are Ready!`}
+              : `Press Space to Start Game!`}
           </div>
         </div>
       )}

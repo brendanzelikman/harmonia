@@ -22,17 +22,17 @@ export const NavbarCreateTree = () => {
           Tree (Musical Structure)
           <br />
           <span className="text-gray-400 text-xs normal-case">
-            Press {getHotkeyShortcut(CreateTreeHotkey)} to create a new tree by
-            prompt.
+            Press {getHotkeyShortcut(CreateTreeHotkey)} to create a tree of
+            tracks by prompt.
           </span>
           <br />
           <span className="text-gray-400 text-xs normal-case">
             Press {getHotkeyShortcut(CreateRandomTreeHotkey)} to create a random
-            tree.
+            tree of tracks.
           </span>
           <br />
           <span className="text-gray-400 text-xs normal-case">
-            Press {getHotkeyShortcut(SampleProject)} to sample a project by
+            Press {getHotkeyShortcut(SampleProject)} to encapsulate a project by
             file.
           </span>
         </>

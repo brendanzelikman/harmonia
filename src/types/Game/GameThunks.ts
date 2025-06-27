@@ -85,7 +85,7 @@ export const addPosesToGame =
 
 export const promptUserForGameCommand = (): Thunk => (dispatch, getProject) =>
   promptUserForString({
-    title: "Add Command to Game",
+    title: "Add Instruction to Game",
     description: "Enter a key and a value (e.g. Q 5 or M 0)",
     callback: (string) => {
       const [key, value] = string.split(" ");
