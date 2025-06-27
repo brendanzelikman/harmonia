@@ -327,7 +327,7 @@ export const NavbarLeadPlay = () => {
     () => (
       <div>
         <div
-          className={`px-2 py-1 bg-gradient-to-r from-fuchsia-500/40 to-fuchsia-500/20 rounded`}
+          className={`px-2 py-1 bg-gradient-to-r from-teal-500/40 to-teal-500/20 rounded`}
         >
           {isMixing
             ? "Mix Samplers"
@@ -436,12 +436,12 @@ export const NavbarLeadPlay = () => {
       marginTop={0}
       width={350}
       backgroundColor="bg-radial from-slate-900 to-zinc-900"
-      borderColor={`border-2 border-fuchsia-500`}
+      borderColor={`border-2 border-teal-500`}
       rounding="rounded-lg"
       className={classNames(
         "shrink-0 relative rounded-full select-none cursor-pointer",
-        "flex total-center hover:text-fuchsia-300 p-1 bg-fuchsia-700/80 border border-fuchsia-500 font-light",
-        working ? "text-fuchsia-200" : "text-fuchsia-100"
+        "flex total-center hover:text-teal-300 p-1 bg-teal-700/80 border border-teal-500 font-light",
+        working ? "text-teal-200" : "text-teal-100"
       )}
       label={
         <div
@@ -463,7 +463,7 @@ export const NavbarLeadPlay = () => {
           </div>
           <div
             data-active={isActive}
-            className="text-base data-[active=false]:text-sm data-[active=true]:mb-4 text-fuchsia-300/80"
+            className="text-base data-[active=false]:text-sm data-[active=true]:mb-4 text-teal-300/80"
           >
             {!isActive ? (
               hasTracks ? (

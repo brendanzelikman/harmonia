@@ -97,12 +97,12 @@ export const NavbarMixPlay = () => {
       marginTop={0}
       width={350}
       backgroundColor="bg-radial from-slate-900 to-zinc-900"
-      borderColor={`border-2 border-emerald-500`}
+      borderColor={`border-2 border-amber-500`}
       rounding="rounded-lg"
       className={classNames(
         "shrink-0 relative rounded-full select-none cursor-pointer",
-        "flex total-center hover:text-emerald-300 p-1 bg-emerald-700/80 border border-emerald-500 font-light",
-        working ? "text-emerald-200" : "text-emerald-100"
+        "flex total-center hover:text-amber-300 p-1 bg-amber-700 border border-amber-500 font-light",
+        working ? "text-amber-200" : "text-amber-100"
       )}
       label={
         <div className="text-white animate-in fade-in duration-300">
@@ -114,7 +114,7 @@ export const NavbarMixPlay = () => {
           </div>
           <div
             data-active={isActive}
-            className="text-base data-[active=false]:text-sm data-[active=true]:mb-4 text-emerald-300/80"
+            className="text-base data-[active=false]:text-sm data-[active=true]:mb-4 text-amber-300/80"
           >
             {!isActive ? (
               hasTracks ? (

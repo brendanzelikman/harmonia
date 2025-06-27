@@ -1,5 +1,5 @@
 import { ComponentProps } from "react";
-import { GiDrum, GiJackPlug, GiMisdirection } from "react-icons/gi";
+import { GiDrum, GiJackPlug, GiKeyboard, GiMisdirection } from "react-icons/gi";
 import classNames from "classnames";
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
 import {
@@ -31,16 +31,16 @@ export function NavbarGameMenu() {
       {/* Button */}
       <div
         className={classNames(
-          hasGame ? "bg-indigo-800/50" : "",
-          "rounded-full size-9 total-center border border-indigo-400 p-1.5"
+          hasGame ? "bg-fuchsia-800/50" : "",
+          "rounded-full size-9 total-center border border-fuchsia-400 p-1.5"
         )}
       >
-        <GiDrum className="size-full shrink-0 text-2xl select-none cursor-pointer group-hover/tooltip:text-indigo-500" />
+        <GiDrum className="size-full shrink-0 text-2xl select-none cursor-pointer group-hover/tooltip:text-fuchsia-500" />
       </div>
 
       {/* Tooltip */}
       <NavbarHoverTooltip
-        borderColor="border-indigo-500"
+        borderColor="border-fuchsia-500"
         top="top-8"
         bgColor="bg-radial from-slate-900 to-zinc-900 -left-8"
       >
@@ -74,7 +74,7 @@ export function NavbarGameMenu() {
               onClick={() => dispatch(promptUserForGameCommand())}
             >
               <NavbarGameLabel>Add Gesture to Game</NavbarGameLabel>
-              <GiJackPlug className="ml-auto text-2xl" />
+              <GiKeyboard className="ml-auto text-2xl" />
             </NavbarGameGroup>
             <div className="text-xs p-2 text-slate-400">
               Add gestures by prompt (any key and value) by pressing{" "}
@@ -127,7 +127,7 @@ function NavbarGameGroup(
       {...props}
       className={classNames(
         !props.disabled
-          ? "hover:bg-indigo-500/25 cursor-pointer"
+          ? "hover:bg-fuchsia-500/25 cursor-pointer"
           : "opacity-70",
         "px-2 h-8 space-x-4",
         props.className

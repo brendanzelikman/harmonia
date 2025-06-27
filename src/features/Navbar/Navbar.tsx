@@ -66,8 +66,8 @@ export function Navbar() {
           >
             <div className="text-sm font-light pr-1">Gestures</div>
             <NavbarLivePlay />
-            <NavbarMixPlay />
             <NavbarLeadPlay />
+            <NavbarMixPlay />
             <NavbarGameMenu />
           </NavbarGroup>
         </div>
