@@ -47,7 +47,7 @@ const MoonlightDemo: DemoProject = {
 };
 const PreludeDemo: DemoProject = {
   project: Prelude as unknown as BaseProject,
-  blurb: "A recreation of that famous piece by Bach.",
+  blurb: "A recreation of Bach's C Major Prelude.",
   aliases: ["bach", "prelude"],
 };
 const ReminiscenzaDemo: DemoProject = {
@@ -162,7 +162,7 @@ const TanDemo: DemoProject = {
 // -------------------------------------
 const GameBarryDemo: DemoProject = {
   project: GameBarry as unknown as BaseProject,
-  blurb: "The rhythm game of Fly Me to Barry.",
+  blurb: "An improvisation over Fly Me to the Moon.",
   aliases: ["game_barry", "barry_game"],
 };
 const GameCoolDemo: DemoProject = {
@@ -187,12 +187,12 @@ const GameWaveDemo: DemoProject = {
 
 const BachSinDemo: DemoProject = {
   project: BachSin as unknown as BaseProject,
-  blurb: "Bach's Prelude slowly summed from 0 to +1.",
+  blurb: "Bach's Prelude slowly summed from 0 to 1.",
   aliases: ["bach_sin"],
 };
 const BachCosDemo: DemoProject = {
   project: BachCos as unknown as BaseProject,
-  blurb: "Bach's Prelude slowly dropped from +1 to 0.",
+  blurb: "Bach's Prelude slowly dropped from 1 to 0.",
   aliases: ["bach_cos"],
 };
 const BachTanDemo: DemoProject = {

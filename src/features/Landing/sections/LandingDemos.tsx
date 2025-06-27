@@ -6,12 +6,15 @@ import {
   GiMoon,
   GiMoonOrbit,
   GiPianoKeys,
+  GiPsychicWaves,
   GiVolcano,
   GiWaterfall,
+  GiWaveCrest,
 } from "react-icons/gi";
 import { loadDemoProject } from "types/Project/ProjectLoaders";
 import { useNavigate } from "react-router-dom";
 import { CALCULATOR } from "app/router";
+import { CiWavePulse1 } from "react-icons/ci";
 
 const variants = {
   hidden: { opacity: 0, translateY: 20 },
@@ -78,15 +81,15 @@ const LANDING_DEMO_PROJECTS = [
     icon: <GiMoon className="text-indigo-400/80" />,
   },
   {
-    ...DEMOS_BY_KEY["bird"],
-    icon: <GiKiwiBird className="text-orange-300/80" />,
-  },
-  {
-    ...DEMOS_BY_KEY["fly me to barry"],
-    icon: <GiMoonOrbit className="text-blue-300/80" />,
-  },
-  {
     ...DEMOS_BY_KEY["lavos"],
     icon: <GiVolcano className="text-red-500/80" />,
+  },
+  {
+    ...DEMOS_BY_KEY["bach_sin"],
+    icon: <GiPsychicWaves className="text-orange-300/80" />,
+  },
+  {
+    ...DEMOS_BY_KEY["barry_game"],
+    icon: <GiMoonOrbit className="text-blue-300/80" />,
   },
 ];
