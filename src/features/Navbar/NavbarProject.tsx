@@ -17,9 +17,9 @@ import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelector
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { exportProjectToMIDI } from "types/Project/ProjectExporters";
 import {
-  NavbarFormInput,
   NavbarFormGroup,
   NavbarFormLabel,
+  NavbarTitleForm,
 } from "features/Navbar/components/NavbarForm";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 import { NEW_PROJECT_NAME } from "types/Meta/MetaTypes";
@@ -54,36 +54,26 @@ export function NavbarProjectMenu() {
   return (
     <div className="group/tooltip relative shrink-0">
       {/* Button */}
-      <div className="rounded-full size-9 total-center border border-indigo-400 p-1.5">
+      <div className="rounded-full size-9 total-center p-1.5">
         <GiCompactDisc className="size-full shrink-0 text-2xl select-none cursor-pointer group-hover/tooltip:text-indigo-500" />
       </div>
 
       {/* Tooltip */}
       <NavbarHoverTooltip
+        className="min-w-64"
         borderColor="border-indigo-500"
         top="top-8"
         bgColor="bg-radial from-slate-900 to-zinc-900 -left-8"
       >
         <div className="size-full py-1 space-y-1.5 min-w-48">
-          {/* Project Name */}
-          <div>
-            <NavbarFormInput
-              id="projectName"
-              className="w-full focus:bg-indigo-950/50 py-2 mb-2"
-              type="text"
-              placeholder={NEW_PROJECT_NAME}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => blurOnEnter(e, updateName)}
-              onBlur={updateName}
-            />
-            <label
-              htmlFor="projectName"
-              className={`absolute text-xs text-indigo-400 duration-300 transform scale-75 top-1 z-10 origin-0 bg-slate-900/80 rounded px-1 left-1`}
-            >
-              Project Name
-            </label>
-          </div>
+          <NavbarTitleForm
+            type="text"
+            placeholder="Project Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => blurOnEnter(e, updateName)}
+            onBlur={updateName}
+          />
 
           {/* Open New Project */}
           <NavbarFileGroup onClick={() => uploadProject()}>
@@ -102,12 +92,6 @@ export function NavbarProjectMenu() {
             <NavbarFileLabel>Save to JSON</NavbarFileLabel>
             <GiLoad className="ml-auto text-2xl" />
           </NavbarFileGroup>
-
-          {/* Load Project */}
-          {/* <NavbarFileGroup onClick={() => promptUserForProjects()}>
-            <NavbarFileLabel>Load From JSON</NavbarFileLabel>
-            <GiSave className="ml-auto text-2xl" />
-          </NavbarFileGroup> */}
 
           {/* Export to MIDI */}
           {

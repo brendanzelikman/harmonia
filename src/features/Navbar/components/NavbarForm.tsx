@@ -44,3 +44,18 @@ export const NavbarFormInput = (props: NavbarFormInputProps) => (
     }}
   />
 );
+
+export const NavbarTitleForm = (props: NavbarFormInputProps) => {
+  return (
+    <input
+      {...props}
+      className={classNames(
+        props.className,
+        "text-base w-full border-b border-b-slate-500 text-slate-100 bg-slate-950/80 focus:bg-slate-950 rounded-lg font-light pb-1"
+      )}
+      type="text"
+      readOnly
+      disabled
+    />
+  );
+};

@@ -19,6 +19,8 @@ import {
   toggleAddingState,
 } from "types/Timeline/TimelineThunks";
 import { createTreeFromString } from "lib/prompts/tree";
+import { NavbarTitleForm } from "./components/NavbarForm";
+import { getHotkeyShortcut } from "lib/hotkeys";
 
 export const NavbarArrangePatterns = () => {
   const dispatch = useAppDispatch();
@@ -43,24 +45,29 @@ export const NavbarArrangePatterns = () => {
         !hasTracks ? (
           <span className="text-teal-400">Create Tree to Create Pattern</span>
         ) : (
-          <>
-            Pattern (Musical Passage)
-            <br />
-            <span className="text-gray-400 text-xs normal-case">
-              Press <span className="uppercase">O</span> to arrange a pattern in
-              the timeline.
-            </span>
-            <br />
-            <span className="text-gray-400 text-xs normal-case">
-              Press Z + 1-9 to store a pattern to slot 1-9.
-            </span>
-            <br />
-            <span className="text-gray-400 text-xs normal-case">
-              Press X + 1-9 to load a pattern from slot 1-9.
-            </span>
-            <br />
+          <div className="py-2 min-w-48">
+            <NavbarTitleForm
+              className="mb-3"
+              value="Pattern (Musical Passage)"
+            />
+            <div className="text-emerald-400 px-2 text-sm">
+              Design Sequences of Notes
+            </div>
+            <div className="border-b pt-2 border-slate-500 h-1 w-full mb-2" />
+            <div className="flex flex-col gap-1">
+              <div className="text-gray-400 text-xs normal-case">
+                Press {getHotkeyShortcut(ArrangePatternsHotkey)} to arrange a
+                pattern in the timeline.
+              </div>
+              <div className="text-gray-400 text-xs normal-case">
+                Press Z + 1-9 to store a pattern to slot 1-9.
+              </div>
+              <div className="text-gray-400 text-xs normal-case">
+                Press X + 1-9 to load a pattern from slot 1-9.
+              </div>
+            </div>
             {hasStorage && (
-              <div className="flex justify-evenly py-2">
+              <div className="flex justify-evenly py-2 mt-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((key) => (
                   <ArrangePatternIcon
                     key={key}
@@ -73,7 +80,7 @@ export const NavbarArrangePatterns = () => {
                 ))}
               </div>
             )}
-          </>
+          </div>
         )
       }
       hotkey={hotkey}
@@ -110,24 +117,26 @@ export const NavbarArrangePoses = () => {
         !hasTracks ? (
           <span className="text-fuchsia-400">Create Tree to Create Pose</span>
         ) : (
-          <>
-            Pose (Musical Effect)
-            <br />
-            <span className="text-gray-400 text-xs normal-case">
-              Press <span className="uppercase">P</span> to arrange a pose in
-              the timeline.
-            </span>
-            <br />
-            <span className="text-gray-400 text-xs normal-case">
-              Press V + 1-9 to store a pose to slot 1-9.
-            </span>
-            <br />
-            <span className="text-gray-400 text-xs normal-case">
-              Press B + 1-9 to load a pose from slot 1-9.
-            </span>
-            <br />
+          <div className="py-2 min-w-48">
+            <NavbarTitleForm className="mb-3" value="Pose (Musical Effect)" />
+            <div className="text-fuchsia-400 px-2 text-sm">
+              Design Functions of Notes
+            </div>
+            <div className="border-b pt-2 border-slate-500 h-1 w-full mb-2" />
+            <div className="flex flex-col gap-1">
+              <div className="text-gray-400 text-xs normal-case">
+                Press {getHotkeyShortcut(ArrangePosesHotkey)} to arrange a pose
+                in the timeline.
+              </div>
+              <div className="text-gray-400 text-xs normal-case">
+                Press V + 1-9 to store a pose to slot 1-9.
+              </div>
+              <div className="text-gray-400 text-xs normal-case">
+                Press B + 1-9 to load a pose from slot 1-9.
+              </div>
+            </div>
             {hasStorage && (
-              <div className="flex justify-evenly py-2">
+              <div className="flex justify-evenly py-2 mt-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((key) => (
                   <ArrangePoseIcon
                     key={key}
@@ -140,7 +149,7 @@ export const NavbarArrangePoses = () => {
                 ))}
               </div>
             )}
-          </>
+          </div>
         )
       }
       hotkey={ArrangePosesHotkey}

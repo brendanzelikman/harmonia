@@ -25,13 +25,14 @@ import {
   NavbarStopTransport,
   NavbarToggleTransport,
 } from "./NavbarTransportControl";
+import { BsTerminal } from "react-icons/bs";
 
 export function Navbar() {
   const { pathname } = useLocation();
   const hasTracks = useAppValue(selectHasTracks);
   const onSplash = pathname === SPLASH;
   return (
-    <nav className="absolute flex flex-nowrap shrink-0 items-center inset-0 bg-slate-900 border-b-[1px] border-b-slate-700 shadow-xl h-nav px-3 z-[300] transition-all animate-in fade-in text-2xl">
+    <nav className="absolute flex flex-nowrap shrink-0 items-center inset-0 bg-slate-950 border-b-[1px] border-b-slate-700 shadow-xl h-nav px-3 z-[300] transition-all animate-in fade-in text-2xl">
       <NavbarBrand />
       {onSplash ? (
         <div className="w-full flex gap-4 *:pr-4 *:border-r last:*:border-r-0 *:border-r-slate-600 text-slate-500 justify-end pr-2">
@@ -39,13 +40,16 @@ export function Navbar() {
         </div>
       ) : (
         <div className="size-full select-none flex animate-in fade-in slide-in-from-top-4 text-slate-50 *:border-r first:border-r-0 last:border-r-0 *:border-r-slate-500/50">
-          <NavbarGroup className="pl-3 ml-3 border-l border-l-slate-500/50">
+          <NavbarGroup
+            gap="gap-1"
+            className="pl-3 ml-3 border-l border-l-slate-500/50"
+          >
             <NavbarProjectMenu />
             <NavbarSettings />
             <NavbarUndo />
             <NavbarRedo />
           </NavbarGroup>
-          <NavbarGroup className="bg-slate-950/30">
+          <NavbarGroup className="bg-radial from-slate-900/15 to-teal-500/15">
             <NavbarVolume />
             <NavbarTime />
             <div className="flex gap-1.5">

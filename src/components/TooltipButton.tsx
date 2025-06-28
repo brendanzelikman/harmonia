@@ -1,8 +1,6 @@
-import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import classNames from "classnames";
 import { Hotkey } from "lib/hotkeys";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { cancelEvent } from "utils/event";
 
 interface TooltipButtonProps {
   className?: string;
@@ -40,10 +38,7 @@ interface TooltipButtonProps {
 export const NavbarTooltipButton = (props: TooltipButtonProps) => (
   <TooltipButton
     {...props}
-    className={classNames(
-      props.className,
-      `rounded-full size-9 shrink-0 transition-all`
-    )}
+    className={classNames(props.className, `rounded-full size-9`)}
     direction="vertical"
   />
 );
@@ -74,7 +69,6 @@ export const TooltipButton = ({
   passiveWidth,
   rounding,
   hideRing,
-  options,
   notClickable,
   normalCase,
   hideTooltip: _hideTooltip,
@@ -127,7 +121,7 @@ export const TooltipButton = ({
   const Button = (
     <div
       className={classNames(
-        "flex shrink-0 total-center",
+        "flex shrink-0 transition-all total-center",
         cursorClass ??
           (disabled
             ? `${disabledClass} cursor-default`
@@ -188,7 +182,7 @@ export const TooltipButton = ({
       }}
       className={classNames(
         alignment,
-        "select-none pointer-events-none",
+        "select-none font-light pointer-events-none",
         active ? "opacity-100" : "opacity-0",
         isIn ? "transition-opacity" : "transition-all",
         "group-hover:opacity-100 duration-200",
@@ -196,7 +190,7 @@ export const TooltipButton = ({
         "absolute p-3 py-1 w-max shrink-0",
         direction === "vertical" ? "top-12" : "-ml-12 -top-9",
         borderWidth ?? "border",
-        borderColor ?? "border-indigo-400/90",
+        borderColor ?? "border-indigo-500/90",
         backgroundColor ?? "bg-zinc-900",
         "text-sm z-[999]"
       )}
@@ -214,7 +208,7 @@ export const TooltipButton = ({
     </div>
   );
 
-  const Tooltip = (
+  return (
     <div
       className={`relative group ${normalCase ? "normal-case" : "capitalize"}`}
       onMouseEnter={onMouseEnter}
@@ -223,38 +217,5 @@ export const TooltipButton = ({
       {shouldShowTooltip && Label}
       {Button}
     </div>
-  );
-
-  if (!options?.length) return Tooltip;
-
-  // Return a menu if there are any options provided
-  return (
-    <Menu as="div" className="relative z-50">
-      {({ close }) => (
-        <>
-          <MenuButton
-            as="div"
-            className="flex justify-center"
-            onClick={disabled ? cancelEvent : undefined}
-          >
-            {Tooltip}
-          </MenuButton>
-          <MenuItems className="absolute flex flex-col top-8 px-2 whitespace-nowrap -mr-5 py-2 bg-slate-900/90 backdrop-blur border border-slate-400 text-sm rounded animate-in fade-in zoom-in-50 duration-100">
-            {options.map((option, i) => (
-              <div
-                key={i}
-                className="hover:bg-slate-600/80 px-2 py-half rounded cursor-pointer select-none"
-                onClick={() => {
-                  option.onClick();
-                  close();
-                }}
-              >
-                {option.label}
-              </div>
-            ))}
-          </MenuItems>
-        </>
-      )}
-    </Menu>
   );
 };

@@ -5,6 +5,7 @@ import { selectTransport } from "types/Transport/TransportSelectors";
 import {
   NavbarFormGroup,
   NavbarFormLabel,
+  NavbarTitleForm,
 } from "features/Navbar/components/NavbarForm";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 import { NavbarFileGroup, NavbarFileLabel } from "./NavbarProject";
@@ -27,23 +28,22 @@ export function NavbarSettings() {
   return (
     <div className="group/tooltip relative">
       {/* Button */}
-      <div
-        className={classNames(
-          "rounded-full p-1.5 size-9 total-center text-2xl border border-slate-400 select-none cursor-pointer group-hover/tooltip:text-slate-500 hover:shadow-xl"
-        )}
-      >
+      <div className="rounded-full p-1.5 size-9 total-center text-2xl select-none cursor-pointer group-hover/tooltip:text-slate-500 hover:shadow-xl">
         <GiCog />
       </div>
       {/* Tooltip */}
       <NavbarHoverTooltip
         className="min-w-64 -left-16"
         bgColor="bg-radial from-slate-900 to-zinc-900"
+        borderColor="border-slate-400"
       >
-        <div className="size-full py-1 space-y-3">
+        <div className="size-full py-1 space-y-3 min-w-48">
+          <NavbarTitleForm value="Project Settings" />
+
           <NavbarFormGroup>
             <NavbarSettingsLabel>Beats per Minute</NavbarSettingsLabel>
             <SyncedNumericalForm
-              className="block flex-auto px-2 bg-transparent rounded-md text-sm focus:outline-none text-white disabled:text-slate-400 disabled:placeholder-slate-400 placeholder-slate-300 border-0 focus:border-0 ring-1 ring-slate-400 focus:ring-slate-300 appearance-none focus:bg-slate-900/25 max-w-16 h-7"
+              className={formClass}
               value={bpm}
               setValue={(v) => dispatch(setBPM(v))}
               min={MIN_BPM}
@@ -53,9 +53,9 @@ export function NavbarSettings() {
           </NavbarFormGroup>
 
           <NavbarFormGroup>
-            <NavbarSettingsLabel>Quarters per Bar</NavbarSettingsLabel>
+            <NavbarSettingsLabel>Beats per Bar</NavbarSettingsLabel>
             <SyncedNumericalForm
-              className="block flex-auto px-2 bg-transparent rounded-md text-sm focus:outline-none text-white disabled:text-slate-400 disabled:placeholder-slate-400 placeholder-slate-300 border-0 focus:border-0 ring-1 ring-slate-400 focus:ring-slate-300 appearance-none focus:bg-slate-900/25 max-w-16 h-7"
+              className={formClass}
               value={timeSignature}
               setValue={(v) => dispatch(setTimeSignature(v))}
               min={1}
@@ -67,7 +67,7 @@ export function NavbarSettings() {
           <NavbarFormGroup>
             <NavbarSettingsLabel>Swing Ratio (0-1)</NavbarSettingsLabel>
             <SyncedNumericalForm
-              className="block flex-auto px-2 bg-transparent rounded-md text-sm focus:outline-none text-white disabled:text-slate-400 disabled:placeholder-slate-400 placeholder-slate-300 border-0 focus:border-0 ring-1 ring-slate-400 focus:ring-slate-300 appearance-none focus:bg-slate-900/25 max-w-16 h-7"
+              className={formClass}
               value={swing}
               setValue={(v) => dispatch(setSwing(v))}
               min={0}
@@ -78,7 +78,7 @@ export function NavbarSettings() {
           <NavbarFormGroup>
             <NavbarSettingsLabel>Scroll Interval (Bars)</NavbarSettingsLabel>
             <SyncedNumericalForm
-              className="block flex-auto px-2 bg-transparent rounded-md text-sm focus:outline-none text-white disabled:text-slate-400 disabled:placeholder-slate-400 placeholder-slate-300 border-0 focus:border-0 ring-1 ring-slate-400 focus:ring-slate-300 appearance-none focus:bg-slate-900/25 max-w-16 h-7"
+              className={formClass}
               value={scroll}
               setValue={(v) => dispatch(setScroll(v))}
               min={0}
@@ -94,7 +94,7 @@ export function NavbarSettings() {
             <BsTerminal className="ml-auto text-2xl" />
           </NavbarFileGroup>
           <NavbarFileGroup onClick={Shortcuts.toggle}>
-            <NavbarFileLabel>View Shortcuts</NavbarFileLabel>
+            <NavbarFileLabel>Open Shortcuts</NavbarFileLabel>
             <BsQuestionCircle className="ml-auto text-2xl" />
           </NavbarFileGroup>
         </div>
@@ -110,3 +110,6 @@ function NavbarSettingsLabel({ children }: { children: React.ReactNode }) {
     </NavbarFormLabel>
   );
 }
+
+const formClass =
+  "block flex-auto px-2 bg-transparent rounded-md text-sm focus:outline-none text-white disabled:text-slate-400 disabled:placeholder-slate-400 placeholder-slate-300 border-0 focus:border-0 ring-1 ring-slate-500 focus:ring-slate-300 appearance-none focus:bg-slate-950/50 max-w-16 h-7";

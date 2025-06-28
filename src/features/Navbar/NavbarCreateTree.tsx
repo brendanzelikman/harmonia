@@ -8,6 +8,7 @@ import { useAppDispatch } from "hooks/useRedux";
 import { promptUserForTree } from "lib/prompts/tree";
 import { getHotkeyShortcut } from "lib/hotkeys";
 import { SampleProject } from "lib/hotkeys/timeline";
+import { NavbarTitleForm } from "./components/NavbarForm";
 
 export const NavbarCreateTree = () => {
   const dispatch = useAppDispatch();
@@ -18,24 +19,27 @@ export const NavbarCreateTree = () => {
       onClick={() => dispatch(promptUserForTree)}
       hotkey={CreateTreeHotkey}
       label={
-        <>
-          Tree (Musical Structure)
-          <br />
-          <span className="text-gray-400 text-xs normal-case">
-            Press {getHotkeyShortcut(CreateTreeHotkey)} to create a tree of
-            tracks by prompt.
-          </span>
-          <br />
-          <span className="text-gray-400 text-xs normal-case">
-            Press {getHotkeyShortcut(CreateRandomTreeHotkey)} to create a random
-            tree of tracks.
-          </span>
-          <br />
-          <span className="text-gray-400 text-xs normal-case">
-            Press {getHotkeyShortcut(SampleProject)} to encapsulate a project by
-            file.
-          </span>
-        </>
+        <div className="py-2 min-w-48">
+          <NavbarTitleForm className="mb-3" value="Tree (Musical Structure)" />
+          <div className="text-sky-400 px-2 text-sm">
+            Design Families of Tracks
+          </div>
+          <div className="border-b pt-2 border-slate-500 h-1 w-full mb-2" />
+          <div className="flex flex-col gap-1">
+            <div className="text-gray-400 text-xs normal-case">
+              Press {getHotkeyShortcut(CreateTreeHotkey)} to create a new tree
+              by prmopt.
+            </div>
+            <div className="text-gray-400 text-xs normal-case">
+              Press {getHotkeyShortcut(CreateRandomTreeHotkey)} to create a
+              random tree.
+            </div>
+            <div className="text-gray-400 text-xs normal-case">
+              Press {getHotkeyShortcut(SampleProject)} to sample a project by
+              file.
+            </div>
+          </div>
+        </div>
       }
     >
       <CreateTreeIcon className="text-2xl" />
