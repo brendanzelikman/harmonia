@@ -21,13 +21,7 @@ import {
 import { createTreeFromString } from "lib/prompts/tree";
 import { NavbarFormGroup, NavbarTitleForm } from "./components/NavbarForm";
 import { getHotkeyShortcut } from "lib/hotkeys";
-import {
-  GiKeyboard,
-  GiDiceSixFacesFive,
-  GiFiles,
-  GiSave,
-  GiPlateClaw,
-} from "react-icons/gi";
+import { GiSave, GiPlateClaw } from "react-icons/gi";
 
 export const NavbarArrangePatterns = () => {
   const dispatch = useAppDispatch();
@@ -62,7 +56,7 @@ export const NavbarArrangePatterns = () => {
             </div>
             <div className="flex flex-col gap-2 mt-3">
               <div className="border border-slate-500 rounded">
-                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-sky-500">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-b-none bg-slate-950/10 border-b border-b-sky-500">
                   <div>Create Pattern</div>
                   <ArrangePatternIcon className="ml-auto text-2xl" />
                 </NavbarFormGroup>
@@ -72,7 +66,7 @@ export const NavbarArrangePatterns = () => {
                 </div>
               </div>
               <div className="border border-slate-500 rounded">
-                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-emerald-500">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-b-none bg-slate-950/10 border-b border-b-emerald-500">
                   <div>Store Pattern</div>
                   <GiSave className="ml-auto text-2xl" />
                 </NavbarFormGroup>
@@ -81,7 +75,7 @@ export const NavbarArrangePatterns = () => {
                 </div>
               </div>
               <div className="border border-slate-500 rounded">
-                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-fuchsia-500">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-b-none bg-slate-950/10 border-b border-b-fuchsia-500">
                   <div>Load Pattern</div>
                   <GiPlateClaw className="ml-auto text-2xl" />
                 </NavbarFormGroup>
@@ -148,7 +142,7 @@ export const NavbarArrangePoses = () => {
             </div>
             <div className="flex flex-col mt-3 gap-2">
               <div className="border border-slate-500 rounded">
-                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-sky-500">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-b-none bg-slate-950/10 border-b border-b-sky-500">
                   <div>Create Pose</div>
                   <ArrangePoseIcon className="ml-auto text-2xl" />
                 </NavbarFormGroup>
@@ -158,7 +152,7 @@ export const NavbarArrangePoses = () => {
                 </div>
               </div>
               <div className="border border-slate-500 rounded">
-                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-emerald-500">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-b-none bg-slate-950/10 border-b border-b-emerald-500">
                   <div>Store Pose</div>
                   <GiSave className="ml-auto text-2xl" />
                 </NavbarFormGroup>
@@ -167,7 +161,7 @@ export const NavbarArrangePoses = () => {
                 </div>
               </div>
               <div className="border border-slate-500 rounded">
-                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-fuchsia-500">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-b-none bg-slate-950/10 border-b border-b-fuchsia-500">
                   <div>Load Pose</div>
                   <GiPlateClaw className="ml-auto text-2xl" />
                 </NavbarFormGroup>

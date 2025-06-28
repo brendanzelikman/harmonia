@@ -20,14 +20,14 @@ export const NavbarCreateTree = () => {
       onClick={() => dispatch(promptUserForTree)}
       hotkey={CreateTreeHotkey}
       label={
-        <div className="py-2 min-w-48">
+        <div className="py-2 min-w-60">
           <NavbarTitleForm className="mb-3" value="Tree - Musical Structure" />
           <div className="text-sky-400 px-2 text-sm">
             Design Families of Tracks
           </div>
           <div className="flex flex-col gap-2 mt-3">
             <div className="border border-slate-500 rounded">
-              <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-sky-500">
+              <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-b-none bg-slate-950/10 border-b border-b-sky-500">
                 <div>Create Tree</div>
                 <GiKeyboard className="ml-auto text-2xl" />
               </NavbarFormGroup>
@@ -37,7 +37,7 @@ export const NavbarCreateTree = () => {
               </div>
             </div>
             <div className="border border-slate-500 rounded">
-              <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-emerald-500">
+              <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-b-none bg-slate-950/10 border-b border-b-emerald-500">
                 <div>Randomize Tree</div>
                 <GiDiceSixFacesFive className="ml-auto text-2xl" />
               </NavbarFormGroup>
@@ -47,7 +47,7 @@ export const NavbarCreateTree = () => {
               </div>
             </div>
             <div className="border border-slate-500 rounded">
-              <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-fuchsia-500">
+              <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-b-none bg-slate-950/10 border-b border-b-fuchsia-500">
                 <div>Encapsulate Tree</div>
                 <GiFiles className="ml-auto text-2xl" />
               </NavbarFormGroup>
