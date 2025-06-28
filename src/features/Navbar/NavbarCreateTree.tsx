@@ -28,7 +28,7 @@ export const NavbarCreateTree = () => {
           <div className="flex flex-col gap-1">
             <div className="text-gray-400 text-xs normal-case">
               Press {getHotkeyShortcut(CreateTreeHotkey)} to create a new tree
-              by prmopt.
+              by prompt.
             </div>
             <div className="text-gray-400 text-xs normal-case">
               Press {getHotkeyShortcut(CreateRandomTreeHotkey)} to create a
