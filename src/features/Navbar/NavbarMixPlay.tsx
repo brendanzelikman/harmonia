@@ -101,7 +101,7 @@ export const NavbarMixPlay = () => {
       rounding="rounded-lg"
       className={classNames(
         "shrink-0 relative rounded-full select-none cursor-pointer",
-        "flex total-center hover:text-amber-300 p-1 bg-amber-500/60 border border-amber-500 font-light",
+        "flex total-center hover:text-amber-300 p-1 bg-amber-600/60 border border-amber-500 font-light",
         working ? "text-amber-200" : "text-amber-100"
       )}
       label={
