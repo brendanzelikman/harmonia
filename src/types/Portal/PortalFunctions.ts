@@ -35,7 +35,7 @@ export function applyPortalsToClips(clips: Timed<Clip>[], portals: Portal[]) {
     // Start with the media bounds
     const startTick = clip.tick;
     const endTick = clip.tick + clip.duration;
-    const usedPortalIds = new Set<string>();
+    // const usedPortalIds = new Set<string>();
 
     // Initialize the chunks
     const portaledClips: Portaled<Clip>[] = [];
@@ -49,8 +49,8 @@ export function applyPortalsToClips(clips: Timed<Clip>[], portals: Portal[]) {
       const portal = portals.find(
         (portal) =>
           portal.trackId === fragment.trackId &&
-          portal.tick === fragment.tick + chunkLength &&
-          !usedPortalIds.has(portal.id)
+          portal.tick === fragment.tick + chunkLength
+        // && !usedPortalIds.has(portal.id)
       );
 
       // If no portal exists, then continue
@@ -77,7 +77,7 @@ export function applyPortalsToClips(clips: Timed<Clip>[], portals: Portal[]) {
       portaledClips.push(chunk);
       chunkLength = 1;
       tick++;
-      usedPortalIds.add(portal.id);
+      // usedPortalIds.add(portal.id);
     }
 
     // Push the final chunk
