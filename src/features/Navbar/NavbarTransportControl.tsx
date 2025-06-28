@@ -19,67 +19,84 @@ import {
 } from "types/Transport/TransportRecorder";
 import { RECORD_TRANSPORT } from "types/Transport/TransportRecorder";
 
-export function NavbarTransportControl() {
+const buttonColor = "bg-slate-800";
+const buttonClass = "p-1.5 text-xl transition-all border border-slate-500";
+
+export function NavbarStopTransport() {
+  const state = useTransportState();
+  const isStopped = state === "stopped";
+  return (
+    <NavbarTooltipButton
+      label="Stop Playback"
+      className={classNames(
+        !isStopped ? "bg-rose-700" : buttonColor,
+        buttonClass
+      )}
+      onClick={() => stopTransport()}
+    >
+      <BsStop className="p-[1px]" />
+    </NavbarTooltipButton>
+  );
+}
+
+export function NavbarToggleTransport() {
   const dispatch = useAppDispatch();
   const state = useTransportState();
-  const isRecording = useToggle(RECORD_TRANSPORT).isOpen;
-  const isLooping = useAppValue(selectTransportLoop);
   const isStarted = state === "started";
   const isStopped = state === "stopped";
   const action = isStarted ? "Pause" : isStopped ? "Start" : "Resume";
 
   return (
-    <div className="flex space-x-1.5 text-xl">
-      <NavbarTooltipButton
-        label="Stop Playback"
-        className={classNames(
-          !isStopped ? "bg-rose-700" : buttonColor,
-          borderClass
-        )}
-        onClick={() => stopTransport()}
-      >
-        <BsStop className="p-[1px]" />
-      </NavbarTooltipButton>
-      <NavbarTooltipButton
-        keepTooltipOnClick
-        label={`${action} Playback`}
-        className={classNames(
-          isStarted ? "bg-emerald-600" : buttonColor,
-          borderClass
-        )}
-        onClick={() => dispatch(toggleTransport())}
-      >
-        {isStarted ? <BsPause /> : <BsPlay className="pl-[3px] p-[1px]" />}
-      </NavbarTooltipButton>
-      <NavbarTooltipButton
-        keepTooltipOnClick
-        label={isRecording ? "Download Recording" : "Record Playback"}
-        className={classNames(
-          isRecording ? "bg-red-700/90" : buttonColor,
-          borderClass
-        )}
-        onClick={(e) =>
-          isRecording
-            ? dispatch(stopRecordingTransport())
-            : dispatch(startRecordingTransport())
-        }
-      >
-        <BsRecord className="p-[1px]" />
-      </NavbarTooltipButton>
-      <NavbarTooltipButton
-        keepTooltipOnClick
-        label={isLooping ? "Unloop Playback" : "Loop Playback"}
-        className={classNames(
-          isLooping ? "bg-indigo-700 text-slate-20" : buttonColor,
-          borderClass
-        )}
-        onClick={() => dispatch(setLoop())}
-      >
-        <BsArrowRepeat className="p-[2px]" />
-      </NavbarTooltipButton>
-    </div>
+    <NavbarTooltipButton
+      keepTooltipOnClick
+      label={`${action} Playback`}
+      className={classNames(
+        isStarted ? "bg-emerald-600" : buttonColor,
+        buttonClass
+      )}
+      onClick={() => dispatch(toggleTransport())}
+    >
+      {isStarted ? <BsPause /> : <BsPlay className="pl-[3px] p-[1px]" />}
+    </NavbarTooltipButton>
   );
 }
 
-const buttonColor = "bg-slate-800";
-const borderClass = "p-1.5 transition-all border border-slate-500";
+export function NavbarRecordTransport() {
+  const dispatch = useAppDispatch();
+  const isRecording = useToggle(RECORD_TRANSPORT).isOpen;
+  return (
+    <NavbarTooltipButton
+      keepTooltipOnClick
+      label={isRecording ? "Download Recording" : "Record Playback"}
+      className={classNames(
+        isRecording ? "bg-red-700/90" : buttonColor,
+        buttonClass
+      )}
+      onClick={() =>
+        isRecording
+          ? dispatch(stopRecordingTransport())
+          : dispatch(startRecordingTransport())
+      }
+    >
+      <BsRecord className="p-[1px]" />
+    </NavbarTooltipButton>
+  );
+}
+
+export function NavbarLoopTransport() {
+  const dispatch = useAppDispatch();
+  const isLooping = useAppValue(selectTransportLoop);
+  return (
+    <NavbarTooltipButton
+      keepTooltipOnClick
+      label={isLooping ? "Unloop Playback" : "Loop Playback"}
+      className={classNames(
+        isLooping ? "bg-indigo-700 text-slate-20" : buttonColor,
+        buttonClass
+      )}
+      onClick={() => dispatch(setLoop())}
+    >
+      <BsArrowRepeat className="p-[2px]" />
+    </NavbarTooltipButton>
+  );
+}

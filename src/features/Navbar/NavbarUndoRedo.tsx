@@ -18,7 +18,6 @@ const buttonClass = (active: boolean) =>
 
 export function NavbarUndo() {
   const disabled = !useAppValue(canUndo);
-
   return (
     <NavbarTooltipButton
       className={buttonClass(!disabled)}

@@ -21,3 +21,6 @@ export function NavbarGroup(props: PropsWithChildren<NavbarGroupProps>) {
     </div>
   );
 }
+export function NavbarGroupLabel(props: PropsWithChildren) {
+  return <div className="text-sm font-light pr-1">{props.children}</div>;
+}

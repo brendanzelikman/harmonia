@@ -45,8 +45,8 @@ export const TIMELINE_STATES = [
 ] as const;
 export type TimelineState = (typeof TIMELINE_STATES)[number];
 export type TimelineStorage = {
-  patterns: (Pattern | null)[];
-  poses: (Pose | null)[];
+  patterns: (Pattern | null | undefined)[];
+  poses: (Pose | null | undefined)[];
 };
 export const defaultTimelineStorage: TimelineStorage = {
   patterns: new Array(9).fill(null),

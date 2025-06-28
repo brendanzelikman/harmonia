@@ -234,13 +234,13 @@ export const selectCopiedPortals = createDeepSelector(
 /** Select the currently stored patterns. */
 export const selectStoredPatterns = createDeepSelector(
   [selectTimeline],
-  (timeline) => timeline.storage?.patterns || defaultTimeline.storage.patterns
+  (timeline) => timeline.storage?.patterns ?? defaultTimeline.storage.patterns
 );
 
 /** Select the currently stored poses. */
 export const selectStoredPoses = createDeepSelector(
   [selectTimeline],
-  (timeline) => timeline.storage?.poses || defaultTimeline.storage.poses
+  (timeline) => timeline.storage?.poses ?? defaultTimeline.storage.poses
 );
 
 /** Select a stored pattern by index */

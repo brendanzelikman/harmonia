@@ -7,10 +7,11 @@ import {
   ArrangePosesHotkey,
 } from "lib/hotkeys/timeline";
 import { selectHasTracks } from "types/Track/TrackSelectors";
-import { ClipType } from "types/Clip/ClipTypes";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import {
   selectIsAddingClips,
+  selectStoredPatterns,
+  selectStoredPoses,
   selectTimelineType,
 } from "types/Timeline/TimelineSelectors";
 import {
@@ -19,106 +20,137 @@ import {
 } from "types/Timeline/TimelineThunks";
 import { createTreeFromString } from "lib/prompts/tree";
 
-export const NavbarArrangeClip = (props: { type: ClipType }) => {
+export const NavbarArrangePatterns = () => {
   const dispatch = useAppDispatch();
   const type = useAppValue(selectTimelineType);
   const isAdding = useAppValue(selectIsAddingClips);
-  const active = isAdding && type === props.type;
-  const hotkey = hotkeys[props.type];
+  const active = isAdding && type === "pattern";
+  const hotkey = ArrangePatternsHotkey;
   const hasTracks = useAppValue(selectHasTracks);
-  const icon = icons[props.type];
-  const background = backgrounds[props.type];
-  const borderColor = borders[props.type];
-  const textColor = textColors[props.type];
-
+  const storedPatterns = useAppValue(selectStoredPatterns);
+  const hasStorage = storedPatterns.some((p) => !!p);
   return (
     <NavbarTooltipButton
       keepTooltipOnClick
       disabled={!hasTracks}
       className={classNames(
-        "bg-radial border",
+        "bg-radial border border-teal-400 from-teal-900 to-teal-500 ring-teal-400",
         !hasTracks ? "opacity-50" : "",
-        active ? "ring-2 ring-offset-2 ring-offset-black" : "",
-        background,
-        borderColor
+        active ? "ring-2 ring-offset-2 ring-offset-black" : ""
       )}
-      borderColor={borderColor}
+      borderColor="border-teal-400"
       label={
-        hasTracks ? (
-          props.type === "pose" ? (
-            <>
-              Pose (Musical Effect)
-              <br />
-              <span className="text-gray-400 text-xs normal-case">
-                Press <span className="uppercase">P</span> to arrange a pose in
-                the timeline.
-              </span>
-              <br />
-              <span className="text-gray-400 text-xs normal-case">
-                Press V + 1-9 to store a pose to slot 1-9.
-              </span>
-              <br />
-              <span className="text-gray-400 text-xs normal-case">
-                Press B + 1-9 to arrange a pose from slot 1-9.
-              </span>
-              <br />
-            </>
-          ) : (
-            <>
-              Pattern (Musical Passage)
-              <br />
-              <span className="text-gray-400 text-xs normal-case">
-                Press <span className="uppercase">O</span> to arrange a pattern
-                in the timeline.
-              </span>
-              <br />
-              <span className="text-gray-400 text-xs normal-case">
-                Press Z + 1-9 to store a pattern to slot 1-9.
-              </span>
-              <br />
-              <span className="text-gray-400 text-xs normal-case">
-                Press X + 1-9 to arrange a pattern from slot 1-9.
-              </span>
-              <br />
-            </>
-          )
+        !hasTracks ? (
+          <span className="text-teal-400">Create Tree to Create Pattern</span>
         ) : (
-          <span className={textColor}>Create Tree to Create {props.type}</span>
+          <>
+            Pattern (Musical Passage)
+            <br />
+            <span className="text-gray-400 text-xs normal-case">
+              Press <span className="uppercase">O</span> to arrange a pattern in
+              the timeline.
+            </span>
+            <br />
+            <span className="text-gray-400 text-xs normal-case">
+              Press Z + 1-9 to store a pattern to slot 1-9.
+            </span>
+            <br />
+            <span className="text-gray-400 text-xs normal-case">
+              Press X + 1-9 to load a pattern from slot 1-9.
+            </span>
+            <br />
+            {hasStorage && (
+              <div className="flex justify-evenly py-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((key) => (
+                  <ArrangePatternIcon
+                    key={key}
+                    className={
+                      !!storedPatterns[key - 1]
+                        ? "text-emerald-300"
+                        : "text-slate-500"
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )
       }
       hotkey={hotkey}
       onClick={() =>
         !hasTracks
           ? dispatch(createTreeFromString({ data: DEFAULT_TRACK_PROMPT }))
-          : dispatch(toggleAddingState({ data: props.type }))
+          : dispatch(toggleAddingState({ data: "pattern" }))
       }
     >
-      {icon}
+      <ArrangePatternIcon className="text-2xl " />
     </NavbarTooltipButton>
   );
 };
 
-const hotkeys = {
-  pattern: ArrangePatternsHotkey,
-  pose: ArrangePosesHotkey,
-};
-
-const icons = {
-  pattern: <ArrangePatternIcon className="text-2xl " />,
-  pose: <ArrangePoseIcon className="text-2xl" />,
-};
-
-const textColors = {
-  pattern: "text-teal-400",
-  pose: "text-fuchsia-400",
-};
-
-const borders = {
-  pattern: "border-teal-400",
-  pose: "border-fuchsia-500",
-};
-
-const backgrounds = {
-  pattern: "from-teal-900 to-teal-500 ring-teal-400",
-  pose: "from-fuchsia-800 to-fuchsia-600 ring-fuchsia-400",
+export const NavbarArrangePoses = () => {
+  const dispatch = useAppDispatch();
+  const type = useAppValue(selectTimelineType);
+  const isAdding = useAppValue(selectIsAddingClips);
+  const active = isAdding && type === "pose";
+  const hasTracks = useAppValue(selectHasTracks);
+  const storedPoses = useAppValue(selectStoredPoses);
+  const hasStorage = storedPoses.some((p) => !!p);
+  return (
+    <NavbarTooltipButton
+      keepTooltipOnClick
+      disabled={!hasTracks}
+      className={classNames(
+        "bg-radial border border-fuchsia-500 from-fuchsia-800 to-fuchsia-600 ring-fuchsia-400",
+        !hasTracks ? "opacity-50" : "",
+        active ? "ring-2 ring-offset-2 ring-offset-black" : ""
+      )}
+      borderColor="border-fuchsia-500"
+      label={
+        !hasTracks ? (
+          <span className="text-fuchsia-400">Create Tree to Create Pose</span>
+        ) : (
+          <>
+            Pose (Musical Effect)
+            <br />
+            <span className="text-gray-400 text-xs normal-case">
+              Press <span className="uppercase">P</span> to arrange a pose in
+              the timeline.
+            </span>
+            <br />
+            <span className="text-gray-400 text-xs normal-case">
+              Press V + 1-9 to store a pose to slot 1-9.
+            </span>
+            <br />
+            <span className="text-gray-400 text-xs normal-case">
+              Press B + 1-9 to load a pose from slot 1-9.
+            </span>
+            <br />
+            {hasStorage && (
+              <div className="flex justify-evenly py-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((key) => (
+                  <ArrangePoseIcon
+                    key={key}
+                    className={
+                      !!storedPoses[key - 1]
+                        ? "text-fuchsia-300"
+                        : "text-slate-500"
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )
+      }
+      hotkey={ArrangePosesHotkey}
+      onClick={() =>
+        !hasTracks
+          ? dispatch(createTreeFromString({ data: DEFAULT_TRACK_PROMPT }))
+          : dispatch(toggleAddingState({ data: "pose" }))
+      }
+    >
+      <ArrangePoseIcon className="text-2xl" />
+    </NavbarTooltipButton>
+  );
 };

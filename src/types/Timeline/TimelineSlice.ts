@@ -141,7 +141,7 @@ export const timelineSlice = createSlice({
     /** Add a pattern to storage by index */
     addPatternToStorage: (
       state,
-      action: Action<{ index: number; pattern: Pattern | null }>
+      action: Action<{ index: number; pattern: Pattern | null | undefined }>
     ) => {
       const { index, pattern } = unpackAction(action);
       if (!state.storage) state.storage = defaultTimeline.storage;
@@ -151,7 +151,7 @@ export const timelineSlice = createSlice({
     /** Add a pose to storage by index */
     addPoseToStorage: (
       state,
-      action: Action<{ index: number; pose: Pose | null }>
+      action: Action<{ index: number; pose: Pose | null | undefined }>
     ) => {
       const { index, pose } = unpackAction(action);
       if (!state.storage) state.storage = defaultTimeline.storage;

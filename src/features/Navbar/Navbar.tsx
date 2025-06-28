@@ -2,16 +2,15 @@ import { SPLASH } from "app/router";
 import { NavbarBrand } from "features/Navbar/components/NavbarBrand";
 import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
-import { NavbarGroup } from "./components/NavbarGroup";
+import { NavbarGroup, NavbarGroupLabel } from "./components/NavbarGroup";
 import { NavbarProjectMenu } from "./NavbarProject";
 import { NavbarUndo, NavbarRedo } from "./NavbarUndoRedo";
-import { NavbarArrangeClip } from "./NavbarArrangeClip";
+import { NavbarArrangePatterns, NavbarArrangePoses } from "./NavbarArrangeClip";
 import { NavbarCreateTree } from "./NavbarCreateTree";
 import { NavbarLivePlay } from "./NavbarLivePlay";
 import { NavbarPortalGun } from "./NavbarPortalGun";
 import { NavbarScissors } from "./NavbarScissors";
 import { NavbarTime } from "./NavbarTime";
-import { NavbarTransportControl } from "./NavbarTransportControl";
 import { NavbarVolume } from "./NavbarVolume";
 import { NavbarLink } from "./components/NavbarLink";
 import { NavbarSettings } from "./NavbarSettings";
@@ -20,6 +19,12 @@ import { useLocation } from "react-router-dom";
 import { NavbarGameMenu } from "./NavbarGameMenu";
 import { NavbarMixPlay } from "./NavbarMixPlay";
 import { NavbarLeadPlay } from "./NavbarLeadPlay";
+import {
+  NavbarLoopTransport,
+  NavbarRecordTransport,
+  NavbarStopTransport,
+  NavbarToggleTransport,
+} from "./NavbarTransportControl";
 
 export function Navbar() {
   const { pathname } = useLocation();
@@ -43,19 +48,24 @@ export function Navbar() {
           <NavbarGroup className="bg-slate-950/30">
             <NavbarVolume />
             <NavbarTime />
-            <NavbarTransportControl />
+            <div className="flex gap-1.5">
+              <NavbarStopTransport />
+              <NavbarToggleTransport />
+              <NavbarRecordTransport />
+              <NavbarLoopTransport />
+            </div>
           </NavbarGroup>
           <NavbarGroup className="bg-radial from-slate-900/15 to-sky-500/15">
-            <div className="text-sm font-light pr-1">Motifs</div>
+            <NavbarGroupLabel>Motifs</NavbarGroupLabel>
             <NavbarCreateTree />
-            <NavbarArrangeClip type="pattern" />
-            <NavbarArrangeClip type="pose" />
+            <NavbarArrangePatterns />
+            <NavbarArrangePoses />
           </NavbarGroup>
           <NavbarGroup
             hide={!hasTracks}
             className="bg-radial from-teal-800/15 to-teal-600/15"
           >
-            <div className="text-sm font-light pr-1">Clips</div>
+            <NavbarGroupLabel>Clips</NavbarGroupLabel>
             <NavbarTape />
             <NavbarScissors />
             <NavbarPortalGun />
@@ -64,7 +74,7 @@ export function Navbar() {
             hide={!hasTracks}
             className="bg-radial from-teal-800/15 to-teal-600/15"
           >
-            <div className="text-sm font-light pr-1">Gestures</div>
+            <NavbarGroupLabel>Gestures</NavbarGroupLabel>
             <NavbarLivePlay />
             <NavbarLeadPlay />
             <NavbarMixPlay />

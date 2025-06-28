@@ -1,5 +1,8 @@
+import { nanoid } from "@reduxjs/toolkit";
+import { removePoseClip } from "types/Clip/ClipSlice";
 import { selectPoseById } from "types/Pose/PoseSelectors";
 import { Thunk } from "types/Project/ProjectTypes";
+import { createUndoType } from "types/redux";
 import {
   selectCurrentTimelineTick,
   selectSelectedPoseClips,
@@ -16,10 +19,13 @@ export const savePoseToSlot =
     const project = getProject();
     const poseClips = selectSelectedPoseClips(project);
     if (poseClips.length === 0) return;
+    const clipId = poseClips[0].id;
     const poseId = poseClips[0].poseId;
     const pose = selectPoseById(project, poseId);
     if (!pose) return;
-    dispatch(addPoseToStorage({ data: { index: slot - 1, pose } }));
+    const undoType = createUndoType("savePoseToSlot", nanoid());
+    dispatch(addPoseToStorage({ data: { index: slot - 1, pose }, undoType }));
+    dispatch(removePoseClip({ data: clipId, undoType }));
   };
 
 /** Create a new clip based on the pose in the given slot. */

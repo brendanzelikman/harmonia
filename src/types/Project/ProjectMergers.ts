@@ -5,7 +5,7 @@ import { isInstrument } from "types/Instrument/InstrumentTypes";
 import { PatternState } from "types/Pattern/PatternTypes";
 import { PoseState } from "types/Pose/PoseTypes";
 import { ScaleState } from "types/Scale/ScaleTypes";
-import { defaultTimeline } from "types/Timeline/TimelineTypes";
+import { defaultTimeline, TimelineStorage } from "types/Timeline/TimelineTypes";
 import { defaultTransport } from "types/Transport/TransportTypes";
 import {
   filterEntityState,
@@ -165,6 +165,8 @@ export const mergeBaseProjects = (
     cellWidth: p1?.timeline?.cellWidth ?? defaultTimeline.cellWidth,
     cellHeight: p1?.timeline?.cellHeight ?? defaultTimeline.cellHeight,
     subdivision: p1?.timeline?.subdivision ?? defaultTimeline.subdivision,
+    storage: (p1?.timeline?.storage ??
+      defaultTimeline.storage) as TimelineStorage,
   };
   const transport = merge({}, defaultTransport, p1?.transport);
   const game = merge({}, defaultGame, p1?.game);
