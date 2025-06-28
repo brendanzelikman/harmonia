@@ -8,7 +8,8 @@ import { useAppDispatch } from "hooks/useRedux";
 import { promptUserForTree } from "lib/prompts/tree";
 import { getHotkeyShortcut } from "lib/hotkeys";
 import { SampleProject } from "lib/hotkeys/timeline";
-import { NavbarTitleForm } from "./components/NavbarForm";
+import { NavbarFormGroup, NavbarTitleForm } from "./components/NavbarForm";
+import { GiDiceSixFacesFive, GiFiles, GiKeyboard } from "react-icons/gi";
 
 export const NavbarCreateTree = () => {
   const dispatch = useAppDispatch();
@@ -24,19 +25,36 @@ export const NavbarCreateTree = () => {
           <div className="text-sky-400 px-2 text-sm">
             Design Families of Tracks
           </div>
-          <div className="border-b pt-2 border-slate-500 h-1 w-full mb-2" />
-          <div className="flex flex-col gap-1">
-            <div className="text-gray-400 text-xs normal-case">
-              Press {getHotkeyShortcut(CreateTreeHotkey)} to create a new tree
-              by prompt.
+          <div className="flex flex-col gap-2 mt-3">
+            <div className="border border-slate-500 rounded">
+              <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-sky-500">
+                <div>Create Tree</div>
+                <GiKeyboard className="ml-auto text-2xl" />
+              </NavbarFormGroup>
+              <div className="text-xs p-1.5 normal-case text-slate-400">
+                Press {getHotkeyShortcut(CreateTreeHotkey)} to create a new tree
+                by prompt.
+              </div>
             </div>
-            <div className="text-gray-400 text-xs normal-case">
-              Press {getHotkeyShortcut(CreateRandomTreeHotkey)} to create a
-              random tree.
+            <div className="border border-slate-500 rounded">
+              <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-emerald-500">
+                <div>Randomize Tree</div>
+                <GiDiceSixFacesFive className="ml-auto text-2xl" />
+              </NavbarFormGroup>
+              <div className="text-xs p-1.5 normal-case text-slate-400">
+                Press {getHotkeyShortcut(CreateRandomTreeHotkey)} to create a
+                random tree.
+              </div>
             </div>
-            <div className="text-gray-400 text-xs normal-case">
-              Press {getHotkeyShortcut(SampleProject)} to sample a project by
-              file.
+            <div className="border border-slate-500 rounded">
+              <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-fuchsia-500">
+                <div>Encapsulate Tree</div>
+                <GiFiles className="ml-auto text-2xl" />
+              </NavbarFormGroup>
+              <div className="text-xs p-1.5 normal-case text-slate-400">
+                Press {getHotkeyShortcut(SampleProject)} to load a project in a
+                tree.
+              </div>
             </div>
           </div>
         </div>

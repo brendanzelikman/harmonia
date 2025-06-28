@@ -19,8 +19,15 @@ import {
   toggleAddingState,
 } from "types/Timeline/TimelineThunks";
 import { createTreeFromString } from "lib/prompts/tree";
-import { NavbarTitleForm } from "./components/NavbarForm";
+import { NavbarFormGroup, NavbarTitleForm } from "./components/NavbarForm";
 import { getHotkeyShortcut } from "lib/hotkeys";
+import {
+  GiKeyboard,
+  GiDiceSixFacesFive,
+  GiFiles,
+  GiSave,
+  GiPlateClaw,
+} from "react-icons/gi";
 
 export const NavbarArrangePatterns = () => {
   const dispatch = useAppDispatch();
@@ -53,17 +60,34 @@ export const NavbarArrangePatterns = () => {
             <div className="text-emerald-400 px-2 text-sm">
               Design Sequences of Notes
             </div>
-            <div className="border-b pt-2 border-slate-500 h-1 w-full mb-2" />
-            <div className="flex flex-col gap-1">
-              <div className="text-gray-400 text-xs normal-case">
-                Press {getHotkeyShortcut(ArrangePatternsHotkey)} to arrange a
-                pattern in the timeline.
+            <div className="flex flex-col gap-2 mt-3">
+              <div className="border border-slate-500 rounded">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-sky-500">
+                  <div>Create Pattern</div>
+                  <ArrangePatternIcon className="ml-auto text-2xl" />
+                </NavbarFormGroup>
+                <div className="text-xs p-1.5 normal-case text-slate-400">
+                  Press {getHotkeyShortcut(ArrangePatternsHotkey)} to arrange a
+                  pattern in the timeline.
+                </div>
               </div>
-              <div className="text-gray-400 text-xs normal-case">
-                Press Z + 1-9 to store a pattern to slot 1-9.
+              <div className="border border-slate-500 rounded">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-emerald-500">
+                  <div>Store Pattern</div>
+                  <GiSave className="ml-auto text-2xl" />
+                </NavbarFormGroup>
+                <div className="text-xs p-1.5 normal-case text-slate-400">
+                  Press Z + 1-9 to store a pattern to slot 1-9.
+                </div>
               </div>
-              <div className="text-gray-400 text-xs normal-case">
-                Press X + 1-9 to load a pattern from slot 1-9.
+              <div className="border border-slate-500 rounded">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-fuchsia-500">
+                  <div>Load Pattern</div>
+                  <GiPlateClaw className="ml-auto text-2xl" />
+                </NavbarFormGroup>
+                <div className="text-xs p-1.5 normal-case text-slate-400">
+                  Press X + 1-9 to load a pattern from slot 1-9.
+                </div>
               </div>
             </div>
             {hasStorage && (
@@ -122,17 +146,34 @@ export const NavbarArrangePoses = () => {
             <div className="text-fuchsia-400 px-2 text-sm">
               Design Transformations of Notes
             </div>
-            <div className="border-b pt-2 border-slate-500 h-1 w-full mb-2" />
-            <div className="flex flex-col gap-1">
-              <div className="text-gray-400 text-xs normal-case">
-                Press {getHotkeyShortcut(ArrangePosesHotkey)} to arrange a pose
-                in the timeline.
+            <div className="flex flex-col mt-3 gap-2">
+              <div className="border border-slate-500 rounded">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-sky-500">
+                  <div>Create Pose</div>
+                  <ArrangePoseIcon className="ml-auto text-2xl" />
+                </NavbarFormGroup>
+                <div className="text-xs p-1.5 normal-case text-slate-400">
+                  Press {getHotkeyShortcut(ArrangePosesHotkey)} to arrange a
+                  pose in the timeline.
+                </div>
               </div>
-              <div className="text-gray-400 text-xs normal-case">
-                Press V + 1-9 to store a pose to slot 1-9.
+              <div className="border border-slate-500 rounded">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-emerald-500">
+                  <div>Store Pose</div>
+                  <GiSave className="ml-auto text-2xl" />
+                </NavbarFormGroup>
+                <div className="text-xs p-1.5 normal-case text-slate-400">
+                  Press V + 1-9 to store a pose to slot 1-9.
+                </div>
               </div>
-              <div className="text-gray-400 text-xs normal-case">
-                Press B + 1-9 to load a pose from slot 1-9.
+              <div className="border border-slate-500 rounded">
+                <NavbarFormGroup className="px-2 h-8 space-x-4 rounded-none border-b border-b-fuchsia-500">
+                  <div>Load Pose</div>
+                  <GiPlateClaw className="ml-auto text-2xl" />
+                </NavbarFormGroup>
+                <div className="text-xs p-1.5 normal-case text-slate-400">
+                  Press B + 1-9 to load a pose from slot 1-9.
+                </div>
               </div>
             </div>
             {hasStorage && (
