@@ -20,7 +20,7 @@ export const NavbarCreateTree = () => {
       hotkey={CreateTreeHotkey}
       label={
         <div className="py-2 min-w-48">
-          <NavbarTitleForm className="mb-3" value="Tree (Musical Structure)" />
+          <NavbarTitleForm className="mb-3" value="Tree - Musical Structure" />
           <div className="text-sky-400 px-2 text-sm">
             Design Families of Tracks
           </div>

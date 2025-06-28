@@ -48,7 +48,7 @@ export const NavbarArrangePatterns = () => {
           <div className="py-2 min-w-48">
             <NavbarTitleForm
               className="mb-3"
-              value="Pattern (Musical Passage)"
+              value="Pattern - Musical Passage"
             />
             <div className="text-emerald-400 px-2 text-sm">
               Design Sequences of Notes
@@ -118,9 +118,9 @@ export const NavbarArrangePoses = () => {
           <span className="text-fuchsia-400">Create Tree to Create Pose</span>
         ) : (
           <div className="py-2 min-w-48">
-            <NavbarTitleForm className="mb-3" value="Pose (Musical Effect)" />
+            <NavbarTitleForm className="mb-3" value="Pose - Musical Function" />
             <div className="text-fuchsia-400 px-2 text-sm">
-              Design Functions of Notes
+              Design Transformations of Notes
             </div>
             <div className="border-b pt-2 border-slate-500 h-1 w-full mb-2" />
             <div className="flex flex-col gap-1">
