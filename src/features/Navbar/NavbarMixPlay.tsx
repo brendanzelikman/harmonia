@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
 import { GiJackPlug } from "react-icons/gi";
 import { selectSomeTrackId } from "types/Timeline/TimelineSelectors";
@@ -7,23 +6,22 @@ import {
   selectTrackInstrumentMap,
   selectTrackLabelMap,
 } from "types/Track/TrackSelectors";
-import { TooltipButton } from "components/TooltipButton";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
-import { growTree } from "types/Timeline/TimelineThunks";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { selectHasGame } from "types/Game/GameSelectors";
 import {
   NavbarHotkeyInstruction,
   NavbarHotkeyKey,
-  NavbarInstructionDescription,
-  NavbarPatternBox,
   NavbarPatternDescription,
-  NavbarScaleBox,
-  NavbarScaleDescription,
 } from "./components/NavbarHotkeys";
+import {
+  NavbarActionButton,
+  NavbarActionButtonOption,
+} from "./components/NavbarAction";
+import { useMemo } from "react";
 
-const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
 export const NavbarMixPlay = () => {
   const dispatch = useAppDispatch();
@@ -40,8 +38,8 @@ export const NavbarMixPlay = () => {
   const isNumerical = numericalKeys.some((key) => holding[getKeyCode(key)]);
   const m = holding.KeyM;
   const s = holding.KeyS;
-  const M = NavbarHotkeyKey("M", m);
-  const S = NavbarHotkeyKey("S", s);
+  const M = NavbarHotkeyKey("Hold M: ", m);
+  const S = NavbarHotkeyKey("Hold S: ", s);
   const isMixing = m || s;
 
   const working = !hasGame && isMixing;
@@ -68,123 +66,66 @@ export const NavbarMixPlay = () => {
     return `${action} Sampler ${label} (${name})`;
   };
 
-  const getZeroLabel = () => {
+  const zeroLabel = useMemo(() => {
     if (!isMixing) return "No Effect Available";
     const action = m && s ? "Unmute/Unsolo" : m ? "Unmute" : "Unsolo";
     return `${action} All Tracks`;
-  };
+  }, [m, s, isMixing]);
 
   const Number = NavbarHotkeyKey("Press Number", isNumerical, true);
 
   return (
-    <TooltipButton
-      direction="vertical"
-      active={hasTracks && working}
-      freezeInside={working}
-      hideRing
-      activeLabel={
-        <div className="h-[68px] total-center-col">
-          <div className="text-base font-light">Mixing Samplers</div>
-          <div className="text-slate-400 text-sm">
-            (Hold {M}/{S} + {Number})
-          </div>
-        </div>
-      }
-      keepTooltipOnClick
-      notClickable
-      marginLeft={-50}
-      onClick={() => !hasTracks && dispatch(growTree())}
-      marginTop={0}
-      width={350}
-      backgroundColor="bg-radial from-slate-900 to-zinc-900"
-      borderColor={`border-2 border-amber-500`}
-      rounding="rounded-lg"
-      className={classNames(
-        "shrink-0 relative rounded-full select-none cursor-pointer",
-        "flex total-center hover:text-amber-300 p-1 bg-amber-600/60 border border-amber-500 font-light",
-        working ? "text-amber-200" : "text-amber-100"
-      )}
-      label={
-        <div className="text-white animate-in fade-in duration-300">
-          <div
-            data-indent={hasTracks || working}
-            className="text-xl data-[indent=true]:pt-2 font-light"
-          >
-            Mix Sampler Audio
-          </div>
-          <div
-            data-active={isActive}
-            className="text-base data-[active=false]:text-sm data-[active=true]:mb-4 text-amber-300/80"
-          >
-            {!isActive ? (
-              hasTracks ? (
-                "Select Track, Pattern, or Pose"
-              ) : (
-                "Create Tree to Unlock Keyboard Gestures"
-              )
-            ) : (
-              <div>(Hold M/S + Press Number)</div>
-            )}
-          </div>
-          {isActive && (
-            <div className="flex flex-col w-full gap-2 mt-1.5">
-              <NavbarScaleBox>Select Effect</NavbarScaleBox>
-              <div className="p-1">
-                <p>
-                  <NavbarHotkeyInstruction active={m} label="Hold M:" />{" "}
-                  <NavbarScaleDescription active={m} label="Toggle Mute" />
-                </p>
-                <p>
-                  <NavbarHotkeyInstruction active={s} label="Hold S:" />{" "}
-                  <NavbarScaleDescription active={s} label="Toggle Solo" />
-                </p>
-              </div>
-              <div>
-                <NavbarPatternBox>Mix Samplers</NavbarPatternBox>
-                <div className="p-1">
-                  {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map(
-                    (keycode) => (
-                      <p
-                        key={keycode}
-                        className={`${
-                          !selectedTrackId ? "opacity-50" : "opacity-100"
-                        } normal-case`}
-                      >
-                        <NavbarInstructionDescription
-                          active={(key) => holding[getKeyCode(key)]}
-                          keycodes={[keycode]}
-                          required={["q", "w", "e", "r", "t", "y"]}
-                          label={`Press ${keycode}:`}
-                        />{" "}
-                        <NavbarPatternDescription
-                          active={(key) => holding[getKeyCode(key)]}
-                          keycodes={[keycode]}
-                          required={["q", "w", "e", "r", "t", "y"]}
-                          label={getKeycodeLabel(keycode)}
-                        />
-                      </p>
-                    )
-                  )}
-                  <p>
-                    <NavbarInstructionDescription
-                      active={(key) => holding[getKeyCode(key)]}
-                      keycodes={["0"]}
-                      label="Press 0:"
-                    />{" "}
-                    <NavbarPatternDescription
-                      active={(key) => holding[getKeyCode(key)]}
-                      keycodes={["0"]}
-                      label={getZeroLabel()}
-                    />
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      }
+    <NavbarActionButton
+      title="Gesture - Dynamics"
+      subtitle="Apply Mute and Solo to Samplers"
+      subtitleClass="text-amber-400"
+      Icon={<GiJackPlug className="text-2xl" />}
+      background="bg-radial from-amber-900/80 to-amber-500/80"
+      borderColor="border-amber-500"
+      minWidth="min-w-72"
     >
-      <GiJackPlug className="text-2xl" />
-    </TooltipButton>
+      <NavbarActionButtonOption
+        title="Select Effect"
+        Icon={<GiJackPlug className="ml-auto text-2xl" />}
+        subtitle={
+          <ul>
+            <li>
+              {M}
+              <span className="text-sky-400">Toggle Mute</span>
+            </li>
+            <li>
+              {S}
+              <span className="text-sky-400">Toggle Solo</span>
+            </li>
+          </ul>
+        }
+        stripe="border-b-sky-500"
+        readOnly
+      />
+      <NavbarActionButtonOption
+        title="Mix Samplers"
+        Icon={<GiJackPlug className="ml-auto text-2xl" />}
+        subtitle={
+          <ul>
+            {numericalKeys.map((keycode) => (
+              <li key={keycode}>
+                <NavbarHotkeyInstruction label={`Press ${keycode}:`} />{" "}
+                <NavbarPatternDescription
+                  active={(key) => holding[getKeyCode(key)]}
+                  keycodes={[keycode]}
+                  required={["q", "w", "e", "r", "t", "y"]}
+                  label={getKeycodeLabel(keycode)}
+                />
+              </li>
+            ))}
+            <li>
+              Press 0: <span className="text-emerald-300">{zeroLabel}</span>
+            </li>
+          </ul>
+        }
+        stripe="border-b-emerald-500"
+        readOnly={!hasTracks}
+      />
+    </NavbarActionButton>
   );
 };

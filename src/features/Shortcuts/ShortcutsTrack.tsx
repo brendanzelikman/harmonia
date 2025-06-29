@@ -17,7 +17,7 @@ import {
 export function TrackShortcuts() {
   return (
     <ShortcutContent
-      className="text-lg space-y-8"
+      className="text-lg space-y-6"
       shortcuts={[
         <Shortcut hotkey={SelectTrackDisplayedHotkey} />,
         <Shortcut hotkey={DeselectTrackHotkey} />,

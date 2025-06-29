@@ -18,9 +18,11 @@ export const NavbarHotkeyKey = (
 };
 
 export const NavbarHotkeyInstruction = memo(
-  (props: { active: boolean; label: string }) => (
+  (props: { active?: boolean; label: string }) => (
     <span
-      className={props.active ? "text-white text-shadow-lg" : "text-slate-400"}
+      className={
+        !!props.active ? "text-white text-shadow-lg" : "text-slate-400"
+      }
     >
       {props.label}
     </span>

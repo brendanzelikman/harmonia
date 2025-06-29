@@ -39,7 +39,7 @@ export const NavbarPortalGun = () => {
             ? hasFragment
               ? "border-orange-500"
               : "border-blue-500"
-            : "border-indigo-400"
+            : "border-orange-300"
         }
         className={classNames(
           "p-1.5 transition-all text-2xl border-slate-400/50",

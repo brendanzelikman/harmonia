@@ -1,6 +1,10 @@
-import classNames from "classnames";
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
-import { GiMisdirection, GiPathDistance } from "react-icons/gi";
+import {
+  GiDominoMask,
+  GiMisdirection,
+  GiPathDistance,
+  GiToolbox,
+} from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
   selectIsSelectingPoseClips,
@@ -15,21 +19,20 @@ import {
 } from "types/Track/TrackSelectors";
 import { useCallback, useMemo } from "react";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
-import { TooltipButton } from "components/TooltipButton";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { getKeyCode } from "hooks/useHeldkeys";
-import { growTree } from "types/Timeline/TimelineThunks";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { selectHasGame } from "types/Game/GameSelectors";
 import {
   NavbarHotkeyInstruction,
   NavbarHotkeyKey,
-  NavbarInstructionDescription,
-  NavbarPatternDescription,
-  NavbarPoseDescription,
-  NavbarScaleDescription,
 } from "./components/NavbarHotkeys";
 import { useGestures } from "lib/gestures";
+import {
+  NavbarActionButton,
+  NavbarActionButtonOption,
+} from "./components/NavbarAction";
+import { ArrangePoseIcon } from "lib/hotkeys/timeline";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -175,16 +178,7 @@ export const NavbarLeadPlay = () => {
     ]
   );
 
-  const getZeroLabel = useCallback(() => {
-    if (isMixing) {
-      const action =
-        isMuting && isSoloing
-          ? "Unmute/Unsolo"
-          : isMuting
-          ? "Unmute"
-          : "Unsolo";
-      return `${action} All Tracks`;
-    }
+  const zeroLabel = useMemo(() => {
     if (isPosing) {
       return "Clear Scalar Offsets";
     }
@@ -193,308 +187,128 @@ export const NavbarLeadPlay = () => {
     } else {
       return "Go to Root";
     }
-  }, [isPosing, isMixing, isSelectingPoseClip, isMuting, isSoloing]);
+  }, [isPosing, isSelectingPoseClip]);
 
-  const SelectScales = (
-    <>
-      <div className="px-2 py-1 bg-gradient-to-r from-emerald-500/40 to-emerald-500/20 rounded">
-        Select Scales (Default = Q+W+E)
-      </div>
-      <div data-mixing={isMixing} className="p-1 data-[mixing=true]:opacity-50">
-        <p>
-          <NavbarHotkeyInstruction
-            active={holding[getKeyCode("q")] && scaleName1 !== "No Scale"}
-            label="Hold Q:"
-          />{" "}
-          <NavbarPatternDescription
-            active={holding[getKeyCode("q")] && scaleName1 !== "No Scale"}
-            label={`Search By ${scaleName1}`}
-          />
-        </p>
-
-        <p>
-          <NavbarHotkeyInstruction
-            active={holding[getKeyCode("w")]}
-            label="Hold W:"
-          />{" "}
-          <NavbarPatternDescription
-            active={holding[getKeyCode("w")] && scaleName2 !== "No Scale"}
-            label={`Search By ${scaleName2}`}
-          />
-        </p>
-        <p>
-          <NavbarHotkeyInstruction
-            active={holding[getKeyCode("e")] && scaleName3 !== "No Scale"}
-            label="Hold E:"
-          />{" "}
-          <NavbarPatternDescription
-            active={holding[getKeyCode("e")] && scaleName3 !== "No Scale"}
-            label={`Search By ${scaleName3}`}
-          />
-        </p>
-        <p className="normal-case">
-          <NavbarHotkeyInstruction
-            active={holding[getKeyCode("r")]}
-            label="Hold R:"
-          />{" "}
-          <NavbarPatternDescription
-            active={holding[getKeyCode("r")]}
-            label={`Search By Rotation (r)`}
-          />
-        </p>
-        <p className="normal-case">
-          <NavbarHotkeyInstruction
-            active={holding[getKeyCode("t")]}
-            label="Hold T:"
-          />{" "}
-          <NavbarPatternDescription
-            active={holding[getKeyCode("t")]}
-            label={`Search By Semitone (t)`}
-          />
-        </p>
-        <p className="normal-case">
-          <NavbarHotkeyInstruction
-            active={holding[getKeyCode("y")]}
-            label="Hold Y:"
-          />{" "}
-          <NavbarPatternDescription
-            active={holding[getKeyCode("y")]}
-            label={`Search By Octave (y)`}
-          />
-        </p>
-      </div>
-    </>
+  const Q = NavbarHotkeyKey("Hold Q: ", holding[getKeyCode("q")]);
+  const W = NavbarHotkeyKey("Hold W: ", holding[getKeyCode("w")]);
+  const E = NavbarHotkeyKey("Hold E: ", holding[getKeyCode("e")]);
+  const R = NavbarHotkeyKey("Hold R: ", holding[getKeyCode("r")]);
+  const T = NavbarHotkeyKey("Hold T: ", holding[getKeyCode("t")]);
+  const Y = NavbarHotkeyKey("Hold Y: ", holding[getKeyCode("y")]);
+  const C = NavbarHotkeyKey("Hold C: ", holding[getKeyCode("c")]);
+  const D = NavbarHotkeyKey("Hold D: ", holding[getKeyCode("d")]);
+  const Minus = NavbarHotkeyKey(
+    "Hold Minus/Tilde: ",
+    holding[getKeyCode("-")] || holding[getKeyCode("`")]
   );
-
-  const ApplyModifiers = (
-    <>
-      {" "}
-      <div className="px-2 py-1 bg-gradient-to-r from-sky-500/40 to-sky-500/20 rounded">
-        Select Mode
-      </div>
-      <div className="p-1">
-        <p>
-          <p>
-            <NavbarHotkeyInstruction
-              active={holding[getKeyCode("c")]}
-              label="Hold C:"
-            />{" "}
-            <NavbarScaleDescription
-              active={holding[getKeyCode("c")]}
-              label="Voice Lead by Closeness"
-            />
-          </p>
-          <p>
-            <NavbarHotkeyInstruction
-              active={holding[getKeyCode("d")]}
-              label="Hold D:"
-            />{" "}
-            <NavbarScaleDescription
-              active={holding[getKeyCode("d")]}
-              label="Voice Lead by Degree"
-            />
-          </p>
-          <p>
-            <NavbarInstructionDescription
-              active={(key) => holding[getKeyCode(key)]}
-              keycodes={["-", "`"]}
-              label={"Hold Minus:"}
-            />{" "}
-            <NavbarScaleDescription
-              active={(key) => holding[getKeyCode(key)]}
-              keycodes={["-", "`"]}
-              label="Use Descending Motion"
-            />
-          </p>
-          <p>
-            <NavbarInstructionDescription
-              active={(key) => holding[getKeyCode(key)]}
-              keycodes={["="]}
-              label={"Hold Equal:"}
-            />{" "}
-            <NavbarScaleDescription
-              active={(key) => holding[getKeyCode(key)]}
-              keycodes={["="]}
-              label="Use Ascending Motion"
-            />
-          </p>
-        </p>
-      </div>
-    </>
-  );
-
-  const Action = useMemo(
-    () => (
-      <div>
-        <div
-          className={`px-2 py-1 bg-gradient-to-r from-teal-500/40 to-teal-500/20 rounded`}
-        >
-          {isMixing
-            ? "Mix Samplers"
-            : isVoiceLeadingClosest || isVoiceLeadingDegree
-            ? `Voice Lead Patterns`
-            : isSelectingPoseClip
-            ? "Update Poses"
-            : "Create Poses"}
-        </div>
-        <div className="p-1">
-          {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((keycode) => (
-            <p
-              key={keycode}
-              className={`${
-                !selectedTrackId ? "opacity-50" : "opacity-100"
-              } normal-case`}
-            >
-              <NavbarInstructionDescription
-                active={(key) => holding[getKeyCode(key)]}
-                keycodes={[keycode]}
-                required={["q", "w", "e", "r", "t", "y"]}
-                label={`Press ${keycode}:`}
-              />{" "}
-              <NavbarPoseDescription
-                active={(key) => holding[getKeyCode(key)]}
-                keycodes={[keycode]}
-                required={["q", "w", "e", "r", "t", "y"]}
-                label={getKeycodeLabel(keycode)}
-              />
-            </p>
-          ))}
-          <p>
-            <NavbarInstructionDescription
-              active={(key) => holding[getKeyCode(key)]}
-              keycodes={["0"]}
-              label="Press 0:"
-            />{" "}
-            <NavbarPoseDescription
-              active={(key) => holding[getKeyCode(key)]}
-              keycodes={["0"]}
-              label={getZeroLabel()}
-            />
-          </p>
-        </div>
-      </div>
-    ),
-    [
-      holding,
-      getKeycodeLabel,
-      getZeroLabel,
-      isHoldingScale,
-      isSelectingPoseClip,
-      isMixing,
-    ]
-  );
-
-  const Q = NavbarHotkeyKey("Q", holding[getKeyCode("q")]);
-  const W = NavbarHotkeyKey("W", holding[getKeyCode("w")]);
-  const E = NavbarHotkeyKey("E", holding[getKeyCode("e")]);
-  const R = NavbarHotkeyKey("R", holding[getKeyCode("r")]);
-  const T = NavbarHotkeyKey("T", holding[getKeyCode("t")]);
-  const Y = NavbarHotkeyKey("Y", holding[getKeyCode("y")]);
-  const QWERTY = (
-    <>
-      {Q}
-      {W}
-      {E}
-      {R}
-      {T}
-      {Y}
-    </>
-  );
-
-  const C = NavbarHotkeyKey("C", holding[getKeyCode("c")]);
-  const D = NavbarHotkeyKey("D", holding[getKeyCode("d")]);
+  const Equal = NavbarHotkeyKey("Hold Equal: ", holding[getKeyCode("=")]);
 
   return (
-    <TooltipButton
-      direction="vertical"
-      active={hasTracks && working}
-      freezeInside={working}
-      hideRing
-      activeLabel={
-        isVoiceLeadingClosest ? (
-          <div className="h-[68px] total-center-col">
-            <div className="text-base font-light">
-              Voice Leading By Closeness
-            </div>
-            <div className="text-slate-400 text-sm">
-              (Hold {C} + {QWERTY} + Press Number)
-            </div>
-          </div>
-        ) : isVoiceLeadingDegree ? (
-          <div className="h-[68px] total-center-col">
-            <div className="text-base font-light">Voice Leading By Degree </div>
-            <div className="text-slate-400 text-sm">
-              (Hold {D} + {QWERTY} + Press Number)
-            </div>
-          </div>
-        ) : null
+    <NavbarActionButton
+      title="Gesture - Voice Leading"
+      subtitle={
+        isSelectingPatternClip
+          ? "Create Poses by Closeness or Degree"
+          : "Select a Pattern to Voice Lead"
       }
-      keepTooltipOnClick
-      notClickable
-      marginLeft={-50}
-      onClick={() => !hasTracks && dispatch(growTree())}
-      marginTop={0}
-      width={350}
-      backgroundColor="bg-radial from-slate-900 to-zinc-900"
-      borderColor={`border-2 border-teal-500`}
-      rounding="rounded-lg"
-      className={classNames(
-        "shrink-0 relative rounded-full select-none cursor-pointer",
-        "flex total-center hover:text-teal-300 p-1 bg-teal-700/80 border border-teal-500 font-light",
-        working ? "text-teal-200" : "text-teal-100"
-      )}
-      label={
-        <div
-          data-indent={hasTracks || working}
-          className="text-white data-[indent=true]:mb-2 animate-in fade-in duration-300"
-        >
-          <div
-            data-indent={hasTracks || working}
-            className="text-xl data-[indent=true]:pt-2 font-light"
-          >
-            {" "}
-            {isVoiceLeadingClosest
-              ? "Voice Lead By Closeness"
-              : isVoiceLeadingDegree
-              ? "Voice Lead by Degree"
-              : !isSelectingPatternClip
-              ? "Find Voice Leadings"
-              : "Find Voice Leadings"}
-          </div>
-          <div
-            data-active={isActive}
-            className="text-base data-[active=false]:text-sm data-[active=true]:mb-4 text-teal-300/80"
-          >
-            {!isActive ? (
-              hasTracks ? (
-                "Select a Pattern to Voice Lead"
-              ) : (
-                "Create Tree to Unlock Keyboard Gestures"
-              )
-            ) : isVoiceLeadingClosest ? (
-              <div>(Hold C + Press Number)</div>
-            ) : isVoiceLeadingDegree ? (
-              <div>(Hold D + Press Number)</div>
-            ) : (
-              "(Hold C/D + Press Number)"
-            )}
-          </div>
-          {isActive && (
-            <div className="flex flex-col w-full gap-2 mt-1.5">
-              {ApplyModifiers}
-              {SelectScales}
-              {Action}
-            </div>
-          )}
-        </div>
+      subtitleClass="text-teal-400"
+      Icon={
+        isVoiceLeadingClosest || isVoiceLeadingDegree ? (
+          <GiMisdirection className="text-2xl" />
+        ) : (
+          <GiPathDistance className="text-2xl" />
+        )
       }
+      background="bg-radial from-teal-900/80 to-teal-500/80"
+      borderColor="border-teal-500"
+      minWidth="min-w-72"
     >
-      {isVoiceLeadingClosest || isVoiceLeadingDegree ? (
-        <GiMisdirection className="text-2xl" />
-      ) : (
-        <GiPathDistance className="text-2xl" />
+      {!!isSelectingPatternClip && (
+        <>
+          <NavbarActionButtonOption
+            title="Select Scales"
+            Icon={<GiDominoMask />}
+            stripe="border-b-sky-500"
+            subtitle={
+              <ul>
+                <li>
+                  {Q}
+                  <span className="text-sky-400">Search By {scaleName1}</span>
+                </li>
+                <li>
+                  {W}
+                  <span className="text-sky-400">Search By {scaleName2}</span>
+                </li>
+                <li>
+                  {E}
+                  <span className="text-sky-400">Search By {scaleName3}</span>
+                </li>
+                <li>
+                  {R}
+                  <span className="text-sky-400">Search By Rotation (r)</span>
+                </li>
+                <li>
+                  {T}
+                  <span className="text-sky-400">Search By Semitone (t)</span>
+                </li>
+                <li>
+                  {Y}
+                  <span className="text-sky-400">Search By Octave (y)</span>
+                </li>
+              </ul>
+            }
+          />
+          <NavbarActionButtonOption
+            title="Select Mode"
+            Icon={<GiToolbox />}
+            subtitle={
+              <ul>
+                <li>
+                  {C}
+                  <span className="text-teal-400">Voice Lead by Closeness</span>
+                </li>
+                <li>
+                  {D}
+                  <span className="text-teal-400">Voice Lead by Degree</span>
+                </li>
+                <li>
+                  {Minus}
+                  <span className="text-teal-400">Use Descending Motion</span>
+                </li>
+                <li>
+                  {Equal}
+                  <span className="text-teal-400">Use Ascending Motion</span>
+                </li>
+              </ul>
+            }
+            stripe="border-b-teal-500"
+            readOnly
+          />
+          <NavbarActionButtonOption
+            title="Create Poses"
+            Icon={<ArrangePoseIcon />}
+            subtitle={
+              <ul>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((key) => (
+                  <li key={key}>
+                    <NavbarHotkeyInstruction label={`Press ${key}:`} />{" "}
+                    <span className="text-fuchsia-300">
+                      {getKeycodeLabel(key.toString())}
+                    </span>
+                  </li>
+                ))}
+                <li>
+                  <NavbarHotkeyInstruction label="Press 0:" />{" "}
+                  <span className="text-fuchsia-300">{zeroLabel}</span>
+                </li>
+              </ul>
+            }
+            stripe="border-b-fuchsia-500"
+            readOnly
+          />
+        </>
       )}
-    </TooltipButton>
+    </NavbarActionButton>
   );
 };
 

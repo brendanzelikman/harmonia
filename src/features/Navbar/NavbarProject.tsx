@@ -67,6 +67,7 @@ export function NavbarProjectMenu() {
       >
         <div className="size-full py-1 space-y-1.5 min-w-48">
           <NavbarTitleForm
+            className="mb-2.5"
             type="text"
             placeholder="Project Name"
             value={name}
@@ -106,7 +107,11 @@ export function NavbarProjectMenu() {
               }
             >
               <NavbarFileLabel>Export to MIDI</NavbarFileLabel>
-              <img src={MidiImage} className="h-3 invert" />
+              <img
+                src={MidiImage}
+                data-disabled={!endTick}
+                className="h-3 invert data-[disabled=true]:opacity-50"
+              />
             </NavbarFormGroup>
           }
 
