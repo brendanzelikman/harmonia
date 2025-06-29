@@ -49,7 +49,7 @@ export function Navbar() {
             <NavbarUndo />
             <NavbarRedo />
           </NavbarGroup>
-          <NavbarGroup className="bg-radial from-slate-900/15 to-teal-500/15">
+          <NavbarGroup className="bg-radial from-slate-900/15 to-teal-800/15">
             <NavbarVolume />
             <NavbarTime />
             <div className="flex gap-1.5">

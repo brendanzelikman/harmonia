@@ -1,6 +1,5 @@
-import { useAppDispatch, useAppValue } from "hooks/useRedux";
+import { useAppValue } from "hooks/useRedux";
 import { GiJackPlug, GiJoystick } from "react-icons/gi";
-import { selectSomeTrackId } from "types/Timeline/TimelineSelectors";
 import {
   selectPatternTracks,
   selectTrackInstrumentMap,
@@ -9,7 +8,6 @@ import {
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
-import { selectHasGame } from "types/Game/GameSelectors";
 import {
   NavbarHotkeyInstruction,
   NavbarHotkeyKey,
@@ -24,26 +22,18 @@ import { useMemo } from "react";
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
 export const NavbarMixPlay = () => {
-  const dispatch = useAppDispatch();
   const holding = useHeldKeys(["m", "s"]);
-
   const hasTracks = useAppValue(selectHasTracks);
-  const hasGame = useAppValue(selectHasGame);
   const patternTracks = useAppValue(selectPatternTracks);
-  const selectedTrackId = useAppValue(selectSomeTrackId);
   const instruments = useAppValue(selectTrackInstrumentMap);
   const labels = useAppValue(selectTrackLabelMap);
 
   // Get the values of the held keys
-  const isNumerical = numericalKeys.some((key) => holding[getKeyCode(key)]);
   const m = holding.KeyM;
   const s = holding.KeyS;
   const M = NavbarHotkeyKey("Hold M: ", m);
   const S = NavbarHotkeyKey("Hold S: ", s);
   const isMixing = m || s;
-
-  const working = !hasGame && isMixing;
-  const isActive = working || hasTracks;
 
   const getKeycodeLabel = (keycode: string) => {
     if (!isMixing) return "No Effect Available";
@@ -71,8 +61,6 @@ export const NavbarMixPlay = () => {
     const action = m && s ? "Unmute/Unsolo" : m ? "Unmute" : "Unsolo";
     return `${action} All Tracks`;
   }, [m, s, isMixing]);
-
-  const Number = NavbarHotkeyKey("Press Number", isNumerical, true);
 
   return (
     <NavbarActionButton
