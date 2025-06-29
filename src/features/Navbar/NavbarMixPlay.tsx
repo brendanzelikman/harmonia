@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
-import { GiJackPlug } from "react-icons/gi";
+import { GiJackPlug, GiJoystick } from "react-icons/gi";
 import { selectSomeTrackId } from "types/Timeline/TimelineSelectors";
 import {
   selectPatternTracks,
@@ -104,7 +104,7 @@ export const NavbarMixPlay = () => {
       />
       <NavbarActionButtonOption
         title="Mix Samplers"
-        Icon={<GiJackPlug className="ml-auto text-2xl" />}
+        Icon={<GiJoystick className="ml-auto text-2xl" />}
         subtitle={
           <ul>
             {numericalKeys.map((keycode) => (
