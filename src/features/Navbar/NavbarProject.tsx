@@ -74,6 +74,7 @@ export function NavbarProjectMenu() {
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => blurOnEnter(e, updateName)}
             onBlur={updateName}
+            usable
           />
 
           {/* Open New Project */}

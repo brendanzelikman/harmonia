@@ -31,6 +31,7 @@ export const NavbarFormLabel = (
 
 interface NavbarFormInputProps extends InputHTMLAttributes<HTMLInputElement> {
   className?: string;
+  usable?: boolean;
 }
 export const NavbarFormInput = (props: NavbarFormInputProps) => (
   <input
@@ -54,8 +55,8 @@ export const NavbarTitleForm = (props: NavbarFormInputProps) => {
         "text-base w-full border-b border-b-slate-500 text-slate-100 bg-slate-950/80 focus:bg-slate-950 rounded-lg font-light pb-1"
       )}
       type="text"
-      readOnly
-      disabled
+      readOnly={!props.usable}
+      disabled={!props.usable}
     />
   );
 };
