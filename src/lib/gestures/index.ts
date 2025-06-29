@@ -1,5 +1,5 @@
 import { useHotkeys } from "hooks/useHotkeys";
-import { getHeldKey, useHeldKeys } from "hooks/useHeldkeys";
+import { getHeldKey } from "hooks/useHeldkeys";
 import { Thunk } from "types/Project/ProjectTypes";
 import {
   selectSelectedPatternClips,
@@ -23,8 +23,6 @@ import {
   zeroSelectedPatternPoses,
 } from "./updatePatterns";
 import { offsetSelectedPoses, zeroSelectedPoses } from "./updatePoses";
-import { useMemo } from "react";
-import { HotkeyMap } from "lib/hotkeys";
 import { applyPatternFromSlot, savePatternToSlot } from "./storePatterns";
 import { applyPoseFromSlot, savePoseToSlot } from "./storePoses";
 import {
@@ -39,9 +37,8 @@ const hotkeys = [...qwertyKeys, ...trackKeys, ...miscKeys];
 
 /** A custom hook to use keyboard gestures */
 export const useGestures = () => {
-  const holding = useHeldKeys(hotkeys);
-  const hotkeyMap: HotkeyMap = useMemo(() => {
-    return {
+  useHotkeys(
+    {
       1: (dispatch) => dispatch(keydown(1)),
       2: (dispatch) => dispatch(keydown(2)),
       3: (dispatch) => dispatch(keydown(3)),
@@ -52,10 +49,9 @@ export const useGestures = () => {
       8: (dispatch) => dispatch(keydown(8)),
       9: (dispatch) => dispatch(keydown(9)),
       0: (dispatch) => dispatch(zerodown()),
-    };
-  }, []);
-  useHotkeys(hotkeyMap, "keypress");
-  return holding;
+    },
+    "keypress"
+  );
 };
 
 /** The gesture handler for numerical keys */

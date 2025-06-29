@@ -183,7 +183,7 @@ const TimelineTopLeftCorner = () => {
           onClick={() => (canGame ? dispatch(startTransport()) : null)}
         >
           <div className="text-fuchsia-300 text-base">
-            Rhythm Game Available
+            Instructions Available
           </div>
           <div className="text-slate-300 font-light text-sm">
             {!canGame

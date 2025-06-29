@@ -1,18 +1,9 @@
-import { useAppDispatch, useAppValue } from "hooks/useRedux";
+import { useAppValue } from "hooks/useRedux";
 import { GiDominoMask, GiMisdirection, GiToolbox } from "react-icons/gi";
-import {
-  selectIsSelectingPoseClips,
-  selectSomeTrackId,
-} from "types/Timeline/TimelineSelectors";
-import {
-  selectTrackAncestorIds,
-  selectTrackLabelById,
-  selectTrackLabelMap,
-} from "types/Track/TrackSelectors";
-import { useCallback, useMemo } from "react";
-import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
+import { selectIsSelectingPoseClips } from "types/Timeline/TimelineSelectors";
+import { useCallback } from "react";
+import { selectTrackLiveLabelMap } from "types/Arrangement/ArrangementTrackSelectors";
 import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
-import { growTree } from "types/Timeline/TimelineThunks";
 import {
   NavbarHotkeyInstruction,
   NavbarHotkeyKey,
@@ -28,85 +19,67 @@ const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const heldKeys = [...qwertyKeys, "c", "d", "-", "`", "="];
 
 export const NavbarLivePlay = () => {
-  const dispatch = useAppDispatch();
   const holding = useHeldKeys(heldKeys);
-
-  // Get selected values
-  const selectedTrackId = useAppValue(selectSomeTrackId);
-  const chain = useAppValue((_) => selectTrackAncestorIds(_, selectedTrackId));
-  const labels = useAppValue(selectTrackLabelMap);
   const isSelectingPoseClip = useAppValue(selectIsSelectingPoseClips);
-
-  // Get the values of the held keys
-  const isNegative = holding[getKeyCode("-")] || holding[getKeyCode("`")];
-  const isExact = holding[getKeyCode("=")];
-  const sign = isNegative ? "-" : "";
-  const direction = isNegative ? "Down" : "Up";
-
-  // Check if a key is being pressed
+  const labelMap = useAppValue(selectTrackLiveLabelMap);
   const scaleKey = qwertyKeys.find((key) => holding[getKeyCode(key)]);
   const isHoldingScale = !!scaleKey;
 
-  // Get the first chain id
-  const label1 = useAppValue((_) => selectTrackLabelById(_, chain[0]));
-  const scale1 = useAppValue((_) => selectTrackScaleNameAtTick(_, chain[0]));
-  const scaleName1 = label1 !== "*" ? `${scale1} (${label1})` : `First Scale`;
-  const hasScale1 = scaleName1 !== `First Scale`;
+  // Get the values of the held keys
+  const q = holding[getKeyCode("q")];
+  const w = holding[getKeyCode("w")];
+  const e = holding[getKeyCode("e")];
+  const r = holding[getKeyCode("r")];
+  const t = holding[getKeyCode("t")];
+  const y = holding[getKeyCode("y")];
+  const minus = holding[getKeyCode("-")];
+  const tilde = holding[getKeyCode("`")];
+  const equal = holding[getKeyCode("=")];
 
-  // Get the second chain id
-  const label2 = useAppValue((_) => selectTrackLabelById(_, chain[1]));
-  const scale2 = useAppValue((_) => selectTrackScaleNameAtTick(_, chain[1]));
-  const scaleName2 = label2 !== "*" ? `${scale2} (${label2})` : `Second Scale`;
-  const hasScale2 = scaleName2 !== `Second Scale`;
+  // Unpack the values
+  const isNegative = minus || tilde;
+  const isExact = equal;
+  const sign = isNegative ? "-" : "";
+  const direction = isNegative ? "Down" : "Up";
 
-  // Get the third chain id
-  const label3 = useAppValue((_) => selectTrackLabelById(_, chain[2]));
-  const scale3 = useAppValue((_) => selectTrackScaleNameAtTick(_, chain[2]));
-  const scaleName3 = label3 !== "*" ? `${scale3} (${label3})` : `Third Scale`;
-  const hasScale3 = scaleName3 !== `Third Scale`;
+  // Stylize the components
+  const Q = NavbarHotkeyKey("Hold Q: ", q);
+  const W = NavbarHotkeyKey("Hold W: ", w);
+  const E = NavbarHotkeyKey("Hold E: ", e);
+  const R = NavbarHotkeyKey("Hold R: ", r);
+  const T = NavbarHotkeyKey("Hold T: ", t);
+  const Y = NavbarHotkeyKey("Hold Y: ", y);
+  const Minus = NavbarHotkeyKey("Hold Minus/Tilde", isNegative);
+  const Equal = NavbarHotkeyKey("Hold Equal", isExact);
 
-  // Get the label map
-  const labelMap = useMemo(() => {
-    return {
-      q: label1 ?? "A",
-      w: label2,
-      e: label3,
-      r: "r",
-      t: "t",
-      y: "y",
-    } as const;
-  }, [label1, label2, label3]);
-
+  // Get the label for each keycode
   const getKeycodeLabel = useCallback(
     (keycode: string) => {
+      if (!isHoldingScale) return "No Effect Available";
       const number = parseInt(keycode);
       const steps = "Step" + (number === 1 ? "" : "s");
 
-      let vector: string[] = [];
+      const vector: string[] = [];
 
       qwertyKeys.forEach((key) => {
-        if (key === "q" && !hasScale1) return;
-        if (key === "w" && !hasScale2) return;
-        if (key === "e" && !hasScale3) return;
-        const label = labelMap[key];
+        if (key === "q" && labelMap.q.label === "*") return;
+        if (key === "w" && labelMap.w.label === "*") return;
+        if (key === "e" && labelMap.e.label === "*") return;
+        const label = labelMap[key].label;
         if (holding[getKeyCode(key)] && label) {
           vector.push(`${label}${sign}${keycode}`);
         }
       });
-      if (vector.length && isHoldingScale) {
-        const vectorString = vector.join(" + ");
-        const phrase = isExact ? "Move to" : "Move by ";
-        return `${phrase} ${vectorString}`;
+
+      if (vector.length) {
+        return `${isExact ? "Move to" : "Move by "} ${vector.join(" + ")}`;
       }
-      if (isHoldingScale) {
-        if (isExact) {
-          return `Move to Step ${keycode} In Scale`;
-        }
-        return `Move ${keycode} ${steps} ${direction} Scale`;
+      if (isExact) {
+        return `Move to Step ${keycode} In Scale`;
       }
-      return "No Effect Available";
+      return `Move ${keycode} ${steps} ${direction} Scale`;
     },
-    [holding, labelMap, isNegative, labels]
+    [holding, labelMap, isNegative]
   );
 
   const zeroLabel = isHoldingScale
@@ -114,18 +87,6 @@ export const NavbarLivePlay = () => {
     : isSelectingPoseClip
     ? "Remove All Values"
     : "Go To Root";
-
-  const Q = NavbarHotkeyKey("Hold Q: ", holding[getKeyCode("q")]);
-  const W = NavbarHotkeyKey("Hold W: ", holding[getKeyCode("w")]);
-  const E = NavbarHotkeyKey("Hold E: ", holding[getKeyCode("e")]);
-  const R = NavbarHotkeyKey("Hold R: ", holding[getKeyCode("r")]);
-  const T = NavbarHotkeyKey("Hold T: ", holding[getKeyCode("t")]);
-  const Y = NavbarHotkeyKey("Hold Y: ", holding[getKeyCode("y")]);
-  const Minus = NavbarHotkeyKey(
-    "Hold Minus/Tilde",
-    holding[getKeyCode("-")] || holding[getKeyCode("`")]
-  );
-  const Equal = NavbarHotkeyKey("Hold Equal", holding[getKeyCode("=")]);
 
   return (
     <NavbarActionButton
@@ -136,7 +97,6 @@ export const NavbarLivePlay = () => {
       background="bg-radial from-sky-900/70 to-sky-500/70"
       borderColor="border-sky-500"
       minWidth="min-w-72"
-      onClick={() => dispatch(growTree())}
     >
       <NavbarActionButtonOption
         title="Select Scales"
@@ -145,27 +105,39 @@ export const NavbarLivePlay = () => {
           <ul>
             <li>
               {Q}
-              <span className="text-sky-400">Transpose by {scaleName1}</span>
+              <span className="text-sky-400">
+                Transpose by {labelMap.q.name}
+              </span>
             </li>
             <li>
               {W}
-              <span className="text-sky-400">Transpose by {scaleName2}</span>
+              <span className="text-sky-400">
+                Transpose by {labelMap.w.name}
+              </span>
             </li>
             <li>
               {E}
-              <span className="text-sky-400">Transpose by {scaleName3}</span>
+              <span className="text-sky-400">
+                Transpose by {labelMap.e.name}
+              </span>
             </li>
             <li>
               {R}
-              <span className="text-sky-400">Transpose by Rotation (r)</span>
+              <span className="text-sky-400">
+                Transpose by {labelMap.r.name}
+              </span>
             </li>
             <li>
               {T}
-              <span className="text-sky-400">Transpose by Semitone (t)</span>
+              <span className="text-sky-400">
+                Transpose by {labelMap.t.name}
+              </span>
             </li>
             <li>
               {Y}
-              <span className="text-sky-400">Transpose by Octave (y)</span>
+              <span className="text-sky-400">
+                Transpose by {labelMap.y.name}
+              </span>
             </li>
           </ul>
         }

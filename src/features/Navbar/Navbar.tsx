@@ -25,7 +25,7 @@ import {
   NavbarStopTransport,
   NavbarToggleTransport,
 } from "./NavbarTransportControl";
-import { BsTerminal } from "react-icons/bs";
+import { useGestures } from "lib/gestures";
 
 export function Navbar() {
   const { pathname } = useLocation();
@@ -78,7 +78,7 @@ export function Navbar() {
             hide={!hasTracks}
             className="bg-radial from-teal-800/15 to-teal-600/15"
           >
-            <NavbarGroupLabel>Gestures</NavbarGroupLabel>
+            <NavbarGestureLabel />
             <NavbarLivePlay />
             <NavbarLeadPlay />
             <NavbarMixPlay />
@@ -89,3 +89,9 @@ export function Navbar() {
     </nav>
   );
 }
+
+/** Use gestures within the label */
+const NavbarGestureLabel = () => {
+  useGestures();
+  return <NavbarGroupLabel>Gestures</NavbarGroupLabel>;
+};

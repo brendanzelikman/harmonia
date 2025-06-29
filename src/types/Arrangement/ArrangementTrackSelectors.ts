@@ -1,10 +1,15 @@
 import { Project } from "types/Project/ProjectTypes";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
-import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import {
+  selectCellHeight,
+  selectSelectedTrackId,
+} from "types/Timeline/TimelineSelectors";
+import {
+  selectScaleTrackChainIdsMap,
   selectTopLevelTracks,
   selectTrackById,
   selectTrackChildIdMap,
+  selectTrackLabelById,
   selectTrackMap,
 } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
@@ -140,4 +145,44 @@ export const selectTrackPortaledClipIds = (
   trackId: TrackId
 ) => {
   return selectTrackPortaledClipIdsMap(project)[trackId] ?? [];
+};
+
+/** Select the live labels of a track */
+export const selectTrackLiveLabelMap = (project: Project) => {
+  const selectedTrackId = selectSelectedTrackId(project);
+  if (!selectedTrackId)
+    return {
+      q: { label: "*", name: "First Scale" },
+      w: { label: "*", name: "Second Scale" },
+      e: { label: "*", name: "Third Scale" },
+      r: { label: "r", name: "Rotation (r)" },
+      t: { label: "t", name: "Semitone (t)" },
+      y: { label: "y", name: "Octave (y)" },
+    };
+  const chain = selectScaleTrackChainIdsMap(project)[selectedTrackId] ?? [];
+
+  // Get the first chain id
+  const label1 = selectTrackLabelById(project, chain[0]);
+  const scale1 = selectTrackScaleNameAtTick(project, chain[0]);
+  const name1 = label1 !== "*" ? `${scale1} (${label1})` : `First Scale`;
+
+  // Get the second chain id
+  const label2 = selectTrackLabelById(project, chain[1]);
+  const scale2 = selectTrackScaleNameAtTick(project, chain[1]);
+  const name2 = label2 !== "*" ? `${scale2} (${label2})` : `Second Scale`;
+
+  // Get the third chain id
+  const label3 = selectTrackLabelById(project, chain[2]);
+  const scale3 = selectTrackScaleNameAtTick(project, chain[2]);
+  const name3 = label3 !== "*" ? `${scale3} (${label3})` : `Third Scale`;
+
+  // Return the label map
+  return {
+    q: { label: label1, name: name1 },
+    w: { label: label2, name: name2 },
+    e: { label: label3, name: name3 },
+    r: { label: "r", name: "Rotation (r)" },
+    t: { label: "t", name: "Semitone (t)" },
+    y: { label: "y", name: "Octave (y)" },
+  };
 };

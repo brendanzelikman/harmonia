@@ -1,4 +1,4 @@
-import { useAppDispatch, useAppValue } from "hooks/useRedux";
+import { useAppValue } from "hooks/useRedux";
 import {
   GiDominoMask,
   GiMisdirection,
@@ -8,26 +8,14 @@ import {
 import {
   selectIsSelectingPatternClips,
   selectIsSelectingPoseClips,
-  selectSomeTrackId,
 } from "types/Timeline/TimelineSelectors";
-import {
-  selectPatternTracks,
-  selectTrackAncestorIds,
-  selectTrackInstrumentMap,
-  selectTrackLabelById,
-  selectTrackLabelMap,
-} from "types/Track/TrackSelectors";
-import { useCallback, useMemo } from "react";
-import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
-import { selectHasTracks } from "types/Track/TrackSelectors";
-import { getKeyCode } from "hooks/useHeldkeys";
-import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
-import { selectHasGame } from "types/Game/GameSelectors";
+import { useCallback } from "react";
+import { selectTrackLiveLabelMap } from "types/Arrangement/ArrangementTrackSelectors";
+import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
 import {
   NavbarHotkeyInstruction,
   NavbarHotkeyKey,
 } from "./components/NavbarHotkeys";
-import { useGestures } from "lib/gestures";
 import {
   NavbarActionButton,
   NavbarActionButtonOption,
@@ -35,173 +23,73 @@ import {
 import { ArrangePoseIcon } from "lib/hotkeys/timeline";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
-const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+const heldKeys = [...qwertyKeys, "c", "d", "-", "`", "="];
 
 export const NavbarLeadPlay = () => {
-  const dispatch = useAppDispatch();
-  const holding = useGestures();
+  const holding = useHeldKeys(heldKeys);
+  const labelMap = useAppValue(selectTrackLiveLabelMap);
 
-  // Get selected values
-  const hasTracks = useAppValue(selectHasTracks);
-  const hasGame = useAppValue(selectHasGame);
-  const patternTracks = useAppValue(selectPatternTracks);
-  const selectedTrackId = useAppValue(selectSomeTrackId);
-  const chain = useAppValue((_) => selectTrackAncestorIds(_, selectedTrackId));
-  const instruments = useAppValue(selectTrackInstrumentMap);
-  const labels = useAppValue(selectTrackLabelMap);
+  // Get the values of the held keys
+  const q = holding[getKeyCode("q")];
+  const w = holding[getKeyCode("w")];
+  const e = holding[getKeyCode("e")];
+  const r = holding[getKeyCode("r")];
+  const t = holding[getKeyCode("t")];
+  const y = holding[getKeyCode("y")];
+  const c = holding[getKeyCode("c")];
+  const d = holding[getKeyCode("d")];
+  const minus = holding[getKeyCode("-")];
+  const tilde = holding[getKeyCode("`")];
+  const equal = holding[getKeyCode("=")];
+  const isNegative = minus || tilde;
+
+  // Stylize the components
+  const Q = NavbarHotkeyKey("Hold Q: ", q);
+  const W = NavbarHotkeyKey("Hold W: ", w);
+  const E = NavbarHotkeyKey("Hold E: ", e);
+  const R = NavbarHotkeyKey("Hold R: ", r);
+  const T = NavbarHotkeyKey("Hold T: ", t);
+  const Y = NavbarHotkeyKey("Hold Y: ", y);
+  const C = NavbarHotkeyKey("Hold C: ", c);
+  const D = NavbarHotkeyKey("Hold D: ", d);
+  const Minus = NavbarHotkeyKey("Hold Minus/Tilde: ", minus || tilde);
+  const Equal = NavbarHotkeyKey("Hold Equal: ", equal);
 
   const isSelectingPatternClip = useAppValue(selectIsSelectingPatternClips);
   const isSelectingPoseClip = useAppValue(selectIsSelectingPoseClips);
-
-  // Get the values of the held keys
-  const isNegative = holding[getKeyCode("-")] || holding[getKeyCode("`")];
-  const isExact = holding[getKeyCode("=")];
-  const isMuting = holding[getKeyCode("m")];
-  const isSoloing = holding[getKeyCode("s")];
-  const isMixing = isMuting || isSoloing;
-  const sign = isNegative ? "-" : "";
-  const direction = isNegative ? "Down" : "Up";
-
   const scaleKey = qwertyKeys.find((key) => holding[getKeyCode(key)]);
   const isHoldingScale = !!scaleKey;
-  const isPosing = isHoldingScale;
-  const holdingC = holding[getKeyCode("c")];
-  const holdingD = holding[getKeyCode("d")];
-  const isVoiceLeadingClosest = holdingC && isSelectingPatternClip;
-  const isVoiceLeadingDegree = holdingD && isSelectingPatternClip;
-
-  // Get the first chain id
-  const label1 = useAppValue((_) => selectTrackLabelById(_, chain[0]));
-  const scale1 = useAppValue((_) => selectTrackScaleNameAtTick(_, chain[0]));
-  const scaleName1 = label1 !== "*" ? `${scale1} (${label1})` : `First Scale`;
-  const hasScale1 = scaleName1 !== `First Scale`;
-
-  // Get the second chain id
-  const label2 = useAppValue((_) => selectTrackLabelById(_, chain[1]));
-  const scale2 = useAppValue((_) => selectTrackScaleNameAtTick(_, chain[1]));
-  const scaleName2 = label2 !== "*" ? `${scale2} (${label2})` : `Second Scale`;
-  const hasScale2 = scaleName2 !== `Second Scale`;
-
-  // Get the third chain id
-  const label3 = useAppValue((_) => selectTrackLabelById(_, chain[2]));
-  const scale3 = useAppValue((_) => selectTrackScaleNameAtTick(_, chain[2]));
-  const scaleName3 = label3 !== "*" ? `${scale3} (${label3})` : `Third Scale`;
-  const hasScale3 = scaleName3 !== `Third Scale`;
-
-  // Get the label map
-  const labelMap = {
-    q: label1 ?? "A",
-    w: label2,
-    e: label3,
-    r: "r",
-    t: "t",
-    y: "y",
-  } as const;
-
-  const working = !hasGame && (holdingC || holdingD);
-
-  const isActive = (working || hasTracks) && isSelectingPatternClip;
+  const isVoiceLeadingClosest = c && isSelectingPatternClip;
+  const isVoiceLeadingDegree = d && isSelectingPatternClip;
 
   const getKeycodeLabel = useCallback(
     (keycode: string) => {
-      const number = parseInt(keycode);
-      const steps = "Step" + (number === 1 ? "" : "s");
-
-      let vector: string[] = [];
-
-      if (isMixing) {
-        const track = patternTracks.at(number - 1);
-        if (!track) return "No Sampler Available";
-        const instrument = instruments[track.id];
-        if (!instrument) return "No Track Instrument";
-        const { mute, solo } = instrument;
-        let action = "";
-        if (isMuting) {
-          action += mute ? "Unmute" : "Mute";
-        }
-        if (isMuting && isSoloing) action += "/";
-        if (isSoloing) {
-          action += solo ? "Unsolo" : "Solo";
-        }
-        const label = labels[track?.id];
-        const name = getInstrumentName(instrument.key);
-        return `${action} Sampler ${label} (${name})`;
-      }
-
       if (isVoiceLeadingDegree) {
         const sign = isNegative ? "-" : "";
-        return `Closest Pose With ${
-          labelMap[scaleKey ?? "q"]
-        }${sign}${keycode}`;
+        const label = labelMap[scaleKey ?? "q"].label;
+        return `Closest Pose With ${label}${sign}${keycode}`;
       }
 
       if (isVoiceLeadingClosest) {
         return `${cardinalMap[keycode]} Closest Pose (By Distance)`;
       }
 
-      qwertyKeys.forEach((key) => {
-        if (key === "q" && !hasScale1) return;
-        if (key === "w" && !hasScale2) return;
-        if (key === "e" && !hasScale3) return;
-        const label = labelMap[key];
-        if (holding[getKeyCode(key)] && label) {
-          vector.push(`${label}${sign}${keycode}`);
-        }
-      });
-      if (vector.length && isHoldingScale) {
-        const vectorString = vector.join(" + ");
-        const phrase = isExact ? "Move to" : "Move by ";
-        return `${phrase} ${vectorString}`;
-      }
-      if (isHoldingScale) {
-        if (isExact) {
-          return `Move to Step ${keycode} In Scale`;
-        }
-        return `Move ${keycode} ${steps} ${direction} Scale`;
-      }
       return "No Effect Available";
-      // return `Shortcut #${keycode}`;
     },
     [
-      holding,
       labelMap,
       isNegative,
-      isMixing,
+      scaleKey,
       isVoiceLeadingClosest,
       isVoiceLeadingDegree,
-      isPosing,
-      patternTracks,
-      isMuting,
-      isSoloing,
-      instruments,
-      labels,
     ]
   );
 
-  const zeroLabel = useMemo(() => {
-    if (isPosing) {
-      return "Clear Scalar Offsets";
-    }
-    if (isSelectingPoseClip) {
-      return "Remove All Values";
-    } else {
-      return "Go to Root";
-    }
-  }, [isPosing, isSelectingPoseClip]);
-
-  const Q = NavbarHotkeyKey("Hold Q: ", holding[getKeyCode("q")]);
-  const W = NavbarHotkeyKey("Hold W: ", holding[getKeyCode("w")]);
-  const E = NavbarHotkeyKey("Hold E: ", holding[getKeyCode("e")]);
-  const R = NavbarHotkeyKey("Hold R: ", holding[getKeyCode("r")]);
-  const T = NavbarHotkeyKey("Hold T: ", holding[getKeyCode("t")]);
-  const Y = NavbarHotkeyKey("Hold Y: ", holding[getKeyCode("y")]);
-  const C = NavbarHotkeyKey("Hold C: ", holding[getKeyCode("c")]);
-  const D = NavbarHotkeyKey("Hold D: ", holding[getKeyCode("d")]);
-  const Minus = NavbarHotkeyKey(
-    "Hold Minus/Tilde: ",
-    holding[getKeyCode("-")] || holding[getKeyCode("`")]
-  );
-  const Equal = NavbarHotkeyKey("Hold Equal: ", holding[getKeyCode("=")]);
+  const zeroLabel = isHoldingScale
+    ? "Clear All Scalar Offsets"
+    : isSelectingPoseClip
+    ? "Remove All Values"
+    : "Go to Root";
 
   return (
     <NavbarActionButton
@@ -233,27 +121,39 @@ export const NavbarLeadPlay = () => {
               <ul>
                 <li>
                   {Q}
-                  <span className="text-sky-400">Search By {scaleName1}</span>
+                  <span className="text-sky-400">
+                    Search By {labelMap.q.name}
+                  </span>
                 </li>
                 <li>
                   {W}
-                  <span className="text-sky-400">Search By {scaleName2}</span>
+                  <span className="text-sky-400">
+                    Search By {labelMap.w.name}
+                  </span>
                 </li>
                 <li>
                   {E}
-                  <span className="text-sky-400">Search By {scaleName3}</span>
+                  <span className="text-sky-400">
+                    Search By {labelMap.e.name}
+                  </span>
                 </li>
                 <li>
                   {R}
-                  <span className="text-sky-400">Search By Rotation (r)</span>
+                  <span className="text-sky-400">
+                    Search By {labelMap.r.name}
+                  </span>
                 </li>
                 <li>
                   {T}
-                  <span className="text-sky-400">Search By Semitone (t)</span>
+                  <span className="text-sky-400">
+                    Search By {labelMap.t.name}
+                  </span>
                 </li>
                 <li>
                   {Y}
-                  <span className="text-sky-400">Search By Octave (y)</span>
+                  <span className="text-sky-400">
+                    Search By {labelMap.y.name}
+                  </span>
                 </li>
               </ul>
             }
