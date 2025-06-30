@@ -42,7 +42,7 @@ export function NavbarGameMenu() {
       <NavbarActionButtonOption
         title={"Add Poses to Game"}
         Icon={<GiMisdirection className="ml-auto text-2xl" />}
-        subtitle={`Add poses (with transpositions) by selecting the clips and pressing ${getHotkeyShortcut(
+        subtitle={`Add poses (one transposition each) by selecting the clips and pressing ${getHotkeyShortcut(
           AddPosesToGameHotkey
         )}.`}
         stripe="border-b-sky-500"

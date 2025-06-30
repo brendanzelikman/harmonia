@@ -1,5 +1,5 @@
 import { useHotkeys } from "hooks/useHotkeys";
-import { getHeldKey } from "hooks/useHeldkeys";
+import { getHeldKey, useHeldKeys } from "hooks/useHeldkeys";
 import { Thunk } from "types/Project/ProjectTypes";
 import {
   selectSelectedPatternClips,
@@ -37,6 +37,7 @@ const hotkeys = [...qwertyKeys, ...trackKeys, ...miscKeys];
 
 /** A custom hook to use keyboard gestures */
 export const useGestures = () => {
+  useHeldKeys(hotkeys);
   useHotkeys(
     {
       1: (dispatch) => dispatch(keydown(1)),

@@ -57,7 +57,7 @@ export const NavbarArrangePatterns = () => {
       <NavbarActionButtonOption
         title="Save Pattern to Memory"
         Icon={<GiSave className="ml-auto text-2xl" />}
-        subtitle="Press Z + 1-9 to store a pattern to slot 1-9."
+        subtitle="Select a pattern and press Z + 1-9 to save it."
         stripe="border-b-emerald-500"
         readOnly
       />
@@ -118,9 +118,9 @@ export const NavbarArrangePoses = () => {
         stripe="border-b-sky-500"
       />
       <NavbarActionButtonOption
-        title="Store Pose to Memory"
+        title="Save Pose to Memory"
         Icon={<GiSave className="ml-auto text-2xl" />}
-        subtitle="Press V + 1-9 to store a pose to slot 1-9."
+        subtitle="Select a pose and press V + 1-9 to save it."
         stripe="border-b-emerald-500"
         readOnly
       />
