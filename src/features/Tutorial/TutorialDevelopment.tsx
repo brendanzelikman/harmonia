@@ -147,11 +147,11 @@ export const TutorialDevelopment = (props: { view: string }) => {
               <span className="text-fuchsia-400">{"Clear Value (Or All)"}</span>
             </div>
             <div>
-              <b>Shortcuts:</b>
+              <b>Explanations:</b>
               <br />
               <span className="text-slate-300">
-                For the full list of Keyboard Gestures, hover over the{" "}
-                <LivePlayIcon className="inline-flex" /> icon in the top bar.
+                The full list of Gestures will be available once you have
+                created a tree.
               </span>
               <br />
             </div>
