@@ -21,9 +21,9 @@ export const NavbarActionButton = (
     <div className="group/tooltip relative shrink-0">
       {/* Button */}
       <div
+        onClick={props.onClick}
         className={classNames(
           props.background,
-          props.onClick,
           "rounded-full size-9 total-center p-1.5 hover:ring transition-all"
         )}
       >

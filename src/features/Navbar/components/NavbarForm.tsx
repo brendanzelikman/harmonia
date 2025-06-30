@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { omit } from "lodash";
 import { InputHTMLAttributes, PropsWithChildren } from "react";
 import { blurOnEnter } from "utils/event";
 
@@ -35,7 +36,7 @@ interface NavbarFormInputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 export const NavbarFormInput = (props: NavbarFormInputProps) => (
   <input
-    {...props}
+    {...omit(props, ["usable"])}
     className={`block flex-auto px-2 bg-transparent rounded-md text-sm focus:outline-none text-white disabled:text-slate-400 disabled:placeholder-slate-400 placeholder-slate-300 border-0 focus:border-0 ring-1 ring-slate-400 focus:ring-slate-300 appearance-none ${
       props.className ?? ""
     }`}
@@ -49,7 +50,7 @@ export const NavbarFormInput = (props: NavbarFormInputProps) => (
 export const NavbarTitleForm = (props: NavbarFormInputProps) => {
   return (
     <input
-      {...props}
+      {...omit(props, ["usable"])}
       className={classNames(
         props.className,
         "text-base w-full border-b border-b-slate-500 text-slate-100 bg-slate-950/80 focus:bg-slate-950 rounded-lg font-light pb-1"

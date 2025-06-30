@@ -5,10 +5,7 @@ import {
   GiPathDistance,
   GiToolbox,
 } from "react-icons/gi";
-import {
-  selectIsSelectingPatternClips,
-  selectIsSelectingPoseClips,
-} from "types/Timeline/TimelineSelectors";
+import { selectIsSelectingPatternClips } from "types/Timeline/TimelineSelectors";
 import { useCallback } from "react";
 import { selectTrackLiveLabelMap } from "types/Arrangement/ArrangementTrackSelectors";
 import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
@@ -56,9 +53,7 @@ export const NavbarLeadPlay = () => {
   const Equal = NavbarHotkeyKey("Hold Equal: ", equal);
 
   const isSelectingPatternClip = useAppValue(selectIsSelectingPatternClips);
-  const isSelectingPoseClip = useAppValue(selectIsSelectingPoseClips);
   const scaleKey = qwertyKeys.find((key) => holding[getKeyCode(key)]);
-  const isHoldingScale = !!scaleKey;
   const isVoiceLeadingClosest = c && isSelectingPatternClip;
   const isVoiceLeadingDegree = d && isSelectingPatternClip;
 
@@ -67,7 +62,8 @@ export const NavbarLeadPlay = () => {
       if (isVoiceLeadingDegree) {
         const sign = isNegative ? "-" : "";
         const label = labelMap[scaleKey ?? "q"].label;
-        return `Closest Pose With ${label}${sign}${keycode}`;
+        const offset = `${label}${sign}${keycode}`;
+        return `Closest Pose With ${offset}`;
       }
 
       if (isVoiceLeadingClosest) {
@@ -85,18 +81,12 @@ export const NavbarLeadPlay = () => {
     ]
   );
 
-  const zeroLabel = isHoldingScale
-    ? "Clear All Scalar Offsets"
-    : isSelectingPoseClip
-    ? "Remove All Values"
-    : "Go to Root";
-
   return (
     <NavbarActionButton
       title="Gesture - Voice Leading"
       subtitle={
         isSelectingPatternClip
-          ? "Create Poses by Closeness or Degree"
+          ? "Create Poses by Constraint"
           : "Select a Pattern to Voice Lead"
       }
       subtitleClass="text-teal-400"
@@ -114,7 +104,7 @@ export const NavbarLeadPlay = () => {
       {!!isSelectingPatternClip && (
         <>
           <NavbarActionButtonOption
-            title="Select Scales"
+            title="Select Scales (Default = Q+W+E)"
             Icon={<GiDominoMask />}
             stripe="border-b-sky-500"
             subtitle={
@@ -122,44 +112,44 @@ export const NavbarLeadPlay = () => {
                 <li>
                   {Q}
                   <span className="text-sky-400">
-                    Search By {labelMap.q.name}
+                    Search With {labelMap.q.name}
                   </span>
                 </li>
                 <li>
                   {W}
                   <span className="text-sky-400">
-                    Search By {labelMap.w.name}
+                    Search With {labelMap.w.name}
                   </span>
                 </li>
                 <li>
                   {E}
                   <span className="text-sky-400">
-                    Search By {labelMap.e.name}
+                    Search With {labelMap.e.name}
                   </span>
                 </li>
                 <li>
                   {R}
                   <span className="text-sky-400">
-                    Search By {labelMap.r.name}
+                    Search With {labelMap.r.name}
                   </span>
                 </li>
                 <li>
                   {T}
                   <span className="text-sky-400">
-                    Search By {labelMap.t.name}
+                    Search With {labelMap.t.name}
                   </span>
                 </li>
                 <li>
                   {Y}
                   <span className="text-sky-400">
-                    Search By {labelMap.y.name}
+                    Search With {labelMap.y.name}
                   </span>
                 </li>
               </ul>
             }
           />
           <NavbarActionButtonOption
-            title="Select Mode"
+            title="Select Constraints"
             Icon={<GiToolbox />}
             subtitle={
               <ul>
@@ -185,7 +175,7 @@ export const NavbarLeadPlay = () => {
             readOnly
           />
           <NavbarActionButtonOption
-            title="Create Poses"
+            title="Create Poses By Rule"
             Icon={<ArrangePoseIcon />}
             subtitle={
               <ul>
@@ -197,10 +187,6 @@ export const NavbarLeadPlay = () => {
                     </span>
                   </li>
                 ))}
-                <li>
-                  <NavbarHotkeyInstruction label="Press 0:" />{" "}
-                  <span className="text-fuchsia-300">{zeroLabel}</span>
-                </li>
               </ul>
             }
             stripe="border-b-fuchsia-500"

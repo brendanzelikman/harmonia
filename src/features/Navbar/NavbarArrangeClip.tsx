@@ -44,7 +44,7 @@ export const NavbarArrangePatterns = () => {
     >
       <NavbarActionButtonOption
         className="cursor-pointer"
-        title="Create Pattern"
+        title="Create New Pattern"
         Icon={<ArrangePatternIcon className="ml-auto text-2xl" />}
         subtitle={`Press ${shortcut} to arrange a pattern in the timeline.`}
         onClick={() =>
@@ -55,14 +55,14 @@ export const NavbarArrangePatterns = () => {
         stripe="border-b-sky-500"
       />
       <NavbarActionButtonOption
-        title="Store Pattern"
+        title="Save Pattern to Memory"
         Icon={<GiSave className="ml-auto text-2xl" />}
         subtitle="Press Z + 1-9 to store a pattern to slot 1-9."
         stripe="border-b-emerald-500"
         readOnly
       />
       <NavbarActionButtonOption
-        title="Load Pattern"
+        title="Load Pattern from Memory"
         Icon={<GiPlateClaw className="ml-auto text-2xl" />}
         subtitle="Press X + 1-9 to load a pattern from slot 1-9."
         stripe="border-b-fuchsia-500"
@@ -105,7 +105,7 @@ export const NavbarArrangePoses = () => {
       onClick={() => dispatch(toggleAddingState({ data: "pose" }))}
     >
       <NavbarActionButtonOption
-        title="Create Pose"
+        title="Create New Pose"
         Icon={<ArrangePoseIcon className="ml-auto text-2xl" />}
         subtitle={`Press ${getHotkeyShortcut(
           ArrangePosesHotkey
@@ -118,14 +118,14 @@ export const NavbarArrangePoses = () => {
         stripe="border-b-sky-500"
       />
       <NavbarActionButtonOption
-        title="Store Pose"
+        title="Store Pose to Memory"
         Icon={<GiSave className="ml-auto text-2xl" />}
         subtitle="Press V + 1-9 to store a pose to slot 1-9."
         stripe="border-b-emerald-500"
         readOnly
       />
       <NavbarActionButtonOption
-        title="Load Pose"
+        title="Load Pose from Memory"
         Icon={<GiPlateClaw className="ml-auto text-2xl" />}
         subtitle="Press B + 1-9 to load a pose from slot 1-9."
         stripe="border-b-fuchsia-500"

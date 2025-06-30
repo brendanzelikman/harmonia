@@ -28,7 +28,7 @@ export const NavbarCreateTree = () => {
       onClick={() => dispatch(promptUserForTree)}
     >
       <NavbarActionButtonOption
-        title="Create Tree"
+        title="Create New Tree"
         Icon={<CreateTreeIcon className="ml-auto text-2xl" />}
         subtitle={`Press ${getHotkeyShortcut(
           CreateTreeHotkey
@@ -37,7 +37,7 @@ export const NavbarCreateTree = () => {
         stripe="border-b-sky-500"
       />
       <NavbarActionButtonOption
-        title="Randomize Tree"
+        title="Create Random Tree"
         Icon={<GiDiceSixFacesFive className="ml-auto text-2xl" />}
         subtitle={`Press ${getHotkeyShortcut(
           CreateRandomTreeHotkey
@@ -46,7 +46,7 @@ export const NavbarCreateTree = () => {
         onClick={() => dispatch(createRandomTree())}
       />
       <NavbarActionButtonOption
-        title="Encapsulate Tree"
+        title="Import Project To Tree"
         Icon={<GiFiles className="ml-auto text-2xl" />}
         subtitle={`Press ${getHotkeyShortcut(
           SampleProject

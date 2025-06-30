@@ -1,6 +1,5 @@
 import { DEFAULT_BPM, MIN_BPM, MAX_BPM } from "utils/constants";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
-import classNames from "classnames";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import {
   NavbarFormGroup,

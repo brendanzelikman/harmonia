@@ -25,20 +25,14 @@ import {
   selectTrackLabelMap,
 } from "types/Track/TrackSelectors";
 import { TimelineCursor } from "./TimelineCursor";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import classNames from "classnames";
 import { useToggle } from "hooks/useToggle";
 import { useTick } from "types/Transport/TransportTick";
 import { clamp, some } from "lodash";
 import { selectGame } from "types/Game/GameSelectors";
-import {
-  startTransport,
-  STOP_TRANSPORT,
-  useTransportState,
-} from "types/Transport/TransportState";
-import { GameRank } from "types/Game/GameTypes";
-import { evaluateGameRank, deleteGamePoses } from "types/Game/GameThunks";
-import { GiStarSwirl } from "react-icons/gi";
+import { startTransport, STOP_TRANSPORT } from "types/Transport/TransportState";
+import { deleteGamePoses } from "types/Game/GameThunks";
 import { useEvent } from "hooks/useEvent";
 import { resetGame, updateGame } from "types/Game/GameSlice";
 
@@ -133,40 +127,16 @@ const TimelineTopLeftCorner = () => {
 
   const dispatch = useAppDispatch();
   const tick = useTick();
-  const state = useTransportState();
   const game = useAppValue(selectGame);
   const actions = game?.actions ?? [];
   const hasGame = !!game && actions.length > 0;
   const canGame = selectedTrackId === game?.trackId;
-  const lastTick = Math.max(0, ...actions.map((a) => a?.tick ?? 0));
-  const [rank, setRank] = useState<GameRank | undefined>();
-  const [shouldRank, setShouldRank] = useState(false);
   useEvent(STOP_TRANSPORT, () => dispatch(deleteGamePoses()));
-  useEffect(() => {
-    if (state !== "started") {
-      setShouldRank(false);
-      setRank(undefined);
-    } else if (tick > lastTick && !shouldRank) {
-      setShouldRank(true);
-      setRank(dispatch(evaluateGameRank()));
-    }
-  }, [state, tick, shouldRank]);
-
   useEffect(() => {
     if (!some(labelMap) || (game.trackId && !labelMap[game.trackId])) {
       dispatch(resetGame());
     }
   }, [labelMap]);
-
-  const Rank = rank ? (
-    <div className="flex gap-2 text-2xl">
-      {new Array(rank.rank).fill(0).map((_, i) => (
-        <GiStarSwirl key={i} />
-      ))}
-    </div>
-  ) : (
-    "Fail!"
-  );
 
   const Game = (
     <div className="w-full relative overflow-hidden">
@@ -286,7 +256,7 @@ const TimelineTopLeftCorner = () => {
       )}
       style={{ width: TRACK_WIDTH, height: HEADER_HEIGHT }}
     >
-      {hasGame && (!tick || canGame) ? (shouldRank ? Rank : Game) : Action}
+      {hasGame && (!tick || canGame) ? Game : Action}
     </div>
   );
 };
