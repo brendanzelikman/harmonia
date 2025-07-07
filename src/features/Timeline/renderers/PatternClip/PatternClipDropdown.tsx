@@ -29,7 +29,7 @@ import {
   selectTrackScale,
   selectTrackScaleChain,
 } from "types/Track/TrackSelectors";
-import { MouseEvent, useCallback, useState } from "react";
+import { MouseEvent, useState } from "react";
 import {
   GiAnchor,
   GiArrowCursor,
@@ -105,10 +105,12 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     toggleInsert,
     isInserting,
   } = usePatternClipScore(clip);
+  useHotkeys({ ",": playRest }, "keydown");
 
   const labels = useAppValue((_) =>
     selectPatternNoteLabel(_, patternId, index)
   );
+  if (!pattern) return;
   const isEditing = index !== undefined;
   const isEmpty = !pattern.stream.length;
   const isMidi = pattern.stream.every(isPatternMidiBlock);
@@ -117,15 +119,14 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   );
   const isBinding = type === "scale";
 
-  const deleteNote = useCallback(() => {
+  const deleteNote = () => {
     const data = { id: pattern.id, index: index ?? -1 };
     if (!isEmpty) dispatch(removePatternBlock({ data }));
-  }, [pattern, index]);
+  };
 
-  const clearNotes = useCallback(() => {
+  const clearNotes = () => {
     if (!isEmpty) dispatch(clearPattern(pattern.id));
-  }, [pattern]);
-  useHotkeys({ ",": playRest }, "keydown");
+  };
 
   const GeneratePattern = (
     <DropdownButton

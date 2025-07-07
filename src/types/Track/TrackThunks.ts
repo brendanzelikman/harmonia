@@ -703,6 +703,11 @@ export const createTrackPair =
   (dispatch) => {
     const trackId = unpackData(data);
     const undoType = unpackUndoType(data, "createTrackPair");
-    dispatch(createNewPatternClip({ data: { clip: { trackId } }, undoType }));
+    dispatch(
+      createNewPatternClip({
+        data: { clip: { trackId }, randomize: true, autobind: true },
+        undoType,
+      })
+    );
     dispatch(createNewPoseClip({ data: { clip: { trackId } }, undoType }));
   };

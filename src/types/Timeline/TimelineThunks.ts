@@ -7,7 +7,7 @@ import {
   updateFragment,
 } from "./TimelineSlice";
 import { next } from "utils/array";
-import { Clip, CLIP_TYPES, initializePatternClip } from "types/Clip/ClipTypes";
+import { Clip, CLIP_TYPES } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
 import { Project, sanitizeProject, Thunk } from "types/Project/ProjectTypes";
 import {
@@ -44,7 +44,6 @@ import {
 import { createTreeFromString } from "lib/prompts/tree";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
-import { walkPortaledPatternClip } from "types/Arrangement/ArrangementThunks";
 import { TrackId } from "types/Track/TrackTypes";
 import { nanoid } from "@reduxjs/toolkit";
 import { maxBy } from "lodash";
@@ -64,10 +63,10 @@ import {
 import { selectTransportTimeSignature } from "types/Transport/TransportSelectors";
 import { QuarterNoteTicks } from "utils/duration";
 import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
-import { addPatternClip } from "types/Clip/ClipSlice";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import { autoBindNoteToTrack } from "types/Track/TrackUtils";
 import { updatePattern } from "types/Pattern/PatternSlice";
+import { createTrackPair } from "types/Track/TrackThunks";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -251,27 +250,8 @@ export const growTree = (): Thunk => (dispatch, getProject) => {
       dispatch(deleteMedia({ data: { clipIds: [clip.id] }, undoType }));
     }
   }
-
-  const newClip = initializePatternClip({
-    patternId: patternClip.patternId,
-    trackId,
-    tick,
-  });
-  dispatch(
-    addPatternClip({
-      data: newClip,
-      undoType,
-    })
-  );
-  dispatch(
-    walkPortaledPatternClip({
-      data: {
-        id: `${newClip.id}-chunk-1`,
-        options: { keys: trackIds, direction: "up" },
-      },
-      undoType,
-    })
-  );
+  if (!trackId) return;
+  dispatch(createTrackPair({ data: trackId, undoType }));
 };
 
 /** Toggle the editor of a track. */

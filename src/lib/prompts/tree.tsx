@@ -17,11 +17,7 @@ import {
 import { Thunk } from "types/Project/ProjectTypes";
 import { initializeScale, ScaleObject } from "types/Scale/ScaleTypes";
 import { promptUserForString } from "lib/prompts/html";
-import {
-  createNewPatternClip,
-  createNewPoseClip,
-  createPatternTrack,
-} from "../../types/Track/PatternTrack/PatternTrackThunks";
+import { createPatternTrack } from "../../types/Track/PatternTrack/PatternTrackThunks";
 import {
   readMidiScaleFromString,
   createScaleTrack,
