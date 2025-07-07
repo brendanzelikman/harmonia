@@ -13,7 +13,11 @@ import {
   selectSelectedPoseClips,
 } from "types/Timeline/TimelineSelectors";
 import { PoseVectorId } from "types/Pose/PoseTypes";
-import { addGameActions, updateGame } from "./GameSlice";
+import {
+  addGameActions,
+  removeGameActionsAtTick,
+  updateGame,
+} from "./GameSlice";
 import { selectGame, selectHasGame } from "./GameSelectors";
 import { PoseClipId } from "types/Clip/ClipTypes";
 import { removePoseClip } from "types/Clip/ClipSlice";
@@ -81,6 +85,15 @@ export const addPosesToGame =
     } else {
       dispatch(addGameActions({ data: { actions }, undoType }));
     }
+  };
+
+export const removeGameActionsAtCurrentTick =
+  (): Thunk => (dispatch, getProject) => {
+    const project = getProject();
+    const tick = selectCurrentTimelineTick(project);
+    const game = selectGame(project);
+    if (!game.actions.length) return;
+    dispatch(removeGameActionsAtTick({ data: { tick } }));
   };
 
 export const promptUserForGameCommand = (): Thunk => (dispatch, getProject) =>

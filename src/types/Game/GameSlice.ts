@@ -15,6 +15,10 @@ export const gameSlice = createSlice({
         );
       }
     },
+    removeGameActionsAtTick: (state, action: Action<{ tick: number }>) => {
+      const { tick } = unpackAction(action);
+      state.actions = state.actions.filter((a) => a.tick !== tick);
+    },
     updateGame: (state, action: Action<Partial<Game>>) => {
       const { actions, ranks, leniency, trackId } = unpackAction(action);
       if (actions !== undefined) {
@@ -38,5 +42,10 @@ export const gameSlice = createSlice({
   },
 });
 
-export const { addGameActions, updateGame, resetGame } = gameSlice.actions;
+export const {
+  addGameActions,
+  removeGameActionsAtTick,
+  updateGame,
+  resetGame,
+} = gameSlice.actions;
 export const gameReducer = gameSlice.reducer;

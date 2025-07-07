@@ -29,14 +29,13 @@ import {
 import {
   GiCalculator,
   GiConcentrationOrb,
-  GiCrystalWand,
   GiMusicalScore,
-  GiPencil,
   GiWateringCan,
 } from "react-icons/gi";
 import {
   addPosesToGame,
   promptUserForGameCommand,
+  removeGameActionsAtCurrentTick,
 } from "types/Game/GameThunks";
 import { resetGame } from "types/Game/GameSlice";
 
@@ -129,21 +128,39 @@ export const MergeClipsHotkey: Hotkey = {
 
 export const AddPosesToGameHotkey: Hotkey = {
   name: "Add Clips to Game",
-  description: "Add the selected clips to the game",
+  description:
+    "Add poses (transpositions only) by selecting the clips and pressing Cmd + G.",
   shortcut: "meta+g",
   callback: (dispatch) => dispatch(addPosesToGame({ replace: false })),
 };
 
 export const AddCommandToGameHotkey: Hotkey = {
-  name: "Create Came From Clips",
-  description: "Create a new game from the selected clips",
+  name: "Create Game From Clips",
+  description:
+    "Add gestures by prompt (any key and value) by pressing Cmd + Shift + G.",
   shortcut: "meta+shift+g",
   callback: (dispatch) => dispatch(promptUserForGameCommand()),
 };
 
+export const RemoveCommandFromGameHotkey: Hotkey = {
+  name: "Remove Gesture from Game",
+  description:
+    "Remove all gestures at the current time by pressing Alt + Shift + G.",
+  shortcut: "alt+shift+g",
+  callback: (dispatch) => dispatch(removeGameActionsAtCurrentTick()),
+};
+
+export const _StartGameHotkey: Hotkey = {
+  name: "Start Game",
+  description:
+    "Play the game by selecting its track and pressing Space to start the timeline.",
+  shortcut: " ",
+  callback: () => null,
+};
+
 export const ResetGameHotkey: Hotkey = {
   name: "Reset Game",
-  description: "Reset the game to its initial state",
+  description: "Remove all instructions from the game by pressing Cmd + H.",
   shortcut: "meta+h",
   callback: (dispatch) => dispatch(resetGame()),
 };
@@ -165,6 +182,7 @@ export const TimelineHotkeys = [
   SliceClipsHotkey,
   MergeClipsHotkey,
   AddCommandToGameHotkey,
+  RemoveCommandFromGameHotkey,
   AddPosesToGameHotkey,
   ResetGameHotkey,
 ];
