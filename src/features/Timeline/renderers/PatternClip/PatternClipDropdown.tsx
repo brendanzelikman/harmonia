@@ -3,6 +3,8 @@ import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { cancelEvent } from "utils/event";
 import {
   removePatternBlock,
+  updatePattern,
+  updatePatternBlock,
   updatePatternBlockDuration,
 } from "types/Pattern/PatternSlice";
 import classNames from "classnames";
@@ -45,7 +47,11 @@ import {
 import { FaEraser, FaPlusCircle } from "react-icons/fa";
 import { BsArrowClockwise } from "react-icons/bs";
 import { selectPatternNoteLabel } from "types/Clip/PatternClip/PatternClipSelectors";
-import { isPatternMidiBlock, PatternId } from "types/Pattern/PatternTypes";
+import {
+  isPatternMidiBlock,
+  isPatternRest,
+  PatternId,
+} from "types/Pattern/PatternTypes";
 import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
 import {
   promptUserForPattern,
@@ -57,7 +63,7 @@ import { useHotkeys } from "hooks/useHotkeys";
 import { ScaleId } from "types/Scale/ScaleTypes";
 import { SyncedNumericalForm } from "components/SyncedForm";
 import { selectClipDuration } from "types/Clip/ClipSelectors";
-import { isFinite } from "lodash";
+import { inRange, isFinite } from "lodash";
 
 export interface PatternClipDropdownProps {
   clip: PortaledPatternClip;
@@ -66,7 +72,7 @@ export interface PatternClipDropdownProps {
 }
 
 type NoteType = "scale" | "pedal";
-type InputMode = "piano" | "scales";
+type InputMode = "piano" | "scales" | "clock";
 
 export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const dispatch = useAppDispatch();
@@ -307,9 +313,19 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     <DropdownButton
       width="size-8"
       theme="slate"
-      dropdown={mode === "piano" ? "Equipped Piano" : "Equipped Buttons"}
+      dropdown={
+        mode === "piano"
+          ? "Equipped Piano"
+          : mode === "clock"
+          ? "Equipped Clock"
+          : "Equipped Buttons"
+      }
       icon={<GiPianoKeys className="text-xl" />}
-      onClick={() => setMode(mode === "piano" ? "scales" : "piano")}
+      onClick={() =>
+        setMode(
+          mode === "piano" ? "scales" : mode === "scales" ? "clock" : "piano"
+        )
+      }
     />
   );
 
@@ -360,8 +376,12 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                   {TogglePiano}
                 </div>
                 <div className="mx-auto capitalize text-emerald-300 max-w-64 overflow-scroll">
-                  {mode === "piano" ? "Play Piano" : "Click Buttons"} to{" "}
-                  {isInserting ? "Insert" : isEditing ? "Edit" : "Add"}{" "}
+                  {mode === "piano"
+                    ? "Play Piano"
+                    : mode === "clock"
+                    ? "Use Clock"
+                    : "Click Buttons"}{" "}
+                  to {isInserting ? "Insert" : isEditing ? "Edit" : "Add"}{" "}
                   {isBinding ? "Scale" : "Pedal"} Note
                 </div>
                 <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
@@ -389,6 +409,54 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                 width={896}
                 keyWidthToHeight={0.14}
               />
+            ) : mode === "clock" ? (
+              <div className="w-full p-2 min-h-38 flex flex-col border-t-8 border-t-indigo-500">
+                <div className="flex items-center text-slate-300 gap-4 p-4">
+                  <div>Clock</div>
+                  {new Array(16).fill(null).map((_, i) => {
+                    const filled =
+                      !!pattern.stream[i] && !isPatternRest(pattern.stream[i]);
+                    return (
+                      <div
+                        key={i}
+                        data-filled={filled}
+                        onClick={() => {
+                          if (filled) {
+                            const block = { duration };
+                            dispatch(
+                              updatePatternBlock({
+                                data: { index: i, id: pattern.id, block },
+                              })
+                            );
+                            return;
+                          }
+
+                          const value = chain.length
+                            ? { degree: 0, scaleId: chain[0].id }
+                            : { MIDI: 60 };
+                          const block = { ...value, duration };
+                          if (inRange(i, 0, pattern.stream.length)) {
+                            dispatch(
+                              updatePatternBlock({
+                                data: { index: i, id: pattern.id, block },
+                              })
+                            );
+                          } else {
+                            const length = pattern.stream.length;
+                            const stream = new Array(16).fill({ duration });
+                            for (let j = 0; j < length; j++) {
+                              stream[j] = pattern.stream[j];
+                            }
+                            stream[i] = block;
+                            dispatch(updatePattern({ id: pattern.id, stream }));
+                          }
+                        }}
+                        className="rounded-full size-4 border border-slate-500 hover:border-emerald-300 data-[filled=true]:bg-emerald-600 data-[filled=false]:bg-slate-700 cursor-pointer total-center text-xs text-slate-50"
+                      />
+                    );
+                  })}
+                </div>
+              </div>
             ) : (
               <div className="w-[600px] min-h-38 border-t-8 border-t-emerald-500 bg-slate-800 flex flex-col p-2 gap-2 text-slate-50 overflow-scroll">
                 {chain.map((scale, i) => (
@@ -572,58 +640,6 @@ const DropdownDurationButtons = (props: {
           />
         );
       })}
-    </div>
-  );
-};
-
-const DropdownNoteButtons = (props: {
-  type: NoteType;
-  setType: (s: NoteType) => void;
-  mode: InputMode;
-  setMode: (s: InputMode) => void;
-  canEdit: boolean;
-  isEditing: boolean;
-  toggleCursor: () => void;
-}) => {
-  return (
-    <div className="flex flex-col gap-2 w-full text-slate-300">
-      <div className="flex gap-2">
-        <div
-          data-active={props.mode === "piano"}
-          className="mr-auto capitalize bg-sky-700 cursor-pointer ring-1 ring-slate-400 data-[active=true]:bg-teal-600 text-slate-100 rounded w-28 text-center"
-          onClick={() =>
-            props.setMode(props.mode === "piano" ? "scales" : "piano")
-          }
-        >
-          {props.mode === "piano" ? "Play Piano" : "Play Scales"}
-        </div>
-        <div
-          data-active={props.isEditing}
-          className="ml-auto capitalize bg-emerald-500/50 cursor-pointer data-[active=true]:ring-1 data-[active=true]:ring-slate-400 data-[active=true]:bg-teal-600 data-[active=true]:text-slate-100 rounded w-28 text-center"
-          onClick={props.canEdit ? props.toggleCursor : undefined}
-        >
-          {props.isEditing ? "Hide Cursor" : "Select Note"}
-        </div>
-      </div>
-      <div
-        data-disabled={props.mode !== "piano"}
-        className="flex gap-2 data-[disabled=true]:opacity-50"
-      >
-        <div
-          data-active={props.type === "scale"}
-          className="mr-auto capitalize bg-cyan-500/50 cursor-pointer data-[active=true]:ring-1 data-[active=true]:ring-slate-300 data-[active=true]:bg-cyan-700 data-[active=true]:text-slate-100 rounded w-28 text-center"
-          onClick={() => props.setType("scale")}
-        >
-          Autobind
-        </div>
-        <div
-          data-active={props.type === "pedal"}
-          className="ml-auto capitalize bg-cyan-500/50 cursor-pointer data-[active=true]:ring-1 data-[active=true]:ring-slate-300 data-[active=true]:bg-cyan-700 data-[active=true]:text-slate-100 rounded w-28 text-center"
-          onClick={() => props.setType("pedal")}
-        >
-          Freeze
-        </div>
-      </div>
     </div>
   );
 };

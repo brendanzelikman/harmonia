@@ -22,7 +22,6 @@ import {
   NavbarTitleForm,
 } from "features/Navbar/components/NavbarForm";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
-import { NEW_PROJECT_NAME } from "types/Meta/MetaTypes";
 import { useToggle } from "hooks/useToggle";
 import {
   DOWNLOAD_TRANSPORT,
@@ -67,7 +66,7 @@ export function NavbarProjectMenu() {
       >
         <div className="size-full py-1 space-y-1.5 min-w-48">
           <NavbarTitleForm
-            className="mb-2.5"
+            className="mb-2.5 ring-1 ring-indigo-600"
             type="text"
             placeholder="Project Name"
             value={name}

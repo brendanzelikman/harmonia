@@ -96,6 +96,10 @@ import { convertMidiToNestedNote } from "./TrackUtils";
 import { MidiScale } from "utils/midi";
 import { createScaleTrack } from "./ScaleTrack/ScaleTrackThunks";
 import { deleteMedia } from "types/Media/MediaThunks";
+import {
+  createNewPatternClip,
+  createNewPoseClip,
+} from "./PatternTrack/PatternTrackThunks";
 
 // ------------------------------------------------------------
 // Track - CRUD
@@ -692,4 +696,13 @@ export const insertRandomParent =
         })
       );
     }
+  };
+
+export const createTrackPair =
+  (data: Payload<TrackId>): Thunk =>
+  (dispatch) => {
+    const trackId = unpackData(data);
+    const undoType = unpackUndoType(data, "createTrackPair");
+    dispatch(createNewPatternClip({ data: { clip: { trackId } }, undoType }));
+    dispatch(createNewPoseClip({ data: { clip: { trackId } }, undoType }));
   };

@@ -17,7 +17,11 @@ import {
 import { Thunk } from "types/Project/ProjectTypes";
 import { initializeScale, ScaleObject } from "types/Scale/ScaleTypes";
 import { promptUserForString } from "lib/prompts/html";
-import { createPatternTrack } from "../../types/Track/PatternTrack/PatternTrackThunks";
+import {
+  createNewPatternClip,
+  createNewPoseClip,
+  createPatternTrack,
+} from "../../types/Track/PatternTrack/PatternTrackThunks";
 import {
   readMidiScaleFromString,
   createScaleTrack,
@@ -28,6 +32,7 @@ import { promptLineBreak } from "components/PromptModal";
 import { promptUserForSample } from "./sampler";
 import { dispatchClose, dispatchOpen } from "hooks/useToggle";
 import { isString } from "types/utils";
+import { createTrackPair } from "types/Track/TrackThunks";
 
 export interface Hierarchy {
   [key: string]: string | Hierarchy | (string | Hierarchy)[];
@@ -170,29 +175,43 @@ export const createTreeFromString =
         const input = object.trim();
         if (!input) return [];
         return [
-          (_) => {
+          (dispatch) => {
             // Create a scale track if a scale delimiter is found
             if (input.startsWith("$")) {
               const data = { input: input.slice(1), parentId };
-              const track = _(createScaleTrackFromString({ data, undoType }));
+              const track = dispatch(
+                createScaleTrackFromString({ data, undoType })
+              );
               if (track) tracks.push(track);
             }
 
             // Create a pattern track if an instrument delimiter is found
             else if (input.startsWith("~")) {
               const data = { input: input.slice(1), parentId };
-              const track = _(createPatternTrackFromString({ data, undoType }));
-              if (track) tracks.push(track);
+              const track = dispatch(
+                createPatternTrackFromString({ data, undoType })
+              );
+              if (track) {
+                dispatch(createTrackPair({ data: track.id, undoType }));
+                tracks.push(track);
+              }
             }
 
             // Otherwise, try scale track then pattern track
             else {
               const payload = { data: { input, parentId }, undoType };
-              const scaleTrack = _(createScaleTrackFromString(payload));
+              const scaleTrack = dispatch(createScaleTrackFromString(payload));
               if (scaleTrack) tracks.push(scaleTrack);
               else {
-                const patternTrack = _(createPatternTrackFromString(payload));
-                if (patternTrack) tracks.push(patternTrack);
+                const patternTrack = dispatch(
+                  createPatternTrackFromString(payload)
+                );
+                if (patternTrack) {
+                  dispatch(
+                    createTrackPair({ data: patternTrack.id, undoType })
+                  );
+                  tracks.push(patternTrack);
+                }
               }
             }
           },
@@ -203,16 +222,16 @@ export const createTreeFromString =
         const text = name?.trim();
         if (!text) return [];
         return [
-          (_, getProject) => {
+          (dispatch, getProject) => {
             const scaleName = text.slice(text.startsWith("$") ? 1 : 0).trim();
             const parentScale = selectTrackMidiScale(getProject(), parentId);
             const scale = readMidiScaleFromString(scaleName, parentScale);
             if (!scale) return [];
             const notes = scale.map((midi) =>
-              _(convertMidiToNestedNote(midi, parentId))
+              dispatch(convertMidiToNestedNote(midi, parentId))
             );
             const ref = initializeScale({ notes });
-            const parent = _(
+            const parent = dispatch(
               createScaleTrack({
                 data: { track: { parentId }, scale: ref },
                 undoType,
@@ -222,7 +241,9 @@ export const createTreeFromString =
             const children = Array.isArray(object[name])
               ? object[name]
               : [object[name]];
-            children.forEach((child) => addObject(child, parent.id).map(_));
+            children.forEach((child) =>
+              addObject(child, parent.id).map(dispatch)
+            );
           },
         ];
       }
