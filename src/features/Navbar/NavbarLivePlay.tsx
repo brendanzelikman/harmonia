@@ -1,5 +1,10 @@
 import { useAppValue } from "hooks/useRedux";
-import { GiDominoMask, GiMisdirection, GiToolbox } from "react-icons/gi";
+import {
+  Gi3DGlasses,
+  GiDominoMask,
+  GiMisdirection,
+  GiToolbox,
+} from "react-icons/gi";
 import { selectIsSelectingPoseClips } from "types/Timeline/TimelineSelectors";
 import { useCallback } from "react";
 import { selectTrackLiveLabelMap } from "types/Arrangement/ArrangementTrackSelectors";
@@ -146,7 +151,7 @@ export const NavbarLivePlay = () => {
       />
       <NavbarActionButtonOption
         title="Apply Modifiers"
-        Icon={<GiToolbox />}
+        Icon={<Gi3DGlasses />}
         subtitle={
           <ul>
             <li>

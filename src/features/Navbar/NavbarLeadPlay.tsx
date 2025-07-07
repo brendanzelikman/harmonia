@@ -1,7 +1,9 @@
 import { useAppValue } from "hooks/useRedux";
 import {
+  GiBugNet,
   GiDominoMask,
   GiMisdirection,
+  GiOnTarget,
   GiPathDistance,
   GiToolbox,
 } from "react-icons/gi";
@@ -150,7 +152,7 @@ export const NavbarLeadPlay = () => {
           />
           <NavbarActionButtonOption
             title="Select Constraints"
-            Icon={<GiToolbox />}
+            Icon={<GiBugNet />}
             subtitle={
               <ul>
                 <li>
