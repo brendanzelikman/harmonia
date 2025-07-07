@@ -81,13 +81,13 @@ export const NavbarActionButtonOption = (
       className={classNames(
         props.className,
         !!props.readOnly ? "" : "cursor-pointer",
-        "border border-slate-500 rounded hover:ring group"
+        "border border-slate-500/50 rounded hover:ring group"
       )}
       onClick={props.onClick}
     >
       <NavbarFormGroup
         className={classNames(
-          "px-2 h-8 space-x-4 rounded-b-none bg-slate-950/10 border-b",
+          "px-2 h-8 group-hover:bg-slate-950/50 space-x-4 rounded-b-none bg-slate-950/10 border-b",
           props.stripe
         )}
       >

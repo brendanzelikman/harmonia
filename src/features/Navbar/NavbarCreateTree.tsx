@@ -5,7 +5,6 @@ import {
 } from "lib/hotkeys/track";
 import { useAppDispatch } from "hooks/useRedux";
 import { promptUserForTree } from "lib/prompts/tree";
-import { getHotkeyShortcut } from "lib/hotkeys";
 import { SampleProject } from "lib/hotkeys/timeline";
 import { GiDiceSixFacesFive, GiFiles } from "react-icons/gi";
 import {
@@ -30,27 +29,21 @@ export const NavbarCreateTree = () => {
       <NavbarActionButtonOption
         title="Create New Tree"
         Icon={<CreateTreeIcon className="ml-auto text-2xl" />}
-        subtitle={`Press ${getHotkeyShortcut(
-          CreateTreeHotkey
-        )} to create a new tree by prompt.`}
+        subtitle={CreateTreeHotkey.description}
         onClick={() => dispatch(promptUserForTree)}
         stripe="border-b-sky-500"
       />
       <NavbarActionButtonOption
         title="Create Random Tree"
         Icon={<GiDiceSixFacesFive className="ml-auto text-2xl" />}
-        subtitle={`Press ${getHotkeyShortcut(
-          CreateRandomTreeHotkey
-        )} to create a random tree.`}
+        subtitle={CreateRandomTreeHotkey.description}
         stripe="border-b-emerald-500"
         onClick={() => dispatch(createRandomTree())}
       />
       <NavbarActionButtonOption
         title="Import Project To Tree"
         Icon={<GiFiles className="ml-auto text-2xl" />}
-        subtitle={`Press ${getHotkeyShortcut(
-          SampleProject
-        )} to load a project in a tree.`}
+        subtitle={SampleProject.description}
         stripe="border-b-fuchsia-500"
         onClick={() => dispatch(sampleProject())}
       />

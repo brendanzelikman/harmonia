@@ -52,7 +52,7 @@ export const WaterTreeIcon = GiWateringCan;
 
 export const SampleProject: Hotkey = {
   name: "Sample Project",
-  description: "Upload the notes of a project by file",
+  description: "Press Shift + I to load a project into a tree.",
   shortcut: "shift+i",
   callback: (dispatch) => dispatch(sampleProject()),
 };
