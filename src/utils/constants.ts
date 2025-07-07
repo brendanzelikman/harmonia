@@ -26,9 +26,9 @@ export const DEFAULT_SUBDIVISION = "16n";
 // ------------------------------------------------------------
 
 export const DEFAULT_INSTRUMENT_KEY = "upright-piano";
-export const DEFAULT_VOLUME = -6;
+export const DEFAULT_VOLUME = -5;
 export const MIN_VOLUME = -60;
-export const MAX_VOLUME = 12;
+export const MAX_VOLUME = 10;
 export const VOLUME_STEP = 0.1;
 
 // ------------------------------------------------------------

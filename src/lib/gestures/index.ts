@@ -14,6 +14,7 @@ import {
   leadPatternsToClosestNthPose,
 } from "./leadPatterns";
 import {
+  changeTrackVolumeGesture,
   muteTrackGesture,
   resetSamplersGesture,
   soloTrackGesture,
@@ -29,30 +30,30 @@ import {
   clearPatternStorage,
   clearPoseStorage,
 } from "types/Timeline/TimelineSlice";
+import { HotkeyMap } from "lib/hotkeys";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const trackKeys = ["m", "s"];
 const miscKeys = ["c", "d", "z", "x", "v", "b", "-", "`", "="];
 const hotkeys = [...qwertyKeys, ...trackKeys, ...miscKeys];
 
+const hotkeyMap: HotkeyMap = {
+  1: (dispatch) => dispatch(keydown(1)),
+  2: (dispatch) => dispatch(keydown(2)),
+  3: (dispatch) => dispatch(keydown(3)),
+  4: (dispatch) => dispatch(keydown(4)),
+  5: (dispatch) => dispatch(keydown(5)),
+  6: (dispatch) => dispatch(keydown(6)),
+  7: (dispatch) => dispatch(keydown(7)),
+  8: (dispatch) => dispatch(keydown(8)),
+  9: (dispatch) => dispatch(keydown(9)),
+  0: (dispatch) => dispatch(zerodown()),
+};
+
 /** A custom hook to use keyboard gestures */
 export const useGestures = () => {
   useHeldKeys(hotkeys);
-  useHotkeys(
-    {
-      1: (dispatch) => dispatch(keydown(1)),
-      2: (dispatch) => dispatch(keydown(2)),
-      3: (dispatch) => dispatch(keydown(3)),
-      4: (dispatch) => dispatch(keydown(4)),
-      5: (dispatch) => dispatch(keydown(5)),
-      6: (dispatch) => dispatch(keydown(6)),
-      7: (dispatch) => dispatch(keydown(7)),
-      8: (dispatch) => dispatch(keydown(8)),
-      9: (dispatch) => dispatch(keydown(9)),
-      0: (dispatch) => dispatch(zerodown()),
-    },
-    "keypress"
-  );
+  useHotkeys(hotkeyMap, "keypress");
 };
 
 /** The gesture handler for numerical keys */
@@ -61,16 +62,18 @@ export const keydown =
   (dispatch, getProject) => {
     const project = getProject();
 
-    // Handle mute and solo by index
+    // Handle dynamics first
+    if (getHeldKey("v")) {
+      dispatch(changeTrackVolumeGesture(number));
+      return;
+    }
+
     const muting = getHeldKey("m");
     const soloing = getHeldKey("s");
-    if (muting || soloing) {
-      if (muting) {
-        dispatch(muteTrackGesture(number));
-      }
-      if (soloing) {
-        dispatch(soloTrackGesture(number));
-      }
+    const mixing = muting || soloing;
+    if (mixing) {
+      if (muting) dispatch(muteTrackGesture(number));
+      if (soloing) dispatch(soloTrackGesture(number));
       return;
     }
 

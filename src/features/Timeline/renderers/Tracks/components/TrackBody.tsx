@@ -33,7 +33,7 @@ export const ScaleTrackBody = memo((props: { trackId: TrackId }) => {
     <div className="min-w-0 grow flex flex-col text-xs gap-1 *:h-4 pt-1">
       <div className="flex text-teal-400">
         <CreateTreeIcon className="mr-1 my-auto inline shrink-0" />
-        <div>Scale ({label})</div>
+        <div>Scale {label}</div>
       </div>
       <div
         className="flex overflow-scroll text-sky-300 cursor-pointer"
@@ -67,7 +67,7 @@ export const PatternTrackBody = memo((props: { trackId: TrackId }) => {
     <div className="min-w-0 grow flex flex-col text-xs pt-2 *:h-4 gap-[2px]">
       <div className="flex text-teal-300/95">
         <GiPineTree className="mr-1 my-auto inline shrink-0" />
-        <div>Sampler ({label})</div>
+        <div>Sampler {label}</div>
       </div>
       <div className="flex text-orange-300">
         <div className="mr-1 my-auto inline shrink-0">{Icon}</div>
