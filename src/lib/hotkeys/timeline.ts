@@ -27,8 +27,10 @@ import {
   sliceClips,
 } from "types/Timeline/thunks/TimelineClipThunks";
 import {
+  GiCalculator,
   GiConcentrationOrb,
   GiCrystalWand,
+  GiMusicalScore,
   GiPencil,
   GiWateringCan,
 } from "react-icons/gi";
@@ -64,7 +66,7 @@ export const ArrangePatternsHotkey: Hotkey = {
   shortcut: "o",
   callback: (dispatch) => dispatch(toggleAddingState({ data: "pattern" })),
 };
-export const ArrangePatternIcon = GiPencil;
+export const ArrangePatternIcon = GiMusicalScore;
 
 export const ArrangePosesHotkey: Hotkey = {
   name: "Create Pose",
@@ -72,7 +74,7 @@ export const ArrangePosesHotkey: Hotkey = {
   shortcut: "p",
   callback: (dispatch) => dispatch(toggleAddingState({ data: "pose" })),
 };
-export const ArrangePoseIcon = GiCrystalWand;
+export const ArrangePoseIcon = GiCalculator;
 
 export const SelectPatternsHotkey: Hotkey = {
   name: "Select Pattern Clips",

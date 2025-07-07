@@ -25,7 +25,12 @@ import {
   collapseTrackDescendants,
 } from "types/Track/TrackThunks";
 import { inputScaleTrackScale } from "lib/prompts/scale";
-import { GiDiceEightFacesEight, GiPineTree } from "react-icons/gi";
+import {
+  GiDiceEightFacesEight,
+  GiPalmTree,
+  GiPineTree,
+  GiWireframeGlobe,
+} from "react-icons/gi";
 
 // ---------------------------------------------------
 // Track Hotkeys
