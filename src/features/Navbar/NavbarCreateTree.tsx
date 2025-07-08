@@ -18,7 +18,7 @@ export const NavbarCreateTree = () => {
   const dispatch = useAppDispatch();
   return (
     <NavbarActionButton
-      title="Tree (Musical Space)"
+      title="Tree (Musical Structure)"
       subtitle="Design Families of Tracks"
       subtitleClass="text-sky-400"
       Icon={<CreateTreeIcon className="text-2xl" />}
