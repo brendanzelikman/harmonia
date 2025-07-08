@@ -34,13 +34,13 @@ export function NavbarVolume() {
         onMouseLeave={() => setHovering(false)}
       >
         {mute ? (
-          <BsVolumeMuteFill className="p-[2px]" />
+          <BsVolumeMuteFill className="p-[2px] size-full" />
         ) : volume > -20 ? (
-          <BsVolumeUpFill className="p-[2px]" />
+          <BsVolumeUpFill className="p-[2px] size-full" />
         ) : volume > -40 ? (
-          <BsVolumeDownFill className="p-[2px]" />
+          <BsVolumeDownFill className="p-[2px] size-full" />
         ) : (
-          <BsVolumeOffFill className="p-[2px]" />
+          <BsVolumeOffFill className="p-[2px] size-full" />
         )}
       </NavbarTooltipButton>
       <div className="animate-in fade-in absolute hidden group-hover:block -left-8 p-4 top-8 w-32 h-48">

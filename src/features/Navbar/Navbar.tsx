@@ -26,6 +26,7 @@ import {
   NavbarToggleTransport,
 } from "./NavbarTransportControl";
 import { useGestures } from "lib/gestures";
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 
 export function Navbar() {
   const { pathname } = useLocation();
@@ -38,7 +39,7 @@ export function Navbar() {
           <NavbarLink v="/calculator" />
         </div>
       ) : (
-        <div className="size-full select-none flex animate-in fade-in slide-in-from-top-4 text-slate-50 *:border-r first:border-r-0 last:border-r-0 *:border-r-slate-500/50">
+        <div className="size-full select-none flex animate-in fade-in slide-in-from-top-4 text-slate-50 first:border-r-0">
           <NavbarGroup
             gap="gap-1"
             className="pl-3 ml-3 border-l border-l-slate-500/50"
@@ -58,31 +59,68 @@ export function Navbar() {
               <NavbarLoopTransport />
             </div>
           </NavbarGroup>
-          <NavbarGroup className="bg-radial from-slate-900/15 to-sky-500/15">
-            <NavbarGroupLabel>Motifs</NavbarGroupLabel>
-            <NavbarCreateTree />
-            <NavbarArrangePatterns />
-            <NavbarArrangePoses />
-          </NavbarGroup>
-          <NavbarGroup
-            hide={!hasTracks}
-            className="bg-radial from-teal-800/15 to-teal-600/15"
-          >
-            <NavbarGroupLabel>Clips</NavbarGroupLabel>
-            <NavbarTape />
-            <NavbarScissors />
-            <NavbarPortalGun />
-          </NavbarGroup>
-          <NavbarGroup
-            hide={!hasTracks}
-            className="bg-radial from-teal-800/15 to-teal-600/15"
-          >
-            <NavbarGestureLabel />
-            <NavbarLivePlay />
-            <NavbarLeadPlay />
-            <NavbarMixPlay />
-            <NavbarGameMenu />
-          </NavbarGroup>
+
+          {/* Small viewports toggle between actions */}
+          <TabGroup className="xl:hidden max-xl:flex gap-2 px-3 h-full shrink-0 items-center text-sm transition-all animate-in fade-in bg-radial from-slate-900/15 to-sky-500/15">
+            <TabList as="div" className="flex flex-col items-start text-xs">
+              <Tab className="cursor-pointer hover:text-emerald-200 data-selected:text-emerald-400">
+                Motifs
+              </Tab>
+              <Tab className="cursor-pointer hover:text-emerald-200 data-selected:text-emerald-400">
+                Clips
+              </Tab>
+              <Tab className="cursor-pointer hover:text-emerald-200 data-selected:text-emerald-400">
+                Gestures
+              </Tab>
+            </TabList>
+            <TabPanels className="*:flex *:pl-2 *:gap-2">
+              <TabPanel>
+                <NavbarCreateTree />
+                <NavbarArrangePatterns />
+                <NavbarArrangePoses />
+              </TabPanel>
+              <TabPanel>
+                <NavbarTape />
+                <NavbarScissors />
+                <NavbarPortalGun />
+              </TabPanel>
+              <TabPanel>
+                <NavbarLivePlay />
+                <NavbarLeadPlay />
+                <NavbarMixPlay />
+                <NavbarGameMenu />
+              </TabPanel>
+            </TabPanels>
+          </TabGroup>
+
+          {/* Large viewports have all actions */}
+          <div className="max-xl:hidden xl:flex">
+            <NavbarGroup className="bg-radial from-slate-900/15 to-sky-500/15">
+              <NavbarGroupLabel>Motifs</NavbarGroupLabel>
+              <NavbarCreateTree />
+              <NavbarArrangePatterns />
+              <NavbarArrangePoses />
+            </NavbarGroup>
+            <NavbarGroup
+              hide={!hasTracks}
+              className="bg-radial from-teal-800/15 to-teal-600/15"
+            >
+              <NavbarGroupLabel>Clips</NavbarGroupLabel>
+              <NavbarTape />
+              <NavbarScissors />
+              <NavbarPortalGun />
+            </NavbarGroup>
+            <NavbarGroup
+              hide={!hasTracks}
+              className="bg-radial from-teal-800/15 to-teal-600/15"
+            >
+              <NavbarGestureLabel />
+              <NavbarLivePlay />
+              <NavbarLeadPlay />
+              <NavbarMixPlay />
+              <NavbarGameMenu />
+            </NavbarGroup>
+          </div>
         </div>
       )}
     </nav>

@@ -33,12 +33,10 @@ import {
   unpackData,
   unpackUndoType,
 } from "types/redux";
-import { randomizePattern } from "types/Pattern/PatternThunks";
 import { TimelineState } from "./TimelineTypes";
 import { DEFAULT_CELL_WIDTH } from "utils/constants";
 import {
   createNewPatternClip,
-  createNewPoseClip,
   createPatternTrack,
 } from "types/Track/PatternTrack/PatternTrackThunks";
 import { createTreeFromString } from "lib/prompts/tree";
@@ -46,13 +44,6 @@ import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { TrackId } from "types/Track/TrackTypes";
 import { nanoid } from "@reduxjs/toolkit";
-import { maxBy } from "lodash";
-import {
-  selectClipDuration,
-  selectClips,
-  selectPatternClips,
-} from "types/Clip/ClipSelectors";
-import { deleteMedia } from "types/Media/MediaThunks";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { promptUserForProjects } from "types/Project/ProjectLoaders";
 import {
@@ -76,7 +67,7 @@ import {
   autoBindStreamToTrack,
 } from "types/Track/TrackUtils";
 import { updatePattern } from "types/Pattern/PatternSlice";
-import { createTrackPair } from "types/Track/TrackThunks";
+import { initializeTrackPair } from "types/Track/TrackThunks";
 import { Midi } from "@tonejs/midi";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
@@ -214,55 +205,9 @@ export const growTree = (): Thunk => (dispatch, getProject) => {
     trackIds.push(trackId);
   }
 
-  dispatch(setSelectedTrackId({ data: trackId, undoType }));
-
-  // Create a pattern clip if there are none
-  const selectedClips = selectPatternClips(getProject()).filter(
-    (c) => c.trackId === trackId
-  );
-  const patternClip = maxBy(selectedClips, (clip) => clip.tick);
-
-  // If no clip is selected, create a new clip and pose.
-  if (!patternClip) {
-    const tick = 0;
-
-    // Delete any patterns at the current tick in the track
-    if (trackId) {
-      const clips = selectClips(getProject());
-      for (const clip of clips) {
-        if (clip.trackId === trackId && clip.tick === tick) {
-          dispatch(deleteMedia({ data: { clipIds: [clip.id] }, undoType }));
-        }
-      }
-    }
-
-    const { patternId } = dispatch(
-      createNewPatternClip({
-        data: { clip: { trackId, tick } },
-        undoType,
-      })
-    );
-    dispatch(randomizePattern({ data: { id: patternId, trackId }, undoType }));
-    dispatch(
-      createNewPoseClip({
-        data: { clip: { trackId, tick } },
-        undoType,
-      })
-    );
-    return;
-  }
-
-  // If a clip is selected, duplicate it and pose the copy
-  const duration = selectClipDuration(project, patternClip.id);
-  const tick = patternClip.tick + duration;
-  const clips = selectClips(getProject());
-  for (const clip of clips) {
-    if (clip.trackId === trackId && clip.tick === tick) {
-      dispatch(deleteMedia({ data: { clipIds: [clip.id] }, undoType }));
-    }
-  }
   if (!trackId) return;
-  dispatch(createTrackPair({ data: trackId, undoType }));
+  dispatch(setSelectedTrackId({ data: trackId, undoType }));
+  dispatch(initializeTrackPair({ data: trackId, undoType }));
 };
 
 /** Toggle the editor of a track. */

@@ -39,6 +39,7 @@ import {
   ScaleObject,
 } from "types/Scale/ScaleTypes";
 import {
+  selectCurrentTimelineTick,
   selectIsEditingTracks,
   selectSelectedTrackId,
   selectSubdivisionTicks,
@@ -100,6 +101,7 @@ import {
   createNewPatternClip,
   createNewPoseClip,
 } from "./PatternTrack/PatternTrackThunks";
+import { randomizePattern } from "types/Pattern/PatternThunks";
 
 // ------------------------------------------------------------
 // Track - CRUD
@@ -710,4 +712,34 @@ export const createTrackPair =
       })
     );
     dispatch(createNewPoseClip({ data: { clip: { trackId } }, undoType }));
+  };
+
+export const initializeTrackPair =
+  (data: Payload<TrackId>): Thunk =>
+  (dispatch, getProject) => {
+    const trackId = unpackData(data);
+    const undoType = unpackUndoType(data, "createTrackPair");
+    const project = getProject();
+    const tick = selectCurrentTimelineTick(project);
+    const patternClips = selectPatternClips(project).filter(
+      (c) => c.trackId === trackId && c.tick === tick
+    );
+    const poseClips = selectPoseClips(project).filter(
+      (c) => c.trackId === trackId && c.tick === tick
+    );
+    if (!patternClips.length) {
+      dispatch(
+        createNewPatternClip({
+          data: { clip: { trackId }, randomize: true, autobind: true },
+          undoType,
+        })
+      );
+    } else {
+      dispatch(
+        randomizePattern({ data: { id: patternClips[0].patternId }, undoType })
+      );
+    }
+    if (!poseClips.length) {
+      dispatch(createNewPoseClip({ data: { clip: { trackId } }, undoType }));
+    }
   };
