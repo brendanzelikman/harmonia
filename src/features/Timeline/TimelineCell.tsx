@@ -17,7 +17,10 @@ import {
 } from "types/Transport/TransportSelectors";
 import { Row } from "./Timeline";
 import { NativeTypes } from "react-dnd-html5-backend";
-import { sampleProjectByFile } from "types/Timeline/TimelineThunks";
+import {
+  loadMidiIntoProject,
+  sampleProjectByFile,
+} from "types/Timeline/TimelineThunks";
 
 export function TimelineCell(props: RenderCellProps<Row, unknown>) {
   const dispatch = useAppDispatch();
@@ -58,7 +61,16 @@ export function TimelineCell(props: RenderCellProps<Row, unknown>) {
       const file = item?.files?.[0];
       if (file) {
         const props = { tick, trackId };
-        dispatch(sampleProjectByFile({ data: { file, props } }));
+
+        // Check for project files
+        if (file.type === "application/json") {
+          dispatch(sampleProjectByFile({ data: { file, props } }));
+        }
+
+        // Check for midi files
+        else if (file.type === "audio/midi") {
+          dispatch(loadMidiIntoProject({ data: { file, props } }));
+        }
       }
     },
   }));

@@ -11,6 +11,7 @@ import { selectScaleTrackChainIdsMap } from "types/Track/TrackSelectors";
 import {
   selectCurrentTimelineTick,
   selectSelectedPoseClips,
+  selectSomeTrackId,
 } from "types/Timeline/TimelineSelectors";
 import { PoseVectorId } from "types/Pose/PoseTypes";
 import {
@@ -103,7 +104,14 @@ export const promptUserForGameCommand = (): Thunk => (dispatch, getProject) =>
     callback: (string) => {
       const [key, value] = string.split(" ");
       if (!key || !value) return;
-      const tick = selectCurrentTimelineTick(getProject());
+      const project = getProject();
+      const tick = selectCurrentTimelineTick(project);
+      const trackId = selectSomeTrackId(project);
+      if (!trackId) return;
+      const game = selectGame(project);
+      if (!game.trackId) {
+        dispatch(updateGame({ data: { trackId } }));
+      }
       dispatch(addGameActions({ data: { actions: [{ key, value, tick }] } }));
     },
   })();

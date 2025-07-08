@@ -52,7 +52,7 @@ export default function Tutorial() {
           stiffness: 80,
           mass: 0.4,
         }}
-        className="bg-radial relative bg-slate-950/50 border-sky-700 max-xl:w-auto lg:w-5xl px-12 backdrop-blur-lg select-none text-center py-6 mb-2 max-lg:py-4 border-2 rounded-2xl"
+        className="bg-radial max-sm:hidden relative bg-slate-950/50 border-sky-700 max-xl:w-auto lg:w-5xl px-12 backdrop-blur-lg select-none text-center py-6 mb-2 max-lg:py-4 border-2 rounded-2xl"
       >
         <m.div
           initial="hidden"

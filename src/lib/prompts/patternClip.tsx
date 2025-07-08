@@ -60,9 +60,7 @@ import {
   selectTrackByLabel,
   selectTrackScaleChain,
 } from "types/Track/TrackSelectors";
-import { promptUserForMicrophone } from "lib/prompts/html";
 import { Note } from "@tonejs/midi/dist/Note";
-import { dispatchOpen } from "hooks/useToggle";
 import { TrackId } from "types/Track/TrackTypes";
 import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
 import { isNestedNote } from "types/Scale/ScaleTypes";
@@ -270,7 +268,7 @@ export const promptUserForPatternMidiFile =
     const midiNotes = notes
       .map((note) => ({
         MIDI: note.midi,
-        duration: note.duration,
+        duration: 1e-4,
         velocity: Math.round(note.velocity * 127),
         time: note.time,
       }))

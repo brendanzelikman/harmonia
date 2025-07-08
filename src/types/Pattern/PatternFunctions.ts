@@ -18,7 +18,7 @@ import {
   PresetPatternGroupMap,
 } from "lib/presets/patterns";
 import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
-import { maxBy } from "lodash";
+import { maxBy, minBy } from "lodash";
 import { getTickDuration, isTripletDuration } from "utils/duration";
 import { ScaleVector } from "types/Scale/ScaleTypes";
 import { sumVectors } from "utils/vector";
@@ -90,7 +90,7 @@ export const getPatternBlockDuration = (block: PatternBlock): Tick => {
   if ("duration" in block) return block.duration;
   const isStrummed = "chord" in block;
   const chord = isStrummed ? block.chord : block;
-  const duration = maxBy(chord, (c) => c?.duration)?.duration ?? 0;
+  const duration = minBy(chord, (c) => c?.duration)?.duration ?? 0;
   if (!isStrummed) return duration;
 
   // Add the strum range to the duration if the chord is strummed

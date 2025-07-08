@@ -55,18 +55,29 @@ import {
 import { deleteMedia } from "types/Media/MediaThunks";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { promptUserForProjects } from "types/Project/ProjectLoaders";
-import { PatternMidiNote, PatternStream } from "types/Pattern/PatternTypes";
+import {
+  PatternChord,
+  PatternMidiNote,
+  PatternStream,
+} from "types/Pattern/PatternTypes";
 import {
   selectLastArrangementTick,
   selectMidiChordsByTicks,
 } from "types/Arrangement/ArrangementSelectors";
-import { selectTransportTimeSignature } from "types/Transport/TransportSelectors";
-import { QuarterNoteTicks } from "utils/duration";
+import {
+  selectTransportBPM,
+  selectTransportTimeSignature,
+} from "types/Transport/TransportSelectors";
+import { QuarterNoteTicks, secondsToTicks } from "utils/duration";
 import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
 import { selectProjectId } from "types/Meta/MetaSelectors";
-import { autoBindNoteToTrack } from "types/Track/TrackUtils";
+import {
+  autoBindNoteToTrack,
+  autoBindStreamToTrack,
+} from "types/Track/TrackUtils";
 import { updatePattern } from "types/Pattern/PatternSlice";
 import { createTrackPair } from "types/Track/TrackThunks";
+import { Midi } from "@tonejs/midi";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -295,11 +306,14 @@ export const sampleProjectByFile =
   (dispatch, getProject) => {
     const { file, props } = unpackData(payload);
     const undoType = unpackUndoType(payload, "sampleProjectByFile");
+    if (file.type !== "application/json") return;
     const reader = new FileReader();
     reader.onload = async (e) => {
       if (!e.target?.result) return;
 
-      const present = JSON.parse(e.target.result as string);
+      // If the file is a JSON, parse it as a project
+      const result = e.target.result as string;
+      const present = JSON.parse(result);
       const project = sanitizeProject({ present });
       const projectId = selectProjectId(project);
       const stream = convertProjectToNotes(project);
@@ -379,3 +393,94 @@ export const convertProjectToNotes = (project: Project) => {
   }
   return stream;
 };
+
+export const loadMidiIntoProject =
+  (payload: Payload<{ file: File; props?: Partial<Clip> }>): Thunk =>
+  (dispatch, getProject) => {
+    const { file, props } = unpackData(payload);
+    const undoType = unpackUndoType(payload, "loadMidiIntoProject");
+    if (file.type !== "audio/midi") return;
+    const trackId = props?.trackId;
+    const project = getProject();
+    const bpm = selectTransportBPM(project);
+
+    // Load the MIDI file and dispatch the appropriate actions
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      if (!e.target?.result) return;
+
+      const buffer = await file.arrayBuffer();
+      const midi = new Midi(buffer);
+      const firstTrack = midi.tracks[0];
+      if (!firstTrack) return;
+      const notes = firstTrack.notes
+        .map((note) => ({
+          MIDI: note.midi,
+          velocity: Math.round(note.velocity * 127),
+          duration: note.duration,
+          time: note.time,
+        }))
+        .sort((a, b) => a.time - b.time);
+      const size = notes.length;
+      if (!size) return;
+
+      // Group together notes with the same time into chords
+      let stream: PatternStream = [];
+      for (let i = 0; i < size; i++) {
+        const note = notes[i];
+
+        const chord: PatternChord = [note];
+        for (let j = i + 1; j < size; j++) {
+          const nextNote = notes[j];
+          if (nextNote.time === note.time) {
+            chord.push(nextNote);
+            i++;
+          } else {
+            break;
+          }
+        }
+
+        // Create rests or cut durations to fit the timeline
+        const duration = Math.max(...chord.map((n) => n.duration));
+        const nextTime =
+          i < size - 1 ? notes[i + 1].time : note.time + duration;
+
+        let shouldRest = false;
+        let rest = 0;
+
+        // If the note duration exceeds the next time, cut it
+        if (note.time + duration > nextTime) {
+          chord.forEach((n) => (n.duration = nextTime - note.time));
+        } else if (note.time + duration < nextTime) {
+          shouldRest = true;
+          rest = nextTime - (note.time + duration);
+        }
+
+        // Map the seconds to ticks
+        chord.forEach((n) => {
+          if ("time" in n) delete n.time;
+          n.duration = secondsToTicks(n.duration + rest, bpm);
+        });
+
+        stream.push(chord);
+      }
+
+      // Autobind the stream if a track is provided
+      if (trackId) {
+        stream = dispatch(autoBindStreamToTrack(trackId, stream));
+      }
+
+      // Create a new pattern clip with the MIDI stream
+      const tick = props?.tick ?? selectCurrentTimelineTick(getProject());
+      dispatch(
+        createNewPatternClip({
+          data: {
+            clip: { trackId, tick },
+            pattern: { name: file.name, stream },
+          },
+          undoType,
+        })
+      );
+    };
+    reader.readAsArrayBuffer(file);
+  };
