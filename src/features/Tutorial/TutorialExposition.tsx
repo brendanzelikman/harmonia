@@ -26,10 +26,7 @@ export const TutorialExposition = (props: { view: string }) => {
         onClick={() => dispatch(promptUserForTree)}
         description={
           <>
-            <div>
-              A Tree is a hierarchy of tracks grouped into Scales (branches) and
-              Samplers (leaves).
-            </div>
+            <div>{TutorialExpositionTrees}</div>
             <div>
               <div>
                 <b>Example Tree:</b>
@@ -61,10 +58,7 @@ export const TutorialExposition = (props: { view: string }) => {
         onClick={() => dispatch(growTree())}
         description={
           <>
-            <div>
-              A Pattern is a sequence of pitches that can be written using scale
-              degrees and offsets.
-            </div>
+            <div>{TutorialExpositionPatterns}</div>
 
             <div>
               <b>Example Pattern</b>:
@@ -103,10 +97,7 @@ export const TutorialExposition = (props: { view: string }) => {
         onClick={() => dispatch(growTree())}
         description={
           <>
-            <div>
-              A Pose is a multidimensional transformation that can change your
-              scales and patterns.
-            </div>
+            <div>{TutorialExpositionPoses}</div>
             <div>
               <b>Example Pose</b>:
               <br />
@@ -133,3 +124,12 @@ export const TutorialExposition = (props: { view: string }) => {
     </m.div>
   );
 };
+
+export const TutorialExpositionTrees =
+  "A Tree is a musical space created out of Scales (harmonies) and Samplers (timbres).";
+
+export const TutorialExpositionPatterns =
+  "A Pattern is a musical passage created out of absolute pitches or relative scale degrees.";
+
+export const TutorialExpositionPoses =
+  "A Pose is a musical function that can transform the notes of a Scale or Pattern.";

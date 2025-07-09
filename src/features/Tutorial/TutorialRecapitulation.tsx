@@ -6,6 +6,11 @@ import { ArrangePatternIcon, ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { growTree } from "types/Timeline/TimelineThunks";
 import { tutorialVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
+import {
+  TutorialExpositionPatterns,
+  TutorialExpositionPoses,
+  TutorialExpositionTrees,
+} from "./TutorialExposition";
 
 export const TutorialRecapitulation = (props: { view: string }) => {
   const dispatch = useAppDispatch();
@@ -26,10 +31,7 @@ export const TutorialRecapitulation = (props: { view: string }) => {
         onClick={() => dispatch(promptUserForTree)}
         description={
           <>
-            <div>
-              A Tree is a hierarchy of tracks grouped into Scales (branches) and
-              Samplers (leaves).
-            </div>
+            <div>{TutorialExpositionTrees}</div>
             <div>
               <div>
                 <b>Example Tree:</b>
@@ -61,10 +63,7 @@ export const TutorialRecapitulation = (props: { view: string }) => {
         onClick={() => dispatch(growTree())}
         description={
           <>
-            <div>
-              A Pattern is a sequence of pitches that can be written using scale
-              degrees and offsets.
-            </div>
+            <div>{TutorialExpositionPatterns}</div>
 
             <div>
               <b>Example Pattern</b>:
@@ -102,10 +101,7 @@ export const TutorialRecapitulation = (props: { view: string }) => {
         onClick={() => dispatch(growTree())}
         description={
           <>
-            <div>
-              A Pose is a multidimensional transformation that can change your
-              scales and patterns.
-            </div>
+            <div>{TutorialExpositionPoses}</div>
             <div>
               <b>Example Pose</b>:
               <br />

@@ -1,6 +1,6 @@
 import { useTick } from "types/Transport/TransportTick";
 import { memo, useState } from "react";
-import { GiDominoMask, GiPineTree, GiTrumpet } from "react-icons/gi";
+import { GiDominoMask, GiTrumpet } from "react-icons/gi";
 import { selectTrackMidiScaleAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 import { useAppValue } from "hooks/useRedux";
 import {
@@ -66,7 +66,7 @@ export const PatternTrackBody = memo((props: { trackId: TrackId }) => {
   return (
     <div className="min-w-0 grow flex flex-col text-xs pt-2 *:h-4 gap-[2px]">
       <div className="flex text-teal-300/95">
-        <GiPineTree className="mr-1 my-auto inline shrink-0" />
+        <CreateTreeIcon className="mr-1 my-auto inline shrink-0" />
         <div>Sampler {label}</div>
       </div>
       <div className="flex text-orange-300">

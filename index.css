@@ -37,6 +37,8 @@
   width: 100vw;
   height: 100vh;
   background-image: url("/background.png");
+  user-select: none;
+  pointer-events: none;
 }
 
 .cursor-paintbrush {

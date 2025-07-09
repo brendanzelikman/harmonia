@@ -42,7 +42,7 @@ export const CreateTreeHotkey: Hotkey = {
   shortcut: "i",
   callback: (dispatch) => dispatch(promptUserForTree),
 };
-export const CreateTreeIcon = GiPineTree;
+export const CreateTreeIcon = GiWireframeGlobe;
 
 export const CreateDrumTracksHotkey: Hotkey = {
   name: "Drum Tree",

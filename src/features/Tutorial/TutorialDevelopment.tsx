@@ -1,11 +1,11 @@
-import { dispatchOpen, dispatchClose } from "hooks/useToggle";
-import { GiAbacus, GiPineTree } from "react-icons/gi";
+import { GiAbacus } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
 import { tutorialVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
 import { LivePlayIcon } from "features/Navbar/NavbarLivePlay";
 import { useAppDispatch } from "hooks/useRedux";
 import { growTree } from "types/Timeline/TimelineThunks";
+import { CreateTreeIcon } from "lib/hotkeys/track";
 
 export const TutorialDevelopment = (props: { view: string }) => {
   const dispatch = useAppDispatch();
@@ -20,13 +20,13 @@ export const TutorialDevelopment = (props: { view: string }) => {
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg w-84"
-        title="Goal: Develop Your Scales"
+        title="Idea: Transform Your Scales"
         stripColor="border-b border-b-indigo-500/80"
-        Icon={GiPineTree}
+        Icon={CreateTreeIcon}
         onClick={() => dispatch(growTree())}
         description={
           <>
-            <div>Poses will have cascading effects in Trees.</div>
+            <div>Poses have infinitely cascading effects.</div>
             <div>
               <div>
                 <b>Example Tree:</b>
@@ -63,13 +63,13 @@ export const TutorialDevelopment = (props: { view: string }) => {
       <TimelineButton
         border="ring-teal-600/80"
         className="rounded-lg w-84"
-        title="Goal: Develop Your Patterns"
+        title="Idea: Transform Your Patterns"
         stripColor="border-b border-b-teal-500/80"
         onClick={() => dispatch(growTree())}
         Icon={GiAbacus}
         description={
           <>
-            <div>Poses can move notes along multiple axes.</div>
+            <div>Poses have infinitely many combinations.</div>
             <div>
               <b>Basic Motion:</b>
               <br />
@@ -118,13 +118,13 @@ export const TutorialDevelopment = (props: { view: string }) => {
       <TimelineButton
         className="rounded-lg w-84"
         border="ring-fuchsia-600/80"
-        title="Goal: Develop With Gestures"
+        title="Idea: Transform With Gestures"
         stripColor="border-b border-b-fuchsia-500/80"
         onClick={() => dispatch(growTree())}
         Icon={() => <LivePlayIcon />}
         description={
           <>
-            <div>Poses can be created with shortcuts.</div>
+            <div>Poses have convenient keyboard shortcuts.</div>
             <div>
               <b>Examples:</b>
               <br />
@@ -150,8 +150,8 @@ export const TutorialDevelopment = (props: { view: string }) => {
               <b>Explanations:</b>
               <br />
               <span className="text-slate-300">
-                The full list of Gestures will be available once you have
-                created a tree.
+                You will have many Gestures available once you have created your
+                first tree.
               </span>
               <br />
             </div>

@@ -21,7 +21,7 @@ import {
 } from "react-icons/bs";
 import { ReactNode } from "react";
 import { blurEvent, cancelEvent } from "utils/event";
-import { GiAudioCassette, GiFamilyTree, GiPineTree } from "react-icons/gi";
+import { GiAudioCassette, GiFamilyTree } from "react-icons/gi";
 import { exportTrackClipsToMIDI } from "types/Clip/ClipExporters";
 import {
   insertScaleTrack,
@@ -32,7 +32,6 @@ import {
   popTrack,
   selectTrackClips,
   insertRandomParent,
-  collapseTrackAncestors,
   collapseTrackDescendants,
 } from "types/Track/TrackThunks";
 import { clearTrack } from "types/Arrangement/ArrangementThunks";
@@ -51,6 +50,7 @@ import { promptUserForSample } from "lib/prompts/sampler";
 import { promptUserForPose } from "lib/prompts/pose";
 import MidiImage from "assets/lib/midi.png";
 import { ArrangePoseIcon } from "lib/hotkeys/timeline";
+import { CreateTreeIcon } from "lib/hotkeys/track";
 
 export const TrackDropdownMenu = (props: {
   track: Track;
@@ -146,7 +146,7 @@ export const TrackDropdownMenu = (props: {
                   {track?.parentId && (
                     <TrackDropdownButton
                       content="Move to New Tree"
-                      icon={<GiPineTree />}
+                      icon={<CreateTreeIcon />}
                       onClick={() => dispatch(popTrack(trackId))}
                     />
                   )}
