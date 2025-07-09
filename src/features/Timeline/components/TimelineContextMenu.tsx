@@ -44,6 +44,10 @@ import {
   selectPatternClipIds,
   selectPoseClipIds,
 } from "types/Clip/ClipSelectors";
+import {
+  promptUserForMidiFile,
+  updatePatternClipWithMidiNotes,
+} from "lib/prompts/patternClip";
 
 export const TimelineContextMenu = memo(() => {
   const dispatch = useAppDispatch();
@@ -191,7 +195,41 @@ export const TimelineContextMenu = memo(() => {
   const Selection = (
     <div className="flex flex-col pt-2 gap-2 h-full *:rounded *:p-1">
       <div className="flex flex-col pt-2 gap-2 h-full *:rounded *:p-1">
+        <div className="flex mt-2 justify-evenly">
+          <div
+            className="total-center p-2 py-0 w-[81px] rounded border border-blue-400 cursor-pointer hover:bg-slate-600/20"
+            onClick={() => dispatch(cutSelectedMedia())}
+          >
+            Cut
+          </div>
+          <div
+            className="total-center p-2 py-0 w-[81px] rounded border border-emerald-400 cursor-pointer hover:bg-slate-600/20"
+            onClick={() => dispatch(copySelectedMedia())}
+          >
+            Copy
+          </div>
+          <div
+            className="total-center p-2 py-0 w-[81px] rounded border border-orange-400 cursor-pointer hover:bg-slate-600/20"
+            onClick={() => dispatch(pasteSelectedMedia())}
+          >
+            Paste
+          </div>
+        </div>
         <div className="flex justify-evenly">
+          <div
+            className="total-center p-2 py-0 w-32 rounded border border-violet-400 cursor-pointer hover:bg-slate-600/20"
+            onClick={() => dispatch(duplicateSelectedMedia())}
+          >
+            Duplicate
+          </div>
+          <div
+            className="total-center p-2 py-0 w-32 rounded border border-red-400 cursor-pointer hover:bg-slate-600/20"
+            onClick={() => dispatch(deleteSelectedMedia())}
+          >
+            Delete
+          </div>
+        </div>
+        <div className="flex justify-evenly mt-4">
           <div
             className="total-center p-2 py-0 w-32 rounded border border-emerald-500/80 cursor-pointer hover:bg-slate-600/20"
             onClick={() =>
@@ -209,7 +247,7 @@ export const TimelineContextMenu = memo(() => {
             Select Poses
           </div>
         </div>
-        <div className="flex justify-evenly">
+        <div className="flex justify-evenly mb-2">
           <div
             className="total-center p-2 py-0 w-32 rounded border border-emerald-500/80 cursor-pointer hover:bg-slate-600/20"
             onClick={() => dispatch(filterSelectionByType("pattern"))}
@@ -223,41 +261,27 @@ export const TimelineContextMenu = memo(() => {
             Filter Poses
           </div>
         </div>
-        <div className="flex mt-2 justify-evenly">
-          <div
-            className="total-center p-2 py-0 w-[81px] rounded border border-indigo-400 cursor-pointer hover:bg-slate-600/20"
-            onClick={() => dispatch(cutSelectedMedia())}
-          >
-            Cut
-          </div>
-          <div
-            className="total-center p-2 py-0 w-[81px] rounded border border-indigo-400 cursor-pointer hover:bg-slate-600/20"
-            onClick={() => dispatch(copySelectedMedia())}
-          >
-            Copy
-          </div>
-          <div
-            className="total-center p-2 py-0 w-[81px] rounded border border-indigo-400 cursor-pointer hover:bg-slate-600/20"
-            onClick={() => dispatch(pasteSelectedMedia())}
-          >
-            Paste
-          </div>
-        </div>
-        <div className="flex justify-evenly">
-          <div
-            className="total-center p-2 py-0 w-32 rounded border border-indigo-400 cursor-pointer hover:bg-slate-600/20"
-            onClick={() => dispatch(duplicateSelectedMedia())}
-          >
-            Duplicate
-          </div>
-          <div
-            className="total-center p-2 py-0 w-32 rounded border border-indigo-400 cursor-pointer hover:bg-slate-600/20"
-            onClick={() => dispatch(deleteSelectedMedia())}
-          >
-            Delete
-          </div>
-        </div>
+      </div>
+    </div>
+  );
 
+  const File = (
+    <div className="flex flex-col pt-2 gap-2 h-full *:rounded *:p-1">
+      <div className="flex flex-col pt-2 gap-2 h-full *:rounded *:p-1">
+        {/* <div className="flex justify-evenly">
+          <div
+            className="total-center p-2 py-0 w-32 rounded border border-slate-500 cursor-pointer hover:bg-slate-600/20"
+            onClick={() => dispatch(promptUserForMidiFile())}
+          >
+            Import from MIDI
+          </div>
+          <div
+            className="total-center p-2 py-0 w-32 rounded border border-slate-500 cursor-pointer hover:bg-slate-600/20"
+            onClick={() => dispatch(exportSelectedClipsToWAV(fileName))}
+          >
+            Export to WAV
+          </div>
+        </div> */}
         <div
           className="flex mt-2 justify-evenly items-center"
           onClick={cancelEvent}
@@ -318,10 +342,17 @@ export const TimelineContextMenu = memo(() => {
                     >
                       Selection
                     </Tab>
+                    <Tab
+                      className="data-[selected]:text-indigo-400 outline-none cursor-pointer"
+                      onFocus={blurEvent}
+                    >
+                      File
+                    </Tab>
                   </TabList>
                   <TabPanels>
                     <TabPanel onFocus={blurEvent}>{Properties}</TabPanel>
                     <TabPanel onFocus={blurEvent}>{Selection}</TabPanel>
+                    <TabPanel onFocus={blurEvent}>{File}</TabPanel>
                   </TabPanels>
                 </TabGroup>
               </MenuItems>

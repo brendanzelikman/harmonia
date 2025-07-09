@@ -67,7 +67,7 @@ export const TimelineGraphics = (props: BackgroundProps) => {
   const TimelineHeaderBackground = useMemo(
     () => (
       <div
-        className="sticky inset-0 bg-gradient-to-t from-slate-950 via-black to-slate-950 pointer-events-none"
+        className="sticky inset-0 bg-black -z-10 pointer-events-none"
         style={{ width, height: HEADER_HEIGHT }}
       ></div>
     ),

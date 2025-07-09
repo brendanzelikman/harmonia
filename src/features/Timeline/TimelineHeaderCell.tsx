@@ -174,7 +174,7 @@ export const TimelineHeaderCell = (props: RenderHeaderCellProps<Row>) => {
       data-over={isOver}
       ref={drop}
       className={classNames(
-        "rdg-header data-[over=true]:bg-indigo-800 relative size-full total-center text-white hover:bg-slate-800 hover:border hover:border-slate-200/80 cursor-pointer",
+        "rdg-header bg-black data-[over=true]:bg-indigo-800 relative size-full total-center text-white hover:bg-slate-800 hover:border hover:border-slate-200/80 cursor-pointer",
         { "border-b-8 border-b-indigo-700": loop && inLoopRange },
         { "border-slate-50/20": !loop || !inLoopRange },
         { "cursor-portalguno": isPortaling && hasFragment },

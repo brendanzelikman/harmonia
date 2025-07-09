@@ -69,6 +69,11 @@ import { DEFAULT_VELOCITY } from "utils/constants";
 import { getEventFile } from "utils/event";
 import { isString } from "types/utils";
 import { inputPoseRomans } from "lib/hotkeys/timeline";
+import { createNewPatternClip } from "types/Track/PatternTrack/PatternTrackThunks";
+import {
+  selectCurrentTimelineTick,
+  selectSomeTrackId,
+} from "types/Timeline/TimelineSelectors";
 
 // -------------------------------------------------------
 //  Pattern Clip Upload
@@ -164,7 +169,12 @@ export const promptUserForPattern =
             const midi = new Midi(buffer);
             const firstTrack = midi.tracks[0];
             if (!firstTrack) return;
-            dispatch(promptUserForPatternMidiFile(id, firstTrack.notes));
+            dispatch(
+              updatePatternClipWithMidiNotes({
+                data: { id, notes: firstTrack.notes },
+                undoType,
+              })
+            );
           });
         }
 
@@ -255,12 +265,41 @@ export const promptUserForPattern =
 //  Pattern MIDI File Upload
 // -------------------------------------------------------
 
+export const promptUserForMidiFile =
+  (id?: PatternClipId): Thunk =>
+  (dispatch, getProject) =>
+    promptUserForFile(".mid", async (e) => {
+      const file = getEventFile(e);
+      if (!file) return;
+      const buffer = await file.arrayBuffer();
+      const midi = new Midi(buffer);
+      const firstTrack = midi.tracks[0];
+      if (!firstTrack) return;
+      const project = getProject();
+      const undoType = createUndoType("importMidi", nanoid());
+      let clipId: PatternClipId | undefined = id;
+      if (!clipId) {
+        const trackId = selectSomeTrackId(project);
+        const tick = selectCurrentTimelineTick(project);
+        const clip = { trackId, tick };
+        clipId = dispatch(createNewPatternClip({ data: { clip } })).clipId;
+      }
+      dispatch(
+        updatePatternClipWithMidiNotes({
+          data: { id: clipId, notes: firstTrack.notes },
+          undoType,
+        })
+      );
+    });
+
 /** Prompt the user to upload a MIDI file and update the pattern clip. */
-export const promptUserForPatternMidiFile =
-  (id: PatternClipId, notes: Note[]): Thunk =>
+export const updatePatternClipWithMidiNotes =
+  (payload: Payload<{ id: PatternClipId; notes: Note[] }>): Thunk =>
   async (dispatch, getProject) => {
     const project = getProject();
     const bpm = selectTransportBPM(project);
+    const { id, notes } = unpackData(payload);
+    const undoType = unpackUndoType(payload, "updatePatternClipWithMidiNotes");
     const clip = selectPatternClipById(project, id);
     if (!clip) return;
 
@@ -333,7 +372,7 @@ export const promptUserForPatternMidiFile =
     );
 
     // Update the pattern with the new stream
-    dispatch(updatePattern({ data: { id: clip.patternId, stream } }));
+    dispatch(updatePattern({ data: { id: clip.patternId, stream }, undoType }));
   };
 
 // -------------------------------------------------------
