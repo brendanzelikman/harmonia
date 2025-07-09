@@ -340,9 +340,11 @@ export const convertProjectToNotes = (project: Project) => {
 };
 
 export const loadMidiIntoProject =
-  (payload: Payload<{ file: File; props?: Partial<Clip> }>): Thunk =>
+  (
+    payload: Payload<{ file: File; props?: Partial<Clip>; autobind?: boolean }>
+  ): Thunk =>
   (dispatch, getProject) => {
-    const { file, props } = unpackData(payload);
+    const { file, props, autobind } = unpackData(payload);
     const undoType = unpackUndoType(payload, "loadMidiIntoProject");
     if (file.type !== "audio/midi") return;
     const trackId = props?.trackId;
@@ -417,14 +419,10 @@ export const loadMidiIntoProject =
 
       // Create a new pattern clip with the MIDI stream
       const tick = props?.tick ?? selectCurrentTimelineTick(getProject());
+      const clip = { trackId, tick };
+      const pattern = { name: file.name, stream };
       dispatch(
-        createNewPatternClip({
-          data: {
-            clip: { trackId, tick },
-            pattern: { name: file.name, stream },
-          },
-          undoType,
-        })
+        createNewPatternClip({ data: { clip, pattern, autobind }, undoType })
       );
     };
     reader.readAsArrayBuffer(file);

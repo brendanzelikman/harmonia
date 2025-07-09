@@ -69,11 +69,11 @@ import { DEFAULT_VELOCITY } from "utils/constants";
 import { getEventFile } from "utils/event";
 import { isString } from "types/utils";
 import { inputPoseRomans } from "lib/hotkeys/timeline";
-import { createNewPatternClip } from "types/Track/PatternTrack/PatternTrackThunks";
 import {
   selectCurrentTimelineTick,
   selectSomeTrackId,
 } from "types/Timeline/TimelineSelectors";
+import { loadMidiIntoProject } from "types/Timeline/TimelineThunks";
 
 // -------------------------------------------------------
 //  Pattern Clip Upload
@@ -266,28 +266,18 @@ export const promptUserForPattern =
 // -------------------------------------------------------
 
 export const promptUserForMidiFile =
-  (id?: PatternClipId): Thunk =>
+  (payload?: Payload<{ autobind?: boolean }>): Thunk =>
   (dispatch, getProject) =>
     promptUserForFile(".mid", async (e) => {
-      const file = getEventFile(e);
-      if (!file) return;
-      const buffer = await file.arrayBuffer();
-      const midi = new Midi(buffer);
-      const firstTrack = midi.tracks[0];
-      if (!firstTrack) return;
       const project = getProject();
-      const undoType = createUndoType("importMidi", nanoid());
-      let clipId: PatternClipId | undefined = id;
-      if (!clipId) {
-        const trackId = selectSomeTrackId(project);
-        const tick = selectCurrentTimelineTick(project);
-        const clip = { trackId, tick };
-        clipId = dispatch(createNewPatternClip({ data: { clip } })).clipId;
-      }
+      const { autobind } = unpackData(payload);
+      const file = getEventFile(e);
+      const trackId = selectSomeTrackId(project);
+      const tick = selectCurrentTimelineTick(project);
+      if (!file) return;
       dispatch(
-        updatePatternClipWithMidiNotes({
-          data: { id: clipId, notes: firstTrack.notes },
-          undoType,
+        loadMidiIntoProject({
+          data: { file, props: { trackId, tick }, autobind },
         })
       );
     });
