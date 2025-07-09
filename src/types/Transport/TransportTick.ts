@@ -67,7 +67,7 @@ export const seekTransport =
     const tick = Math.round(data);
     if (tick < 0) return;
     const started = Tone.getTransport().state === "started";
-    Tone.getTransport().pause();
+    Tone.getTransport().stop();
     Tone.getTransport().cancel();
     Tone.getTransport().ticks = tick;
     dispatchTick(tick);
