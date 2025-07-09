@@ -110,7 +110,7 @@ export const TrackDropdownMenu = (props: {
                     content="Edit Base Pose"
                     icon={
                       <ArrangePoseIcon
-                        className={classNames("-rotate-90", {
+                        className={classNames({
                           "fill-fuchsia-300": some(track.vector),
                         })}
                       />

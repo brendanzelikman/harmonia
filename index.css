@@ -122,6 +122,7 @@ input::-webkit-inner-spin-button {
 }
 .rdg-cell:has(.rdg-header) {
   z-index: 40 !important;
+  background: transparent !important;
 }
 .rdg-cell:has(.rdg-track) {
   z-index: 90 !important;

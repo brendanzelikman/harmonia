@@ -1,18 +1,13 @@
 #!/usr/bin/env node
+import fs from "fs";
+import readline from "readline";
 
-const fs = require("fs");
-const readline = require("readline");
-const { defaultProject } = require("./defaultProject");
 let currentFile = null;
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
-
-const scriptName = __filename.split("/").pop();
-const scriptNameWithoutExtension = scriptName.split(".").shift();
-const configPath = "scripts/" + scriptNameWithoutExtension + ".json";
 
 // Try to read a file from the command line arguments
 if (process.argv.length > 2) {
@@ -22,25 +17,7 @@ if (process.argv.length > 2) {
   }
 }
 
-// Create the config file if it does not exist
-if (!fs.existsSync(configPath)) {
-  fs.writeFileSync(configPath, "{}");
-}
-
-// Try to read a file from the local config file
-if (!currentFile) {
-  const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-  if (config.currentFile && fs.existsSync(config.currentFile)) {
-    setCurrentFile(config.currentFile);
-  }
-}
-
 function showMainMenu() {
-  if (fs.existsSync(configPath)) {
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-    delete config.currentFile;
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-  }
   console.clear();
   console.log("\n=== Harmonia CLI ===");
   console.log("Available commands:");
@@ -73,7 +50,7 @@ function createFile(filename) {
     console.log("File already exists.");
     return promptMainMenu();
   }
-  fs.writeFileSync(filename, JSON.stringify(defaultProject, null, 2));
+  fs.writeFileSync(filename, JSON.stringify({}, null, 2));
   console.log(`Created ${filename}`);
   setCurrentFile(filename);
   showProjectMenu();

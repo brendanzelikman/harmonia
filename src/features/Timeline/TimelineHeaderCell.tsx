@@ -120,9 +120,22 @@ export const TimelineHeaderCell = (props: RenderHeaderCellProps<Row>) => {
     const { bars, beats, sixteenths } = formattedTime;
     const isMeasure = beats === 0 && sixteenths === 0;
 
+    const isQuarter = !isMeasure && (columnIndex - 1) % 4 === 0;
+    const isSixteenth = !isMeasure && (columnIndex - 1) % 4 !== 0;
+    const isCenterSixteenth = !isMeasure && (columnIndex - 1) % 4 === 2;
     // The font size is reduced for triple digit measures.
     return (
       <>
+        {isQuarter && (
+          <div className="w-[2px] h-4 right left-0 bottom-0 absolute bg-slate-300/50 rounded-t" />
+        )}
+        {isCenterSixteenth ? (
+          <div className="w-[1px] h-2 right left-0 bottom-0 absolute bg-gray-500/80 rounded-t" />
+        ) : isSixteenth ? (
+          <div className="w-[1px] h-3 right left-0 bottom-0 absolute bg-gray-500/80 rounded-t" />
+        ) : columnIndex > 1 ? (
+          <div className="w-[1px] h-1 right left-0 bottom-0 absolute bg-gray-500/80 rounded-t" />
+        ) : null}
         {!!isMeasure && (
           <div
             className={classNames(
@@ -133,7 +146,7 @@ export const TimelineHeaderCell = (props: RenderHeaderCellProps<Row>) => {
               { "text-[9px]": bars > 99 }
             )}
           >
-            {bars}
+            {bars + 1}
           </div>
         )}
       </>
@@ -161,7 +174,7 @@ export const TimelineHeaderCell = (props: RenderHeaderCellProps<Row>) => {
       data-over={isOver}
       ref={drop}
       className={classNames(
-        "rdg-header bg-black data-[over=true]:bg-indigo-800 relative size-full total-center text-white hover:bg-slate-800 hover:border hover:border-slate-200/80 cursor-pointer",
+        "rdg-header data-[over=true]:bg-indigo-800 relative size-full total-center text-white hover:bg-slate-800 hover:border hover:border-slate-200/80 cursor-pointer",
         { "border-b-8 border-b-indigo-700": loop && inLoopRange },
         { "border-slate-50/20": !loop || !inLoopRange },
         { "cursor-portalguno": isPortaling && hasFragment },

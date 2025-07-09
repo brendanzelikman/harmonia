@@ -41,7 +41,7 @@ export const PatternClipStream = memo((props: PatternClipStreamProps) => {
       const width = note.duration * style.noteWidth - 4;
       const height = style.noteHeight;
       const offset = note.MIDI - style.min;
-      const bottom = style.noteHeight * offset + CLIP_STREAM_MARGIN / 2;
+      const bottom = height * offset + CLIP_STREAM_MARGIN / 2;
       const left = style.noteWidth * (noteTick - style.tick);
       const dims = { width, height, bottom, left };
       return <div key={key} style={dims} className={style.noteClass} />;

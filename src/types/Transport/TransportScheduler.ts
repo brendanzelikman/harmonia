@@ -98,27 +98,27 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
 
     // Select the memoized record of chords to be played at the current tick
     const chordRecord = selectMidiChordsByTicks(project)[newTick];
+    if (chordRecord === undefined) return;
 
     // Iterate over the instruments that are to be played at the current tick
-    if (chordRecord) {
-      for (const instrumentId in chordRecord) {
-        const chord = chordRecord[instrumentId];
-        if (!chord) continue;
+    for (const instrumentId in chordRecord) {
+      const chord = chordRecord[instrumentId];
+      if (!chord) continue;
 
-        // Get the live audio instance
-        const instance = LIVE_AUDIO_INSTANCES[instrumentId];
-        if (!instance?.isLoaded()) continue;
+      // Get the live audio instance
+      const instance = LIVE_AUDIO_INSTANCES[instrumentId];
+      const loaded = instance?.isLoaded();
+      if (!loaded) continue;
 
-        // Play the realized pattern chord using the sampler
-        playPatternChord(instance.sampler, chord, time);
-        const iid = instrumentId;
-        if (getToggleValue(RECORD_TRANSPORT) && getActiveInstances().has(iid)) {
-          recordNoteToMidiStream({
-            id: iid,
-            chord,
-            time: time - (parseValue(getRecordingStart()) ?? startTime),
-          });
-        }
+      // Play the realized pattern chord using the sampler
+      playPatternChord(instance.sampler, chord, time);
+      const iid = instrumentId;
+      if (getToggleValue(RECORD_TRANSPORT) && getActiveInstances().has(iid)) {
+        recordNoteToMidiStream({
+          id: iid,
+          chord,
+          time: time - (parseValue(getRecordingStart()) ?? startTime),
+        });
       }
     }
   }, `1i`);

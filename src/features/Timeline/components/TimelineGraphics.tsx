@@ -67,7 +67,7 @@ export const TimelineGraphics = (props: BackgroundProps) => {
   const TimelineHeaderBackground = useMemo(
     () => (
       <div
-        className="sticky inset-0 bg-black pointer-events-none"
+        className="sticky inset-0 bg-gradient-to-t from-slate-950 via-black to-slate-950 pointer-events-none"
         style={{ width, height: HEADER_HEIGHT }}
       ></div>
     ),
@@ -160,7 +160,7 @@ const TimelineTopLeftCorner = () => {
               ? `Select Track (${
                   game.trackId ? labelMap[game.trackId] : "?"
                 }) To Play`
-              : `Press Space to Start Game!`}
+              : `Press Space to Start!`}
           </div>
         </div>
       )}

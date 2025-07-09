@@ -412,7 +412,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
               />
             ) : mode === "clock" ? (
               <div className="w-full p-2 min-h-38 flex flex-col border-t-8 border-t-indigo-500">
-                <div className="flex items-center text-slate-300 gap-4 p-4">
+                <div className="flex items-center text-slate-300 gap-3 p-4">
                   <div>Clock</div>
                   {new Array(16).fill(null).map((_, i) => {
                     const filled =
@@ -421,6 +421,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                       <div
                         key={i}
                         data-filled={filled}
+                        data-quarter={i % 4 === 0}
                         onClick={() => {
                           if (filled) {
                             const block = { duration };
@@ -435,7 +436,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                           const value = chain.length
                             ? { degree: 0, scaleId: chain[0].id }
                             : { MIDI: 60 };
-                          const block = { ...value, duration };
+                          const block = { ...value, duration, velocity: 127 };
                           if (inRange(i, 0, pattern.stream.length)) {
                             dispatch(
                               updatePatternBlock({
@@ -444,7 +445,10 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                             );
                           } else {
                             const length = pattern.stream.length;
-                            const stream = new Array(16).fill({ duration });
+                            const stream = new Array(16).fill({
+                              duration,
+                              velocity: 127,
+                            });
                             for (let j = 0; j < length; j++) {
                               stream[j] = pattern.stream[j];
                             }
@@ -452,7 +456,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                             dispatch(updatePattern({ id: pattern.id, stream }));
                           }
                         }}
-                        className="rounded-full size-4 border border-slate-500 hover:border-emerald-300 data-[filled=true]:bg-emerald-600 data-[filled=false]:bg-slate-700 cursor-pointer total-center text-xs text-slate-50"
+                        className="rounded-full size-8 data-[quarter=true]:ml-4 border border-slate-400 hover:border-emerald-300 data-[filled=true]:bg-emerald-600 data-[filled=true]:border-slate-300 data-[filled=false]:bg-slate-700 cursor-pointer total-center text-xs text-slate-50"
                       />
                     );
                   })}
