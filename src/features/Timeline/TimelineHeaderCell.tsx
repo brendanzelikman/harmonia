@@ -127,14 +127,14 @@ export const TimelineHeaderCell = (props: RenderHeaderCellProps<Row>) => {
     return (
       <>
         {isQuarter && (
-          <div className="w-[2px] h-4 right left-0 bottom-0 absolute bg-slate-300/50 rounded-t" />
+          <div className="w-[2px] h-[8px] right left-0 bottom-0 absolute bg-slate-300/50 rounded-t" />
         )}
         {isCenterSixteenth ? (
-          <div className="w-[1px] h-2 right left-0 bottom-0 absolute bg-gray-500/80 rounded-t" />
+          <div className="w-[1px] h-[4px] right left-0 bottom-0 absolute bg-gray-500/80 rounded-t" />
         ) : isSixteenth ? (
-          <div className="w-[1px] h-3 right left-0 bottom-0 absolute bg-gray-500/80 rounded-t" />
+          <div className="w-[1px] h-[6px] right left-0 bottom-0 absolute bg-gray-500/80 rounded-t" />
         ) : columnIndex > 1 ? (
-          <div className="w-[1px] h-1 right left-0 bottom-0 absolute bg-gray-500/80 rounded-t" />
+          <div className="w-[1px] h-[2px] right left-0 bottom-0 absolute bg-gray-500/80 rounded-t" />
         ) : null}
         {!!isMeasure && (
           <div

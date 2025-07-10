@@ -25,7 +25,7 @@ export const TrackName = (props: { track: Track }) => {
     selectTrackScaleNameAtTick(_, track.id, tick)
   );
   const order = useAppValue((_) => selectTrackOrderById(_, track.id));
-  const placeholder = `Tree #${order}`;
+  const placeholder = `Track #${order}`;
   const value = track.collapsed
     ? isST
       ? scaleName
