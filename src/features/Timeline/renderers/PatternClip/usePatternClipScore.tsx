@@ -31,16 +31,18 @@ import { ScaleId, ScaleVector } from "types/Scale/ScaleTypes";
 import { omit } from "lodash";
 import classNames from "classnames";
 
+const heldKeys = ["shift", "rightshift", "/", ",", "."];
+
 export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const dispatch = useAppDispatch();
   const midi = useAppValue((_) => selectPortaledPatternClipStream(_, clip.id));
-  const stream = midi.flatMap((n) => n.notes.filter((n) => "velocity" in n));
+  const stream = midi.flatMap((n) => n.notes.filter((n) => "duration" in n));
   const xml = useAppValue((_) => selectPortaledPatternClipXML(_, clip));
   const staves = useMemo(() => getMidiStreamStaves(stream), [stream]);
   const onGrandStaff = staves === "grand";
 
   // The hook stores an input duration for editing notes
-  const holding = useHeldKeys(["shift", "rightshift", "/", ",", "."]);
+  const holding = useHeldKeys(heldKeys);
   const [_duration, setDuration] = useState(getDurationTicks("16th"));
   const isTriplet = holding[getKeyCode("/")];
   const isDotted = holding[getKeyCode(".")];
