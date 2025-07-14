@@ -24,8 +24,9 @@ import {
   zeroSelectedPatternPoses,
 } from "./updatePatterns";
 import { offsetSelectedPoses, zeroSelectedPoses } from "./updatePoses";
-import { applyPatternFromSlot, savePatternToSlot } from "./storePatterns";
-import { applyPoseFromSlot, savePoseToSlot } from "./storePoses";
+import { applyPatternFromSlot } from "./storePatterns";
+import { applyPoseFromSlot } from "./storePoses";
+import { saveMediaToSlot } from "./storeMedia";
 import {
   clearPatternStorage,
   clearPoseStorage,
@@ -33,9 +34,10 @@ import {
 import { HotkeyMap } from "lib/hotkeys";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
-const trackKeys = ["m", "s"];
-const miscKeys = ["c", "d", "z", "x", "v", "b", "-", "`", "="];
-const hotkeys = [...qwertyKeys, ...trackKeys, ...miscKeys];
+const mixKeys = ["m", "s", "v"];
+const modifiers = ["-", "`", "="];
+const miscKeys = ["c", "d", "z", "x", "c", "b"];
+const hotkeys = [...qwertyKeys, ...mixKeys, ...miscKeys, ...modifiers];
 
 const hotkeyMap: HotkeyMap = {
   1: (dispatch) => dispatch(keydown(1)),
@@ -91,13 +93,7 @@ export const keydown =
 
     // Handle pattern storage
     if (getHeldKey("z")) {
-      dispatch(savePatternToSlot(number));
-      return;
-    }
-
-    // Handle pose storage
-    if (getHeldKey("v")) {
-      dispatch(savePoseToSlot(number));
+      dispatch(saveMediaToSlot(number));
       return;
     }
 

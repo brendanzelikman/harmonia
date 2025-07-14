@@ -3,9 +3,7 @@ import {
   GiBugNet,
   GiDominoMask,
   GiMisdirection,
-  GiOnTarget,
   GiPathDistance,
-  GiToolbox,
 } from "react-icons/gi";
 import { selectIsSelectingPatternClips } from "types/Timeline/TimelineSelectors";
 import { useCallback } from "react";
@@ -88,7 +86,7 @@ export const NavbarLeadPlay = () => {
       title="Gesture - Voice Leading"
       subtitle={
         isSelectingPatternClip
-          ? "Create Poses by Constraint"
+          ? "Create Poses by Applying Constraints"
           : "Select a Pattern to Voice Lead"
       }
       subtitleClass="text-teal-400"

@@ -120,7 +120,7 @@ export const NavbarArrangePoses = () => {
       <NavbarActionButtonOption
         title="Save Pose to Memory"
         Icon={<GiSave className="ml-auto text-2xl" />}
-        subtitle="Select a pose and press V + 1-9 to save it."
+        subtitle="Select a pose and press Z + 1-9 to save it."
         stripe="border-b-emerald-500"
         readOnly
       />
