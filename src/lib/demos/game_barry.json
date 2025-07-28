@@ -1057,12 +1057,12 @@
     "bpm": 120,
     "timeSignature": 4,
     "swing": 0.5,
-    "loop": true,
+    "loop": false,
     "loopStart": 0,
     "loopEnd": 6143,
     "volume": 0,
     "mute": false,
-    "scroll": 0
+    "scroll": 6
   },
   "game": {
     "actions": [

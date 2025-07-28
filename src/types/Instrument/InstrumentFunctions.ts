@@ -90,6 +90,7 @@ export const getCategoryInstruments = (category: InstrumentCategory) =>
 /** Get an instrument key matching the one in the string. */
 export const matchInstrumentKey = (string: string) => {
   const text = string.toLowerCase();
+  if (text === "piano") return "upright-piano" as InstrumentKey;
   return INSTRUMENT_KEYS.find((key) => {
     const name = getInstrumentName(key).toLowerCase();
     return name === text || name.split(" ").some((word) => word === text);

@@ -27,13 +27,9 @@ import {
 } from "./NavbarTransportControl";
 import { useGestures } from "lib/gestures";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { launchTour } from "lib/tour/useTour";
-import { BsQuestion } from "react-icons/bs";
-import { NavbarTooltipButton } from "components/TooltipButton";
 import { dispatchClose, dispatchOpen, useToggle } from "hooks/useToggle";
 import { useCallback } from "react";
-import { loadDemoProject } from "types/Project/ProjectLoaders";
-import { DEMOS_BY_KEY } from "lib/demos";
+import { NavbarTour } from "./NavbarTour";
 
 export function Navbar() {
   const { pathname } = useLocation();
@@ -95,19 +91,11 @@ export function Navbar() {
         <div className="size-full select-none flex animate-in fade-in slide-in-from-top-4 text-slate-50 first:border-r-0">
           <NavbarGroup
             gap="gap-1"
-            className="pl-3 ml-3 border-l border-l-slate-500/50"
+            className="ml-3 border-l border-l-slate-500/50"
           >
             <NavbarProjectMenu />
             <NavbarSettings />
-            {/* <NavbarTooltipButton
-              className="text-3xl border border-indigo-500"
-              label="Start Tour"
-              onClick={() =>
-                loadDemoProject(DEMOS_BY_KEY["bach"].project, launchTour)
-              }
-            >
-              <BsQuestion />
-            </NavbarTooltipButton> */}
+            <NavbarTour />
             <NavbarUndo />
             <NavbarRedo />
           </NavbarGroup>
@@ -126,7 +114,7 @@ export function Navbar() {
           <TabGroup className="xl:hidden max-xl:flex gap-2 px-3 h-full shrink-0 items-center text-sm transition-all animate-in fade-in bg-radial from-slate-900/15 to-sky-500/15">
             <TabList as="div" className="flex flex-col items-start text-xs">
               <Tab className="cursor-pointer hover:text-emerald-200 data-selected:text-emerald-400">
-                Motifs
+                Objects
               </Tab>
               <Tab className="cursor-pointer hover:text-emerald-200 data-selected:text-emerald-400">
                 Clips
@@ -158,7 +146,7 @@ export function Navbar() {
           {/* Large viewports have all actions */}
           <div className="max-xl:hidden xl:flex">
             <NavbarGroup className="bg-radial from-slate-900/15 to-sky-500/15">
-              <NavbarGroupLabel>Motifs</NavbarGroupLabel>
+              <NavbarGroupLabel>Objects</NavbarGroupLabel>
               <NavbarCreateTree />
               <NavbarArrangePatterns />
               <NavbarArrangePoses />

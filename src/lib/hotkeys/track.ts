@@ -150,63 +150,63 @@ export const DeselectTrackHotkey: Hotkey = {
 export const SelectFirstTrackHotkey: Hotkey = {
   name: "Select Track 1",
   description: "Select the first track",
-  shortcut: "shift+!",
+  shortcut: "shift+1",
   callback: (dispatch) => dispatch(toggleTrackByIndex(0)),
 };
 
 export const SelectSecondTrackHotkey: Hotkey = {
   name: "Select Track 2",
   description: "Select the second track",
-  shortcut: "shift+@",
+  shortcut: "shift+2",
   callback: (dispatch) => dispatch(toggleTrackByIndex(1)),
 };
 
 export const SelectThirdTrackHotkey: Hotkey = {
   name: "Select Track 3",
   description: "Select the third track",
-  shortcut: "shift+#",
+  shortcut: "shift+3",
   callback: (dispatch) => dispatch(toggleTrackByIndex(2)),
 };
 
 export const SelectFourthTrackHotkey: Hotkey = {
   name: "Select Track 4",
   description: "Select the fourth track",
-  shortcut: "shift+$",
+  shortcut: "shift+4",
   callback: (dispatch) => dispatch(toggleTrackByIndex(3)),
 };
 
 export const SelectFifthTrackHotkey: Hotkey = {
   name: "Select Track 5",
   description: "Select the fifth track",
-  shortcut: "shift+%",
+  shortcut: "shift+5",
   callback: (dispatch) => dispatch(toggleTrackByIndex(4)),
 };
 
 export const SelectSixthTrackHotkey: Hotkey = {
   name: "Select Track 6",
   description: "Select the sixth track",
-  shortcut: "shift+^",
+  shortcut: "shift+6",
   callback: (dispatch) => dispatch(toggleTrackByIndex(5)),
 };
 
 export const SelectSeventhTrackHotkey: Hotkey = {
   name: "Select Track 7",
   description: "Select the seventh track",
-  shortcut: "shift+&",
+  shortcut: "shift+7",
   callback: (dispatch) => dispatch(toggleTrackByIndex(6)),
 };
 
 export const SelectEighthTrackHotkey: Hotkey = {
   name: "Select Track 8",
   description: "Select the eighth track",
-  shortcut: "shift+*",
+  shortcut: "shift+8",
   callback: (dispatch) => dispatch(toggleTrackByIndex(7)),
 };
 
 export const SelectNinthTrackHotkey: Hotkey = {
   name: "Select Track 9",
   description: "Select the ninth track",
-  shortcut: "shift+(",
+  shortcut: "shift+9",
   callback: (dispatch) => dispatch(toggleTrackByIndex(8)),
 };
 

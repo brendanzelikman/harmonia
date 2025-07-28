@@ -125,6 +125,25 @@ export const autoBindNoteToTrack =
             : dispatch(getDegreeOfNoteInTrack(id, scaleNote));
         if (degree === -1) continue;
 
+        // Check if the note can be raised to fit in the scale
+        const upper = mod(degree + 1, parentSize);
+        const upperMIDI = parentScale?.[upper] ?? 0;
+        const upperNote = { ...scaleNote, MIDI: upperMIDI };
+        const upperWrap = Math.floor((degree + 1) / parentSize);
+        const upperDegree = dispatch(
+          getDegreeOfNoteInTrack(trackId, upperNote)
+        );
+
+        // If the raised note exists in the current scale, add the note as a lower neighbor
+        if (upperDegree > -1) {
+          const octave =
+            getMidiOctaveDistance(parentScale[degree], midi) + upperWrap;
+          const offset = { [parentScaleId]: -1, octave };
+          note = { ...scaleNote, degree: upperDegree, offset };
+          if ("MIDI" in note) delete note.MIDI;
+          return note;
+        }
+
         // Check if the note can be lowered to fit in the scale
         const lower = mod(degree - 1, parentSize);
         const lowerWrap = Math.floor((degree - 1) / parentSize);
@@ -141,25 +160,6 @@ export const autoBindNoteToTrack =
 
           const offset = { [parentScaleId]: 1, octave };
           note = { ...scaleNote, degree: lowerDegree, offset };
-          if ("MIDI" in note) delete note.MIDI;
-          return note;
-        }
-
-        // Check if the note can be raised to fit in the scale
-        const upper = mod(degree + 1, parentSize);
-        const upperMIDI = parentScale?.[upper] ?? 0;
-        const upperNote = { ...scaleNote, MIDI: upperMIDI };
-        const upperWrap = Math.floor((degree + 1) / parentSize);
-        const upperDegree = dispatch(
-          getDegreeOfNoteInTrack(trackId, upperNote)
-        );
-
-        // If the raised note exists in the current scale, add the note as a lower neighbor
-        if (upperDegree > -1) {
-          const octave =
-            getMidiOctaveDistance(parentScale[degree], midi) + upperWrap;
-          const offset = { [parentScaleId]: -1, octave };
-          note = { ...scaleNote, degree: upperDegree, offset };
           if ("MIDI" in note) delete note.MIDI;
           return note;
         }

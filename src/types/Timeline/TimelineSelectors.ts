@@ -109,7 +109,7 @@ export const selectSelectedTrackParents = createDeepSelector(
 export const selectSomeTrackId = createSelector(
   [selectSelectedTrackId, selectPatternTrackIds, selectScaleTrackIds],
   (selectedId, patternTrackIds, scaleTrackIds) =>
-    selectedId ?? patternTrackIds.at(-1) ?? scaleTrackIds.at(-1)
+    selectedId ?? patternTrackIds.at(0) ?? scaleTrackIds.at(-1)
 );
 
 // ------------------------------------------------------------

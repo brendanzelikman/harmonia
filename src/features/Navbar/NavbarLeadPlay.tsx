@@ -86,7 +86,7 @@ export const NavbarLeadPlay = () => {
       title="Gesture - Voice Leading"
       subtitle={
         isSelectingPatternClip
-          ? "Create Poses by Applying Constraints"
+          ? "Create Poses by Query"
           : "Select a Pattern to Voice Lead"
       }
       subtitleClass="text-teal-400"

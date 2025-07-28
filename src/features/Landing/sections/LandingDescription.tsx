@@ -66,7 +66,7 @@ export const LandingDescription = () => {
             />
           </Article>
         </Link>
-        <Link to="/demo/waterfall">
+        <Link to="/tutorial">
           <Article>
             <ArticleImage src={Composition} />
             <ArticleCaption
