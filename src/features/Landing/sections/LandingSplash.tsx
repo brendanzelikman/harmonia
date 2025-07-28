@@ -12,7 +12,7 @@ export const LandingSplash = () => {
       </div>
       <button
         type="button"
-        className="sm:text-3xl text-xl animate-in fade-in slide-in-from-top-8 duration-300 font-base cursor-pointer py-2 my-3 px-10 text-slate-100 bg-slate-900/90 active:bg-slate-900 border-2 border-blue-500/80 hover:border-blue-500 hover:ring-2 hover:ring-blue-500 rounded-3xl max-sm:rounded-xl"
+        className="sm:text-3xl text-xl animate-in fade-in slide-in-from-top-8 duration-300 font-base cursor-pointer py-2 my-3 px-10 text-slate-100 bg-radial from-slate-950/20 to-slate-950/80 active:bg-slate-900 border-3 border-blue-700 hover:scale-[1.02] drop-shadow-2xl hover:border-blue-600 transition-all backdrop-blur rounded-2xl max-sm:rounded-lg"
         onClick={() => navigate(CALCULATOR)}
       >
         Open Musical Calculator

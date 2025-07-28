@@ -144,13 +144,13 @@ export type StraightSubdivision =
   (typeof STRAIGHT_DURATION_SUBDIVISIONS)[StraightDurationType];
 
 // Straight Ticks
-export const WholeNoteTicks = STRAIGHT_DURATION_TICKS["whole"];
-export const HalfNoteTicks = STRAIGHT_DURATION_TICKS["half"];
-export const QuarterNoteTicks = STRAIGHT_DURATION_TICKS["quarter"];
-export const EighthNoteTicks = STRAIGHT_DURATION_TICKS["eighth"];
-export const SixteenthNoteTicks = STRAIGHT_DURATION_TICKS["16th"];
-export const ThirtySecondNoteTicks = STRAIGHT_DURATION_TICKS["32nd"];
-export const SixtyFourthNoteTicks = STRAIGHT_DURATION_TICKS["64th"];
+export const WHOLE_NOTE_TICKS = STRAIGHT_DURATION_TICKS["whole"];
+export const HALF_NOTE_TICKS = STRAIGHT_DURATION_TICKS["half"];
+export const QUARTER_NOTE_TICKS = STRAIGHT_DURATION_TICKS["quarter"];
+export const EIGHTH_NOTE_TICKS = STRAIGHT_DURATION_TICKS["eighth"];
+export const SIXTEENTH_NOTE_TICKS = STRAIGHT_DURATION_TICKS["16th"];
+export const THIRTY_SECOND_NOTE_TICKS = STRAIGHT_DURATION_TICKS["32nd"];
+export const SIXTY_FOURTH_NOTE_TICKS = STRAIGHT_DURATION_TICKS["64th"];
 
 // Straight Notes
 export const createWholeNote = createNoteFactory("whole");
@@ -707,7 +707,7 @@ export const getBarsBeatsSixteenths = (
 
   // Get the number of quarters and ticks per bar
   const quartersPerBar = meter;
-  const ticksPerBar = quartersPerBar * QuarterNoteTicks;
+  const ticksPerBar = quartersPerBar * QUARTER_NOTE_TICKS;
 
   // Find the total seconds and seconds per bar
   const totalSeconds = ticksToSeconds(tick, bpm);

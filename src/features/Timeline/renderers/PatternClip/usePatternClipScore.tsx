@@ -12,6 +12,8 @@ import {
   addPatternBlock,
   updatePatternBlock,
   insertPatternBlock,
+  insertPatternStream,
+  addPatternStream,
 } from "types/Pattern/PatternSlice";
 import { PatternNote } from "types/Pattern/PatternTypes";
 import {
@@ -30,8 +32,9 @@ import { TrackId } from "types/Track/TrackTypes";
 import { ScaleId, ScaleVector } from "types/Scale/ScaleTypes";
 import { omit } from "lodash";
 import classNames from "classnames";
+import { getChopinFragments } from "lib/patterns/chopinFragments";
 
-const heldKeys = ["shift", "rightshift", "/", ",", "."];
+const heldKeys = ["shift", "rightshift", "n", "/", ",", "."];
 
 export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const dispatch = useAppDispatch();
@@ -47,6 +50,7 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const isTriplet = holding[getKeyCode("/")];
   const isDotted = holding[getKeyCode(".")];
   const asRest = holding[getKeyCode(",")];
+  const asChopin = holding[getKeyCode("n")];
   const asChord =
     holding[getKeyCode("shift")] || holding[getKeyCode("rightshift")];
   const [asInsert, setAsInsert] = useState(false);
@@ -117,12 +121,22 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
         MIDI: options.MIDI ?? 60,
         velocity: 100,
       };
+      const undoType = createUndoType("playNote", nanoid());
+
+      if (asChopin) {
+        const stream = dispatch(getChopinFragments(clip.id, note));
+        if (asInsert) {
+          dispatch(insertPatternStream({ data: { id, stream, index } }));
+        } else {
+          dispatch(addPatternStream({ data: { id, stream } }));
+        }
+        return;
+      }
       if (scaleId && degree !== undefined) {
         note = { ...omit(note, "MIDI"), scaleId, degree, offset };
       } else if (trackId) {
         note = dispatch(autoBindNoteToTrack(trackId, note));
       }
-      const undoType = createUndoType("playNote", nanoid());
 
       if (asInsert) {
         dispatch(
@@ -139,7 +153,16 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
         );
       }
     },
-    [clip.patternId, index, duration, asInsert, asRest, asChord, playRest]
+    [
+      clip.patternId,
+      index,
+      duration,
+      asInsert,
+      asRest,
+      asChord,
+      asChopin,
+      playRest,
+    ]
   );
 
   return {

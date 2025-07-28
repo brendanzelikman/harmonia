@@ -5,7 +5,7 @@ import {
 import { getMidiFromPitch } from "utils/midi";
 import {
   DURATION_TYPES,
-  EighthNoteTicks,
+  EIGHTH_NOTE_TICKS,
   getDurationTicks,
 } from "utils/duration";
 import { DEFAULT_VELOCITY } from "utils/constants";
@@ -116,7 +116,7 @@ const convertStringToBlocks = (
 
   if (token.match(singleNote)) {
     const MIDI = getMidiFromPitch(token);
-    const duration = EighthNoteTicks;
+    const duration = EIGHTH_NOTE_TICKS;
     const velocity = DEFAULT_VELOCITY;
     if (isNaN(MIDI)) {
       return { MIDI, duration, velocity, query: token };
@@ -131,7 +131,7 @@ const convertStringToBlocks = (
     return { duration };
   }
 
-  return { duration: EighthNoteTicks };
+  return { duration: EIGHTH_NOTE_TICKS };
 };
 
 export const readPatternStreamFromString = (str: string) => {

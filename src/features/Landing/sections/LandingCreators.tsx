@@ -1,4 +1,3 @@
-import { m } from "framer-motion";
 import { LandingSection } from "../components/LandingSection";
 import { PopupHeader } from "../components/LandingHeader";
 import { libraries } from "./LandingLibraries";
@@ -10,23 +9,12 @@ const variants = {
 
 export const LandingCreators = () => {
   return (
-    <LandingSection className="pt-2 bg-slate-950/50">
-      <PopupHeader title="Behind the Scenes" />
-      <m.div
-        className="total-center flex-wrap gap-12 mt-12"
-        variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true }}
-        transition={{ delayChildren: 0.2, duration: 1, staggerChildren: 0.1 }}
-      >
-        <m.div
-          className="flex gap-8 mr-12 max-sm:mr-0 max-sm:flex-col max-sm:items-center max-sm:text-center"
-          variants={variants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-        >
+    <LandingSection className="pt-nav animate-in fade-in duration-300 bg-slate-950/50">
+      <div className="text-center text-5xl font-bold px-8 mt-4 py-6 select-none">
+        Behind the Scenes
+      </div>
+      <div className="total-center flex-wrap gap-12 mt-12">
+        <div className="flex gap-8 mr-12 max-sm:mr-0 max-sm:flex-col max-sm:items-center max-sm:text-center">
           <a
             href="https://brendanzelikman.github.io/"
             className="size-54 border-4 border-rose-500/80 shrink-0 rounded-full overflow-hidden"
@@ -46,14 +34,8 @@ export const LandingCreators = () => {
               graduate student at Stanford University.
             </p>
           </div>
-        </m.div>
-        <m.div
-          className="flex gap-8 ml-12 max-sm:ml-0 max-sm:flex-col-reverse max-sm:items-center"
-          variants={variants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-        >
+        </div>
+        <div className="flex gap-8 ml-12 max-sm:ml-0 max-sm:flex-col-reverse max-sm:items-center">
           <div className="flex flex-col text-base max-sm:text-sm text-right max-sm:text-center">
             <h1 className="text-3xl mb-4"> Dmitri Tymoczko</h1>
             <h2 className="text-gray-400">
@@ -77,11 +59,11 @@ export const LandingCreators = () => {
               src="https://kellercenter.princeton.edu/sites/default/files/styles/square/public/images/Dmitri.jpg?h=120c1784&itok=iEOjEFZS"
             />
           </a>
-        </m.div>
+        </div>
         <div className="text-5xl pt-4 font-bold w-full text-center">
           Instrumental Libraries
         </div>
-        <m.div className="flex gap-16 flex-wrap border-2 px-8 py-4 rounded-lg border-indigo-500/50 bg-slate-950/50 backdrop-blur">
+        <div className="flex gap-16 flex-wrap border-2 px-8 py-4 rounded border-indigo-500/50 bg-slate-950/50">
           {libraries.map((library) => (
             <a
               key={library.title}
@@ -99,8 +81,8 @@ export const LandingCreators = () => {
               </div>
             </a>
           ))}
-        </m.div>
-      </m.div>
+        </div>
+      </div>
     </LandingSection>
   );
 };

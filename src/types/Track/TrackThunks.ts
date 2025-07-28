@@ -736,7 +736,10 @@ export const initializeTrackPair =
       );
     } else {
       dispatch(
-        randomizePattern({ data: { id: patternClips[0].patternId }, undoType })
+        randomizePattern({
+          data: { id: patternClips[0].patternId, trackId },
+          undoType,
+        })
       );
     }
     if (!poseClips.length) {

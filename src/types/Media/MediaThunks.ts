@@ -2,7 +2,7 @@ import { union, without } from "lodash";
 import {
   getSubdivisionTicks,
   getTickColumns,
-  WholeNoteTicks,
+  WHOLE_NOTE_TICKS,
 } from "utils/duration";
 import { Tick, Update } from "types/units";
 import { PatternMidiNote, PatternRest } from "types/Pattern/PatternTypes";
@@ -237,7 +237,7 @@ export const filterSelectionByType =
   };
 
 export const insertMeasure =
-  (amount = WholeNoteTicks, clips?: Clip[]): Thunk =>
+  (amount = WHOLE_NOTE_TICKS, clips?: Clip[]): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const tick = selectCurrentTimelineTick(project);

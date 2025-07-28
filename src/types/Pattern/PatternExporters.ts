@@ -1,6 +1,6 @@
 import { MusicXML, STAFF_PIVOT } from "utils/xml";
 import {
-  QuarterNoteTicks,
+  QUARTER_NOTE_TICKS,
   getStraightDuration,
   getTickDuration,
   isTripletNote,
@@ -43,7 +43,7 @@ export const exportPatternStreamToXML = ({
   // Iterate through the stream and create measures
   for (const block of stream) {
     // If the duration is greater than a bar, create a new measure.
-    if (duration >= quarters * QuarterNoteTicks) {
+    if (duration >= quarters * QUARTER_NOTE_TICKS) {
       const number = measures.length + 1;
       const measure = MusicXML.createMeasure(measureNotes, {
         number,

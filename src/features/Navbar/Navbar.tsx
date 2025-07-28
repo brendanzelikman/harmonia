@@ -1,4 +1,4 @@
-import { SPLASH } from "app/router";
+import { ABOUT, CALCULATOR, SPLASH, TUTORIAL } from "app/router";
 import { NavbarBrand } from "features/Navbar/components/NavbarBrand";
 import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
@@ -15,7 +15,7 @@ import { NavbarVolume } from "./NavbarVolume";
 import { NavbarLink } from "./components/NavbarLink";
 import { NavbarSettings } from "./NavbarSettings";
 import { NavbarTape } from "./NavbarTape";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { NavbarGameMenu } from "./NavbarGameMenu";
 import { NavbarMixPlay } from "./NavbarMixPlay";
 import { NavbarLeadPlay } from "./NavbarLeadPlay";
@@ -27,18 +27,71 @@ import {
 } from "./NavbarTransportControl";
 import { useGestures } from "lib/gestures";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { launchTour } from "lib/tour/useTour";
+import { BsQuestion } from "react-icons/bs";
+import { NavbarTooltipButton } from "components/TooltipButton";
+import { dispatchClose, dispatchOpen, useToggle } from "hooks/useToggle";
+import { useCallback } from "react";
+import { loadDemoProject } from "types/Project/ProjectLoaders";
+import { DEMOS_BY_KEY } from "lib/demos";
 
 export function Navbar() {
   const { pathname } = useLocation();
   const hasTracks = useAppValue(selectHasTracks);
+  const onSplash = pathname === SPLASH;
+  const brand = useToggle("brand");
+  const demos = useToggle("demos");
+  const openProjects = useCallback(() => {
+    if (brand.isOpen && !demos.isOpen) {
+      dispatchClose("brand");
+    } else {
+      dispatchOpen("brand");
+      dispatchClose("demos");
+    }
+  }, [brand, demos]);
+  const openDemos = useCallback(() => {
+    if (brand.isOpen && demos.isOpen) {
+      dispatchClose("brand");
+    } else {
+      dispatchOpen("brand");
+      dispatchOpen("demos");
+    }
+  }, [brand, demos]);
   return (
     <nav className="absolute flex flex-nowrap shrink-0 items-center inset-0 bg-slate-900 border-b-[1px] border-b-slate-700 shadow-xl h-nav px-3 z-[300] transition-all animate-in fade-in text-2xl">
       <NavbarBrand />
-      {pathname === SPLASH ? (
-        <div className="w-full flex gap-4 *:pr-4 *:border-r last:*:border-r-0 *:border-r-slate-600 text-slate-500 justify-end pr-2">
-          <NavbarLink v="/calculator" />
-        </div>
-      ) : (
+      {pathname !== CALCULATOR ? (
+        <NavbarGroup
+          gap="gap-8"
+          className="ml-6 border-l border-l-slate-500 pl-6 border-r-0 *:text-xl *:text-slate-200 *:hover:text-slate-50 *:cursor-pointer *:select-none"
+        >
+          <div
+            data-active={brand.isOpen && !demos.isOpen}
+            className="data-[active=true]:text-sky-400"
+            onClick={openProjects}
+          >
+            Projects
+          </div>
+          <div
+            data-active={brand.isOpen && demos.isOpen}
+            onClick={openDemos}
+            className="data-[active=true]:text-sky-400"
+          >
+            Demos
+          </div>
+          <Link to={TUTORIAL} className="focus:text-sky-400">
+            Tutorial
+          </Link>
+          <Link
+            data-active={pathname === ABOUT}
+            to={onSplash ? ABOUT : SPLASH}
+            className="data-[active=true]:text-sky-400"
+          >
+            About
+          </Link>
+        </NavbarGroup>
+      ) : null}
+      {pathname === CALCULATOR ? (
         <div className="size-full select-none flex animate-in fade-in slide-in-from-top-4 text-slate-50 first:border-r-0">
           <NavbarGroup
             gap="gap-1"
@@ -46,6 +99,15 @@ export function Navbar() {
           >
             <NavbarProjectMenu />
             <NavbarSettings />
+            {/* <NavbarTooltipButton
+              className="text-3xl border border-indigo-500"
+              label="Start Tour"
+              onClick={() =>
+                loadDemoProject(DEMOS_BY_KEY["bach"].project, launchTour)
+              }
+            >
+              <BsQuestion />
+            </NavbarTooltipButton> */}
             <NavbarUndo />
             <NavbarRedo />
           </NavbarGroup>
@@ -121,6 +183,10 @@ export function Navbar() {
               <NavbarGameMenu />
             </NavbarGroup>
           </div>
+        </div>
+      ) : (
+        <div className="w-full flex gap-4 *:pr-4 *:border-r last:*:border-r-0 *:border-r-slate-600 text-slate-500 justify-end pr-2">
+          <NavbarLink v="/calculator" />
         </div>
       )}
     </nav>

@@ -10,6 +10,7 @@ import Nest from "/media/nest.png";
 import Screenshot from "/media/screenshot.png";
 import { PropsWithChildren } from "react";
 import classNames from "classnames";
+import { Link } from "react-router-dom";
 
 const variants = {
   hidden: { opacity: 0, translateY: -20 },
@@ -24,7 +25,7 @@ export const LandingDescription = () => {
         whileInView={{ opacity: 1, translateY: 0 }}
         transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
         viewport={{ once: true }}
-        className="max-[1300px]:hidden mb-8 w-full p-1 total-center max-sm:text-lg text-3xl font-bold"
+        className="max-[1300px]:hidden mb-8 w-full p-1 total-center max-sm:text-lg text-3xl font-normal drop-shadow-xl text-shadow"
       >
         Find Voice Leadings with Clarity and Ease.
       </m.h2>
@@ -36,52 +37,66 @@ export const LandingDescription = () => {
         viewport={{ once: true }}
         transition={{ delay: 0.5, delayChildren: 0.5, staggerChildren: 0.1 }}
       >
-        <Article>
-          <ArticleImage src={Screenshot} />
-          <ArticleCaption
-            title="Design Musical Architectures"
-            subtitle="Model the Geometry of Chords and Scales"
-          />
-        </Article>
-        <Article>
-          <ArticleImage src={Easy} objectPosition="object-bottom-left" />
-          <ArticleCaption
-            title="Apply Mathematical Transformations"
-            subtitle="Develop Notes Across Multiple Dimensions"
-          />
-        </Article>
-        <Article>
-          <ArticleImage src={Hotkeys} objectPosition="object-bottom-left" />
-          <ArticleCaption
-            title="Use Keyboard Gestures"
-            subtitle="Compose Quickly with Accessible Shortcuts"
-          />
-        </Article>
-        <Article>
-          <ArticleImage src={Composition} />
-          <ArticleCaption
-            title="Write Sequences Effortlessly"
-            subtitle="Rapidly Develop Your Musical Ideas"
-          />
-        </Article>
-        <Article>
-          <ArticleImage
-            src={Nest}
-            objectPosition="object-bottom-left"
-            minHeight="min-h-76"
-          />
-          <ArticleCaption
-            title="Create Elaborate Structures"
-            subtitle="Unravel the Layers of Harmonic Space"
-          />
-        </Article>
-        <Article>
-          <ArticleImage src={Math} minHeight="min-h-76" />
-          <ArticleCaption
-            title="Design Custom Functions"
-            subtitle="Write Mathematical Formulas with JavaScript"
-          />
-        </Article>
+        <Link to="/demo/bach">
+          <Article>
+            <ArticleImage src={Screenshot} />
+            <ArticleCaption
+              title="Design Musical Architectures"
+              subtitle="Model the Geometry of Chords and Scales"
+            />
+          </Article>
+        </Link>
+
+        <Link to="/demo/bach_sin">
+          <Article>
+            <ArticleImage src={Easy} objectPosition="object-bottom-left" />
+            <ArticleCaption
+              title="Apply Mathematical Transformations"
+              subtitle="Develop Notes Across Infinite Dimensions"
+            />
+          </Article>
+        </Link>
+
+        <Link to="/demo/barry_game">
+          <Article>
+            <ArticleImage src={Hotkeys} objectPosition="object-bottom-left" />
+            <ArticleCaption
+              title="Perform Keyboard Gestures"
+              subtitle="Compose Quickly with Accessible Shortcuts"
+            />
+          </Article>
+        </Link>
+        <Link to="/demo/waterfall">
+          <Article>
+            <ArticleImage src={Composition} />
+            <ArticleCaption
+              title="Write Sequences Effortlessly"
+              subtitle="Rapidly Develop Your Musical Ideas"
+            />
+          </Article>
+        </Link>
+        <Link to="/demo/carousels">
+          <Article>
+            <ArticleImage
+              src={Nest}
+              objectPosition="object-bottom-left"
+              minHeight="min-h-76"
+            />
+            <ArticleCaption
+              title="Create Elaborate Structures"
+              subtitle="Unravel the Layers of Harmonic Space"
+            />
+          </Article>
+        </Link>
+        <Link to="/demo/bach_sin">
+          <Article>
+            <ArticleImage src={Math} minHeight="min-h-76" />
+            <ArticleCaption
+              title="Design Custom Functions"
+              subtitle="Write Mathematical Formulas with JavaScript"
+            />
+          </Article>
+        </Link>
         <Article>
           <ArticleImage src={Portals} minHeight="min-h-72" />
           <ArticleCaption
@@ -101,14 +116,17 @@ export const LandingDescription = () => {
   );
 };
 
-function Article(props: PropsWithChildren) {
+function Article(props: PropsWithChildren<{ className?: string }>) {
   return (
     <m.article
       {...props}
       variants={variants}
       transition={{ type: "spring" }}
       viewport={{ once: true }}
-      className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
+      className={classNames(
+        props.className,
+        "flex flex-col rounded-md overflow-hidden cursor-pointer hover:saturate-125 group border-2 border-blue-500"
+      )}
     >
       {props.children}
     </m.article>

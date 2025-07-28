@@ -197,6 +197,31 @@ export const patternsSlice = createNormalSlice({
       }
       pattern.stream.splice(spliceIndex, 1);
     },
+    /** Add a stream to a pattern. */
+    addPatternStream: (
+      state,
+      action: Action<{ id: PatternId; stream: PatternBlock[] }>
+    ) => {
+      const { id, stream } = unpackAction(action);
+      const pattern = state.entities[id];
+      if (!pattern) return;
+      pattern.stream.push(...stream);
+    },
+    /** Insert a pattern stream. */
+    insertPatternStream: (
+      state,
+      action: Action<{ id: PatternId; stream: PatternBlock[]; index?: number }>
+    ) => {
+      const { id, stream, index } = unpackAction(action);
+      const pattern = state.entities[id];
+      if (!pattern) return;
+      if (index === undefined) {
+        pattern.stream.push(...stream);
+        return;
+      }
+      if (index < 0 || index > pattern.stream.length) return;
+      pattern.stream.splice(index, 0, ...stream);
+    },
   },
 });
 
@@ -223,6 +248,8 @@ export const {
   updatePatternBlockDuration,
   removePatternBlock,
   transposePatternBlock,
+  addPatternStream,
+  insertPatternStream,
 } = patternsSlice.actions;
 
 export default patternsSlice.reducer;

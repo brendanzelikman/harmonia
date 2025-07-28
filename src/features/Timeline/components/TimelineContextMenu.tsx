@@ -39,7 +39,7 @@ import {
   TabPanel,
   Menu,
 } from "@headlessui/react";
-import { QuarterNoteTicks } from "utils/duration";
+import { QUARTER_NOTE_TICKS } from "utils/duration";
 import {
   selectPatternClipIds,
   selectPoseClipIds,
@@ -129,7 +129,7 @@ export const TimelineContextMenu = memo(() => {
           onKeyDown={(e) => {
             blurOnEnter(e, () => {
               const isValid = durationValue || duration === "0";
-              const ticks = timeSignature * QuarterNoteTicks * durationValue;
+              const ticks = timeSignature * QUARTER_NOTE_TICKS * durationValue;
               const newClips = clips.map((clip) => ({
                 ...clip,
                 duration: isValid ? ticks : undefined,
@@ -145,7 +145,7 @@ export const TimelineContextMenu = memo(() => {
           className="total-center p-2 py-0 w-32 rounded border border-cyan-500 cursor-pointer hover:bg-slate-600/20"
           onClick={() => {
             const isValid = durationValue || duration === "0";
-            const ticks = timeSignature * QuarterNoteTicks * durationValue;
+            const ticks = timeSignature * QUARTER_NOTE_TICKS * durationValue;
             const newClips = clips.map((clip) => ({
               ...clip,
               duration: isValid ? ticks : undefined,
@@ -159,7 +159,7 @@ export const TimelineContextMenu = memo(() => {
           className="total-center p-2 py-0 w-32 rounded border border-teal-500 cursor-pointer hover:bg-slate-600/20"
           onClick={() => {
             const isValid = durationValue || duration === "0";
-            const ticks = timeSignature * QuarterNoteTicks * durationValue;
+            const ticks = timeSignature * QUARTER_NOTE_TICKS * durationValue;
             if (isValid) dispatch(insertMeasure(ticks, clips));
           }}
         >

@@ -1,15 +1,10 @@
 import LogoImage from "assets/images/logo.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  deleteDemoProjects,
-  deleteProjects,
-  getProjects,
-  uploadProject,
-} from "app/projects";
+import { deleteProjects, getProjects, uploadProject } from "app/projects";
 import { useFetch } from "hooks/useFetch";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import { DEMO_GENRES } from "lib/demos";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { GiCalculator, GiCompactDisc, GiStarGate } from "react-icons/gi";
 import {
   BsChevronRight,
@@ -37,15 +32,17 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
+import { useToggle } from "hooks/useToggle";
 
 export function NavbarBrand() {
   const dispatch = useAppDispatch();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const onSplash = pathname === SPLASH;
   const onMain = pathname === CALCULATOR;
   const projectId = useAppValue(selectProjectId);
-  const [show, setShow] = useState(false);
-  useHotkeys({ escape: () => setShow(false) });
+  const brand = useToggle("brand");
+  useHotkeys({ escape: () => brand.close() });
   const { data } = useFetch(getProjects, UPDATE_PROJECT_EVENT);
   const projects = useMemo(
     () =>
@@ -59,7 +56,8 @@ export function NavbarBrand() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const x = pathname === CALCULATOR ? 50 : 300;
-      if ((event.x > x && event.y < 60) || event.x > 300) setShow(false); // Blur to the right
+      const max = 400;
+      if ((event.x > max && event.y < 60) || event.x > max) brand.close(); // Blur to the right
     };
     document.addEventListener("click", handleClickOutside);
     return () => {
@@ -67,22 +65,23 @@ export function NavbarBrand() {
     };
   }, [pathname]);
   const Icon = onMain ? GiStarGate : GiCalculator;
-  const [onDemos, setOnDemos] = useState(false);
+  const demos = useToggle("demos", false);
+  const onDemos = demos.isOpen;
   const callback = useCallback(
     () => (pathname ? navigate(CALCULATOR) : undefined),
     [pathname, navigate]
   );
   return (
     <>
-      {show && (
+      {brand.isOpen && (
         <div className="fixed w-[303px] h-screen overflow-scroll bg-slate-900 border-r-2 border-r-slate-700 animate-in fade-in duration-150 top-nav left-0">
           <div className="flex flex-col h-full p-4 gap-4">
             <Link
-              to={onMain ? SPLASH : CALCULATOR}
+              to={!onSplash ? SPLASH : CALCULATOR}
               className="flex items-center gap-4 group hover:underline font-light text-lg border-b border-slate-600 pb-4 cursor-pointer"
             >
               <Icon className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-lg" />{" "}
-              <div>{onMain ? "Landing Screen" : "Musical Calculator"}</div>
+              <div>{!onSplash ? "Landing Screen" : "Musical Calculator"}</div>
             </Link>
             <button
               className="flex items-center gap-4 group hover:underline font-light text-lg border-b border-slate-600 pb-4 cursor-pointer"
@@ -103,14 +102,14 @@ export function NavbarBrand() {
                 <div
                   data-selected={!onDemos}
                   className="font-semibold data-[selected=true]:text-indigo-400 cursor-pointer select-none"
-                  onClick={() => setOnDemos(false)}
+                  onClick={() => demos.close()}
                 >
                   Projects
                 </div>
                 <div
                   data-selected={onDemos}
                   className="font-semibold data-[selected=true]:text-indigo-400 cursor-pointer select-none"
-                  onClick={() => setOnDemos(true)}
+                  onClick={() => demos.open()}
                 >
                   Demos
                 </div>
@@ -214,10 +213,9 @@ export function NavbarBrand() {
       )}
       <div
         className="cursor-pointer select-none flex items-center gap-3 text-2xl rounded-full focus:ring-0 focus:outline-0 active:opacity-85"
-        onClick={() => setShow((prev) => !prev)}
+        onClick={brand.toggle}
       >
         <img src={LogoImage} alt="Logo" className="size-10 shrink-0" />
-        {!onMain && "Harmonia"}
       </div>
     </>
   );

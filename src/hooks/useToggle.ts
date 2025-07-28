@@ -3,9 +3,9 @@ import { useEvent } from "./useEvent";
 import { dispatchCustomEvent } from "utils/event";
 
 type ToggledKey = string;
-const openKey = (key: ToggledKey) => `${key}-open`;
-const closeKey = (key: ToggledKey) => `${key}-close`;
-const toggleKey = (key: ToggledKey) => `${key}-toggle`;
+export const openKey = (key: ToggledKey) => `${key}-open`;
+export const closeKey = (key: ToggledKey) => `${key}-close`;
+export const toggleKey = (key: ToggledKey) => `${key}-toggle`;
 
 /** Custom hook for using a toggled value. */
 export const useToggle = (

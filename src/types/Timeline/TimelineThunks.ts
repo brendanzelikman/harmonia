@@ -59,7 +59,7 @@ import {
   selectTransportBPM,
   selectTransportTimeSignature,
 } from "types/Transport/TransportSelectors";
-import { QuarterNoteTicks, secondsToTicks } from "utils/duration";
+import { QUARTER_NOTE_TICKS, secondsToTicks } from "utils/duration";
 import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import {
@@ -295,8 +295,8 @@ export const convertProjectToNotes = (project: Project) => {
   let startBar = 0;
   let endBar = 0;
   if (startBar > endBar) return [];
-  const startTick = startBar * QuarterNoteTicks * timeSignature;
-  let endTick = endBar * QuarterNoteTicks * timeSignature;
+  const startTick = startBar * QUARTER_NOTE_TICKS * timeSignature;
+  let endTick = endBar * QUARTER_NOTE_TICKS * timeSignature;
   if (endTick === 0) endTick = selectLastArrangementTick(project);
 
   const chordsByTicks = selectMidiChordsByTicks(project);

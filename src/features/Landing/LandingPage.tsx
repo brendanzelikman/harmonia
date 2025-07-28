@@ -2,10 +2,7 @@ import { LandingSplash } from "features/Landing/sections/LandingSplash";
 import { LandingDescription } from "./sections/LandingDescription";
 import { LandingFooter } from "./sections/LandingFooter";
 import { LandingDetail } from "./sections/LandingDetail";
-import { LandingVideo } from "./sections/LandingVideo";
 import { LandingPiano } from "./sections/LandingPiano";
-import { LandingDemos } from "./sections/LandingDemos";
-import { LandingCreators } from "./sections/LandingCreators";
 import { useTitle } from "hooks/useTitle";
 
 /** The landing page is the entry point of the website */
@@ -17,9 +14,6 @@ export function LandingPage() {
         <LandingSplash />
         <LandingDescription />
         <LandingDetail />
-        <LandingDemos />
-        <LandingVideo />
-        <LandingCreators />
         <LandingPiano />
         <LandingFooter />
       </div>

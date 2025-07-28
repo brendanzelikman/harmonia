@@ -6,9 +6,9 @@ import {
 import { playPatternChord } from "types/Pattern/PatternThunks";
 import {
   PPQ,
-  QuarterNoteTicks,
-  SixteenthNoteTicks,
-  WholeNoteTicks,
+  QUARTER_NOTE_TICKS,
+  SIXTEENTH_NOTE_TICKS,
+  WHOLE_NOTE_TICKS,
 } from "utils/duration";
 import { selectTransport } from "./TransportSelectors";
 import { dispatchTick } from "./TransportTick";
@@ -76,17 +76,21 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
 
     // Scroll the timeline every measure
     const scrollRatio = (scroll || 1) * timeSignature;
-    if (scroll && newTick && newTick % (scrollRatio * QuarterNoteTicks) === 0) {
+    if (
+      scroll &&
+      newTick &&
+      newTick % (scrollRatio * QUARTER_NOTE_TICKS) === 0
+    ) {
       const grid = document.getElementsByClassName("rdg-grid")[0];
       if (grid)
         grid.scroll({
-          left: grid.scrollLeft + scroll * WholeNoteTicks * cellWidth,
+          left: grid.scrollLeft + scroll * WHOLE_NOTE_TICKS * cellWidth,
           behavior: "smooth",
         });
     }
 
     // If swinging, offset the time
-    const stepIndex = Math.floor(newTick / SixteenthNoteTicks);
+    const stepIndex = Math.floor(newTick / SIXTEENTH_NOTE_TICKS);
     const isSwing = stepIndex % 2 === 1;
     if (swing && isSwing) {
       const swingOffset = (60 / bpm) * (swing / 8);

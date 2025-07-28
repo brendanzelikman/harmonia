@@ -1,7 +1,7 @@
-import { SixteenthNoteTicks, WholeNoteTicks } from "utils/duration";
+import { SIXTEENTH_NOTE_TICKS, WHOLE_NOTE_TICKS } from "utils/duration";
 import { Seconds } from "types/units";
 import { Sampler } from "tone";
-import { EighthNoteTicks } from "utils/duration";
+import { EIGHTH_NOTE_TICKS } from "utils/duration";
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { isEqual, range, sample } from "lodash";
 import { PresetScaleList } from "lib/presets/scales";
@@ -114,8 +114,8 @@ export const randomizePattern =
 
     // Pick a random note from the scale for each note in the pattern
     const streamLength = isStraight
-      ? (data.clipDuration ?? WholeNoteTicks) /
-        (data.duration ?? SixteenthNoteTicks)
+      ? (data.clipDuration ?? WHOLE_NOTE_TICKS) /
+        (data.duration ?? SIXTEENTH_NOTE_TICKS)
       : pattern.stream.length;
     let degrees = range(0, scale.notes.length);
     let stream: PatternStream = [];
@@ -126,7 +126,7 @@ export const randomizePattern =
       degrees = degrees.filter((d) => d !== degree);
       const velocity = 100;
       const duration = isStraight
-        ? data.duration ?? SixteenthNoteTicks
+        ? data.duration ?? SIXTEENTH_NOTE_TICKS
         : durations[i];
 
       const neighborSeed = Math.random();
@@ -169,7 +169,7 @@ export const playPatternChord = (
   if (!notes.length) return;
 
   // Get the Tone.js subdivision
-  const duration = getPatternBlockDuration(notes) ?? EighthNoteTicks;
+  const duration = getPatternBlockDuration(notes) ?? EIGHTH_NOTE_TICKS;
   const subdivision = `${duration}i`;
 
   // Get the velocity scaled for Tone.js

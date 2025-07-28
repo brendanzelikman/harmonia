@@ -14,7 +14,6 @@ import {
 import { loadDemoProject } from "types/Project/ProjectLoaders";
 import { useNavigate } from "react-router-dom";
 import { CALCULATOR } from "app/router";
-import { CiWavePulse1 } from "react-icons/ci";
 
 const variants = {
   hidden: { opacity: 0, translateY: 20 },

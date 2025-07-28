@@ -17,7 +17,7 @@ import { createUndoType } from "types/redux";
 import { promptUserForString } from "lib/prompts/html";
 import { inputRomanNumerals } from "utils/roman";
 import { createNewPoseClip } from "types/Track/PatternTrack/PatternTrackThunks";
-import { WholeNoteTicks } from "utils/duration";
+import { WHOLE_NOTE_TICKS } from "utils/duration";
 import { nanoid } from "@reduxjs/toolkit";
 import { promptLineBreak } from "components/PromptModal";
 import {
@@ -223,7 +223,7 @@ export const inputPoseRomans = (): Thunk => (dispatch, getProject) => {
       if (!trackId) return;
       for (let i = 0; i < leadings.length; i++) {
         const vector = leadings[i];
-        const offset = noClip ? WholeNoteTicks : patternClip.duration;
+        const offset = noClip ? WHOLE_NOTE_TICKS : patternClip.duration;
         const tick = baseTick + (i + 1) * offset;
         const pose = { vector, trackId };
         const clip = { tick, trackId };

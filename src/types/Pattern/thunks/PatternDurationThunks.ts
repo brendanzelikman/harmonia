@@ -3,8 +3,8 @@ import { selectPatternById } from "../PatternSelectors";
 import {
   createSixteenthRest,
   getDurationTicks,
-  SixteenthNoteTicks,
-  SixtyFourthNoteTicks,
+  SIXTEENTH_NOTE_TICKS,
+  SIXTY_FOURTH_NOTE_TICKS,
   StraightDurationType,
 } from "utils/duration";
 import { isPatternChord, PatternId, PatternNote } from "../PatternTypes";
@@ -32,7 +32,7 @@ export const stretchPattern =
       const duration = getPatternBlockDuration(block);
       const newDuration = clamp(
         duration * factor,
-        SixtyFourthNoteTicks,
+        SIXTY_FOURTH_NOTE_TICKS,
         Infinity
       );
       if (!isPatternChord(block)) return { duration: newDuration };
@@ -66,7 +66,7 @@ export const beatifyPattern =
     const halfBeat = new Array(8).fill(0).map(() => {
       const note = flatPicks.pop() ?? sample(flatSet);
       if (!note || Math.random() < restChance) return createSixteenthRest();
-      return { ...note, duration: SixteenthNoteTicks };
+      return { ...note, duration: SIXTEENTH_NOTE_TICKS };
     });
     const beat = [...halfBeat, ...halfBeat];
 

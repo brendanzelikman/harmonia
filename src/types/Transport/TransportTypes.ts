@@ -1,6 +1,6 @@
 import { DEFAULT_BPM } from "utils/constants";
 import { BPM, Seconds, Volume } from "../units";
-import { WholeNoteTicks } from "utils/duration";
+import { WHOLE_NOTE_TICKS } from "utils/duration";
 
 /** The Transport mirrors and stores the Tone.js transport. */
 export interface Transport {
@@ -22,7 +22,7 @@ export const defaultTransport: Transport = {
   swing: 0,
   loop: false,
   loopStart: 0,
-  loopEnd: WholeNoteTicks - 1,
+  loopEnd: WHOLE_NOTE_TICKS - 1,
   volume: 0,
   mute: false,
   scroll: 0,

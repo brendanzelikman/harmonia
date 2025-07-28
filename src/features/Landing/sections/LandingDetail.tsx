@@ -25,7 +25,7 @@ export const LandingDetail = () => {
           delayChildren: 0.2,
           staggerChildren: 0.1,
         }}
-        className="p-8 max-sm:p-0 flex gap-24 max-sm:gap-12 justify-center flex-wrap *:w-md *:flex *:flex-col *:gap-5 *:*:first:text-3xl max-sm:*:*:first:text-center max-sm:*:*:first:text-2xl *:*:first:font-bold *:*:last:text-xl max-sm:*:*:last:text-base text-pretty *:*:last:font-light *:*:last:text-gray-300"
+        className="py-8 max-sm:p-0 flex gap-24 max-sm:gap-12 justify-evenly flex-wrap *:w-lg *:flex *:flex-col *:gap-5 *:*:first:text-3xl max-sm:*:*:first:text-center max-sm:*:*:first:text-2xl *:*:first:font-bold *:*:last:text-xl max-sm:*:*:last:text-base text-pretty *:*:last:font-light *:*:last:text-gray-300"
       >
         <m.div variants={variants}>
           <div>What is Harmonia?</div>

@@ -15,9 +15,11 @@ export const NavbarLink = ({ v, l }: { v: string; l?: string }) => {
     >
       {pathname === SPLASH
         ? "Open Calculator"
-        : getContext().state === "running"
-        ? "Loading Calculator..."
-        : "Click to Start Audio"}
+        : pathname === CALCULATOR
+        ? getContext().state === "running"
+          ? "Loading Calculator..."
+          : "Click to Start Audio"
+        : "Open Calculator"}
     </Link>
   );
 };

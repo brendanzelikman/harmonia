@@ -39,7 +39,7 @@ import { selectTransportBPM } from "types/Transport/TransportSelectors";
 import {
   secondsToTicks,
   getClosestDuration,
-  WholeNoteTicks,
+  WHOLE_NOTE_TICKS,
   createEighthNote,
 } from "utils/duration";
 import {
@@ -193,7 +193,9 @@ export const promptUserForPattern =
               ...pattern.stream,
               ...pattern.stream.slice(1, -1).toReversed(),
             ];
-            const duration = Math.round(WholeNoteTicks / pattern.stream.length);
+            const duration = Math.round(
+              WHOLE_NOTE_TICKS / pattern.stream.length
+            );
             for (let i = 0; i < pattern.stream.length; i++) {
               pattern.stream[i] = getPatternBlockWithNewNotes(
                 pattern.stream[i],
