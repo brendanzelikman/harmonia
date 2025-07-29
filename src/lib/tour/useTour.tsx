@@ -1,7 +1,9 @@
 import { alertModal } from "components/AlertModal";
+import { DEMOS_BY_KEY } from "lib/demos";
 import { ArrangePatternIcon, ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { CreateTreeIcon } from "lib/hotkeys/track";
 import { GiJackPlug, GiMisdirection, GiPathDistance } from "react-icons/gi";
+import { loadDemoProject } from "types/Project/ProjectLoaders";
 
 export const TOUR_STEPS = [
   () =>
@@ -230,7 +232,7 @@ export const TOUR_STEPS = [
     }),
 ];
 
-export const launchTour = async () => {
+export const startTour = async () => {
   for (let i = 0; i < TOUR_STEPS.length; i++) {
     const step = TOUR_STEPS[i];
     const result = await step();
@@ -238,3 +240,6 @@ export const launchTour = async () => {
   }
   return true;
 };
+
+export const playTour = () =>
+  loadDemoProject(DEMOS_BY_KEY["barry_game"].project, startTour);

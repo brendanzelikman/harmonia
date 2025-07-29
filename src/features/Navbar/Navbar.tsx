@@ -1,4 +1,4 @@
-import { ABOUT, CALCULATOR, SPLASH, TUTORIAL } from "app/router";
+import { ABOUT, CALCULATOR, SPLASH, TOUR } from "app/router";
 import { NavbarBrand } from "features/Navbar/components/NavbarBrand";
 import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
@@ -75,7 +75,7 @@ export function Navbar() {
           >
             Demos
           </div>
-          <Link to={TUTORIAL} className="focus:text-sky-400">
+          <Link to={TOUR} className="focus:text-sky-400">
             Tutorial
           </Link>
           <Link
