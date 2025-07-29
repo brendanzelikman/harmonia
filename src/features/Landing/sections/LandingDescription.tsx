@@ -52,7 +52,7 @@ export const LandingDescription = () => {
             <ArticleImage src={Easy} objectPosition="object-bottom-left" />
             <ArticleCaption
               title="Apply Mathematical Transformations"
-              subtitle="Develop Notes Across Infinite Dimensions"
+              subtitle="Develop Notes Across Multidimensional Spaces"
             />
           </Article>
         </Link>
@@ -97,20 +97,24 @@ export const LandingDescription = () => {
             />
           </Article>
         </Link>
-        <Article>
-          <ArticleImage src={Portals} minHeight="min-h-72" />
-          <ArticleCaption
-            title="Discover Easter Eggs"
-            subtitle="Have Fun With Whimsical Features"
-          />
-        </Article>
-        <Article>
-          <ArticleImage src={Performance} minHeight="min-h-72" />
-          <ArticleCaption
-            title="Make Cool Music"
-            subtitle="Build Instruments with Web Audio"
-          />
-        </Article>
+        <Link to="/tutorial">
+          <Article>
+            <ArticleImage src={Portals} minHeight="min-h-72" />
+            <ArticleCaption
+              title="Discover Easter Eggs"
+              subtitle="Have Fun With Whimsical Features"
+            />
+          </Article>
+        </Link>
+        <Link to="/tutorial">
+          <Article>
+            <ArticleImage src={Performance} minHeight="min-h-72" />
+            <ArticleCaption
+              title="Make Cool Music"
+              subtitle="Build Instruments with Web Audio"
+            />
+          </Article>
+        </Link>
       </m.div>
     </LandingSection>
   );

@@ -30,18 +30,28 @@ export const TOUR_STEPS = [
           sequences of clips in Samplers C and D.
         </>,
         <>
-          Pose {<ArrangePoseIcon className="inline-flex" />} — The clusters of
-          clips across Scales A, B, and C.
+          Pose {<ArrangePoseIcon className="inline-flex" />} — The cluster of
+          clips across Scales B and elsewhere.
         </>,
       ],
     }),
   () =>
     alertModal({
-      title: `What is a Tree?`,
+      title: `What is a Tree? (1/2)`,
       description: [
-        "A Tree is a family of tracks created out of Scales and Samplers.",
-        "Scales are used for organizing the pitch classes of your notes.",
-        "Samplers are used for determining the timbres of your notes.",
+        "A Tree is a family of tracks created from Scales and Samplers.",
+        "- Scales are groups of notes used to organize pitch.",
+        "- Samplers are instruments used to organize timbre.",
+        "Together, Scales and Samplers form a musical space of notes.",
+      ],
+    }),
+  () =>
+    alertModal({
+      title: `What is a Tree? (2/2)`,
+      description: [
+        "The tracks of a Tree are organized in a hierarchy.",
+        "- Each track is given a number for position (e.g. 1, 1.1, 1.1.1)",
+        "- Each track is given a letter for identity (e.g. A, B, C)",
         "This project's tree was created with the following command:",
         <span className="italic text-gray-400">
           {"A minor scale => A minor 7th chord => piano + piano"}
@@ -50,45 +60,65 @@ export const TOUR_STEPS = [
     }),
   () =>
     alertModal({
-      title: `What is a Pattern?`,
+      title: `What is a Pattern? (1/2)`,
       description: [
-        "A Pattern is a sequence of notes that can be played by a track.",
-        "Here, Pattern 1 has the melody and Pattern 2 has the chords.",
-        "These two patterns repeat until the end of the project.",
-        "You can double click on a Pattern to open its dropdown editor.",
-        "You can drag and drop a Pattern to move it around the timeline.",
+        "A Pattern is a sequence of Scale Notes or Pedal Notes.",
+        "- Scale Notes will move around with the Scales of a Tree.",
+        "- Pedal Notes will stay in place regardless of the Scales.",
+        "By default, the notes you input will bind as Scale Notes.",
       ],
     }),
   () =>
     alertModal({
-      title: `What is a Pose?`,
+      title: `What is a Pattern? (2/2)`,
       description: [
-        "A Pose is a transformation applied to a Scale or Pattern.",
-        "The Poses in Track #1 change around the octave and mode.",
-        "The Poses in Track #1.1 create the central chord progression.",
-        "The Poses in Track #1.1.3 invert the background chords.",
-        "You can double click, drag, and drop a Pose like a Pattern.",
+        "Patterns are scheduled and arranged as Clips in a Track.",
+        "- You can drag and drop a Pattern to move it around.",
+        "- You can double click on a Pattern to open its editor.",
+        "The editor of a Pattern will let you add and remove notes.",
       ],
     }),
   () =>
     alertModal({
-      title: `Reviewing the Project`,
+      title: `What is a Pose? (1/2)`,
       description: [
-        "Let's review the structure and purpose of each object:",
-        "Trees can be edited to change the base Scales and Samplers.",
-        "Patterns can be arranged to create melodies and rhythms.",
-        "Poses can be arranged to transform Scales and Patterns.",
+        "A Pose is a transformation applied to a Scale or Sampler.",
+        "- When applied to a Scale, it will cascade down the Tree.",
+        "- When applied to a Sampler, it will transform its Patterns.",
+        "Like Patterns, Poses are scheduled and arranged as Clips.",
       ],
     }),
   () =>
     alertModal({
-      title: `What is a Gesture?`,
+      title: `What is a Pose? (2/2)`,
+      description: [
+        "Poses can have many different applications in a project:",
+        "- The Poses in Track #1 change around the octave and mode.",
+        "- The Poses in Track #1.1 create the central chord progression.",
+        "- The Poses in Track #1.1.2 invert the background chords.",
+        "Poses can even use custom functions written in JavaScript!",
+      ],
+    }),
+  () =>
+    alertModal({
+      title: `Review: Project Structure`,
+      description: [
+        "Great job, you've reached the halfway point! Let's review:",
+        "- Trees are used to organize your Scales and Samplers.",
+        "- Patterns are arranged as Clips to play out notes.",
+        "- Poses are arranged as Clips to transform notes.",
+        "Together, these objects form the structure of a project.",
+      ],
+    }),
+  () =>
+    alertModal({
+      title: `What are Gestures? (1/2)`,
       description:
         "To speed up the workflow of a project, Harmonia comes with a variety of keyboard shortcuts called Gestures.",
     }),
   () =>
     alertModal({
-      title: `What are the Gestures?`,
+      title: `What are Gestures? (2/2)`,
       description: [
         "Currently, Harmonia has three kinds of Gestures:",
         <>
@@ -107,54 +137,54 @@ export const TOUR_STEPS = [
     }),
   () =>
     alertModal({
-      title: `Testing your Gestures`,
+      title: `Testing Your Gestures`,
       description: [
-        "To test out your gestures, try these different actions.",
-        "Hold V and press 1 to make the first sampler a little louder.",
-        "Hold V and Minus and press 1 to make it a little quieter.",
-        "Hold Q and press 1 to move one step up the first scale.",
-        "Hold Q and Minus and press 1 to move one step down.",
+        "To test out some gestures, try these different actions:",
+        "- Hold V and press 1 to make the first sampler a little louder.",
+        "- Hold V and Minus and press 1 to make it a little quieter.",
+        "- Hold Q and press 1 to move one step up the first scale.",
+        "- Hold Q and Minus and press 1 to move one step down.",
       ],
     }),
   () =>
     alertModal({
-      title: `What are Instructions?`,
+      title: `Saving Your Gestures`,
       description:
         "Harmonia allows you to turn Gestures into Instructions that can display keyboard shortcuts for you in real-time.",
     }),
   () =>
     alertModal({
-      title: "Finishing the Demo",
-      description: `To complete this tutorial, we'll have you follow the Instructions of the project to see the Transposition gesture in action.`,
+      title: "Exploring Your Gestures",
+      description: `To complete this tutorial, we'll have you follow the Instructions of this project to see your Gestures in action.`,
     }),
-  () => () =>
+  () =>
     alertModal({
-      title: `What is a Voice Leading?`,
+      title: `What is a Voice Leading? (1/2)`,
       description: [
-        "To prepare you for the exercise, we need to cover voice leadings.",
-        "In practice, voice leadings take notes along unique paths.",
-        "In theory, this is equivalent to transposition along scales.",
-        "In Harmonia, we can create voice leadings out of Poses.",
+        "Before you start, we need to prepare you about voice leading.",
+        "- In theory, a voice leading is a unique path taken by notes.",
+        "- In practice, this can be equivalent to transposition.",
+        "This means that Poses can be used to create voice leadings.",
       ],
     }),
   () =>
     alertModal({
-      title: `Previewing the Piece`,
+      title: `What is a Voice Leading? (2/2)`,
       description: [
-        "First, let's listen to the 'incomplete' version of the piece.",
-        "All of the chords are correct, but something will sound off.",
-        "Press Space to start the timeline and try to figure out what it is.",
-        "Press Return to stop the timeline and proceed with the tour.",
+        "However, not all voice leadings are created equal.",
+        "Let's check out this piece and try to hear what's 'wrong'.",
+        "- Press Space to start the timeline when you're ready.",
+        "- Press Return to stop the timeline and proceed with the tour.",
       ],
     }),
   () =>
     alertModal({
-      title: `What is the Problem?`,
+      title: `What's the 'Problem' Here?'`,
       description: [
-        "The problem is that the melody doesn't stop moving up.",
-        "In practice, efficient voice leadings keep notes close together.",
-        "In theory, this is equivalent to contrasting transpositions.",
-        "In Harmonia, we could create many different Poses to 'fix' this.",
+        "The 'problem' is that the melody moves too high up the scale.",
+        "- In theory, an 'efficient' voice leading keeps notes close.",
+        "- In practice, this can be achieved with opposing transpositions.",
+        "In this case, we could add Poses that move the melody down.",
       ],
     }),
   () =>
@@ -163,38 +193,39 @@ export const TOUR_STEPS = [
       description: [
         "These 'musical puzzles' lie at the heart of Harmonia.",
         "In theory, there are infinitely many solutions, all valid.",
-        "In practice, there are solutions we like more than others.",
+        "In practice, there are solutions we might prefer over others.",
         "Exploring your different options is what it's all about!",
       ],
     }),
   () =>
     alertModal({
-      title: `Your Turn!`,
+      title: `The Final Exercise!`,
       description: [
-        "Alright! Now it's your turn to perform!",
-        "You may have noticed your Instructions in the top left corner.",
-        "These will signal Gestures for you to create Poses in real time.",
-        "To prepare, press Shift + 3 to select your third Track.",
+        "Alright! Now it's your turn to perform the piece!",
+        "Your Instructions are displayed in the top left corner.",
+        "The goal is to follow the Instructions as best as you can.",
+        "To get ready, press Shift + 3 to select your third Track.",
       ],
     }),
   () =>
     alertModal({
       title: "Have Fun!",
       description: [
-        "When you are ready, press Space to start the timeline.",
+        "When you are ready, press Space to begin playback.",
         "Follow the Instructions and have fun with the piece!",
+        "If you make a mistake, don't worry, that's improv!",
         "Once you are done, press Return to stop and proceed.",
       ],
     }),
   () =>
     alertModal({
-      title: "That's All!",
+      title: "You Did It!",
       description: [
         "Congratulations, that was a fantastic performance!",
         "We hope you are ready to create and explore on your own!",
-        "The top left icon has a menu for all of your projects.",
-        "We recommend opening other demos to see what's possible.",
-        "That's all for now, until next time!",
+        "The top left icon can be clicked to see projects and demos.",
+        "We recommend opening other pieces to see what's possible.",
+        "That's all for now, see you next time!",
       ],
     }),
 ];

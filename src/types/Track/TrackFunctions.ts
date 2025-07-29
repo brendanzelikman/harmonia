@@ -18,9 +18,11 @@ export const getTopLevelTracks = (trackMap: TrackMap) => {
 };
 
 export const sortTrackIds = (trackIds: TrackId[], trackMap: TrackMap) => {
-  return trackIds.toSorted((a, b) => {
-    return getTrackSortOrder(trackMap[a]) - getTrackSortOrder(trackMap[b]);
-  });
+  return trackIds
+    .filter((t) => !!trackMap[t])
+    .toSorted((a, b) => {
+      return getTrackSortOrder(trackMap[a]) - getTrackSortOrder(trackMap[b]);
+    });
 };
 
 /** Get the list of ordered track IDs. */

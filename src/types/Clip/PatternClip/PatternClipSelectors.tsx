@@ -56,7 +56,7 @@ export const selectPatternNoteLabel = (
         })
         .join("");
 
-      return `\{ ${scale}:${degree}${offsets} \}`;
+      return `\{ ${scale}${degree}${offsets} \}`;
     })
     .join(", ");
 };

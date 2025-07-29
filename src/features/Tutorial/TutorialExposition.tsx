@@ -132,4 +132,4 @@ export const TutorialExpositionPatterns =
   "A Pattern is a musical passage created out of absolute pitches or relative scale degrees.";
 
 export const TutorialExpositionPoses =
-  "A Pose is a musical function that can transform the notes of a Scale or Pattern.";
+  "A Pose is a musical function that can transform the notes of a Scale or Sampler.";

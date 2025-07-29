@@ -150,7 +150,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const InputPattern = (
     <DropdownButton
       width="size-8"
-      dropdown="Input Pattern"
+      dropdown="Input by Prompt"
       theme="sky"
       onClick={() => dispatch(promptUserForPattern(id, index))}
       icon={<GiKeyboard className="text-3xl pt-1" />}
@@ -237,7 +237,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     <DropdownButton
       width="size-8"
       theme="sky"
-      dropdown={isBinding ? "Binding (Scale Notes)" : "Freezing (Pedal Notes)"}
+      dropdown={isBinding ? "Binding (To Scale)" : "Freezing (No Scale)"}
       icon={
         isBinding ? (
           <GiDominoMask className="text-xl" />
@@ -254,7 +254,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
       width="size-8"
       disabled={isEmpty || isBinding}
       theme="sky"
-      dropdown={"Bind Pattern (to Scale)"}
+      dropdown={"Bind Pattern (To Scale)"}
       onClick={() => {
         const string = "auto";
         const undoType = createUndoType("bindNote", nanoid());
@@ -279,7 +279,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
       width="size-8"
       disabled={isEmpty || !isBinding}
       theme="red"
-      dropdown={"Lock Pattern (To Pedal Notes)"}
+      dropdown={"Lock Pattern (No Scale)"}
       onClick={() => {
         const string = "pedal";
         const undoType = createUndoType("bindNote", nanoid());
@@ -304,7 +304,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
       width="size-8"
       disabled={isEmpty}
       theme="fuchsia"
-      dropdown="Transform Pattern"
+      dropdown="Transform by Prompt"
       icon={<GiCrystalWand className="text-xl" />}
       onClick={() => dispatch(promptUserForPatternEffect(id))}
     />
@@ -368,13 +368,18 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                     ? "Add Note to Edit Pattern"
                     : "Click Note to Edit Properties"}
                 </div>
-                <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
-                  {ToggleInsert}
-                  {ToggleLock}
-                  {ToggleCursor}
-                  {BindNote}
-                  {EraseNote}
-                  {TogglePiano}
+                <div className="flex w-full items-center gap-2">
+                  {/* <div className="text-slate-200 text-xs font-thin grow text-end">
+                    Input
+                  </div> */}
+                  <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
+                    {ToggleInsert}
+                    {ToggleLock}
+                    {ToggleCursor}
+                    {BindNote}
+                    {EraseNote}
+                    {TogglePiano}
+                  </div>
                 </div>
                 <div className="mx-auto capitalize text-emerald-300 max-w-64 overflow-scroll">
                   {mode === "piano"
@@ -385,13 +390,18 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                   to {isInserting ? "Insert" : isEditing ? "Edit" : "Add"}{" "}
                   {isBinding ? "Scale" : "Pedal"} Note
                 </div>
-                <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
-                  {GeneratePattern}
-                  {InputPattern}
-                  {TransformPattern}
-                  {BindNotes}
-                  {LockNotes}
-                  {ClearPattern}
+                <div className="flex w-full items-center gap-2">
+                  {/* <div className="text-slate-200 text-xs font-thin grow text-end">
+                    Edit
+                  </div> */}
+                  <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
+                    {GeneratePattern}
+                    {BindNotes}
+                    {LockNotes}
+                    {InputPattern}
+                    {TransformPattern}
+                    {ClearPattern}
+                  </div>
                 </div>
               </div>
             </div>

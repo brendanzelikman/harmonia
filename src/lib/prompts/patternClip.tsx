@@ -427,10 +427,16 @@ export const bindNoteWithPrompt =
       large: true,
       description: [
         promptLineBreak,
-        <span>Rule #1: Scale Notes are specified by label and number.</span>,
+        <span>
+          Rule #1: <span className="text-sky-400">Scale Notes</span> are
+          specified by label and number.
+        </span>,
         <span>Example: B1 = Degree 1 of Scale B </span>,
         promptLineBreak,
-        <span>Rule #2: Scale Offsets are summed after Scale Notes.</span>,
+        <span>
+          Rule #2: <span className="text-sky-400">Scale Offsets</span> are
+          summed after Scale Notes.
+        </span>,
         <span>
           Example: B2 + A-1 = Degree 2 of Scale B, 1 step down Scale A
         </span>,

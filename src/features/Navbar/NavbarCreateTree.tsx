@@ -19,7 +19,7 @@ export const NavbarCreateTree = () => {
   return (
     <NavbarActionButton
       title="Tree (Musical Space)"
-      subtitle="Design Families of Tracks"
+      subtitle="Design Families of Scales & Samplers"
       subtitleClass="text-sky-400"
       Icon={<CreateTreeIcon className="text-2xl" />}
       background="bg-radial from-cyan-900/70 to-cyan-500/70"

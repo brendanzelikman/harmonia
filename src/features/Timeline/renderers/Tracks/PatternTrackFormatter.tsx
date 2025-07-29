@@ -6,15 +6,13 @@ import { PatternTrackBody } from "./components/TrackBody";
 import { TrackDropdownMenu } from "./components/TrackDropdownMenu";
 import { TrackName } from "./components/TrackName";
 import { TrackSliders } from "./components/TrackSlider";
-import { selectTrackJSXAtTick } from "types/Arrangement/ArrangementTrackSelectors";
-import { useAppValue } from "hooks/useRedux";
+
 import { TrackPose } from "./components/TrackPose";
 
 export const PatternTrackFormatter = memo((props: { track: PatternTrack }) => {
   const track = props.track;
   const trackId = track.id;
   const isCollapsed = !!track.collapsed;
-  const jsx = useAppValue((_) => selectTrackJSXAtTick(_, trackId));
   return (
     <>
       {!isCollapsed && <TrackSliders trackId={trackId} />}
