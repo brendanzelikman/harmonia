@@ -7,6 +7,7 @@ import { DEMO_GENRES } from "lib/demos";
 import { useCallback, useEffect, useMemo } from "react";
 import { GiCalculator, GiCompactDisc, GiStarGate } from "react-icons/gi";
 import {
+  BsChevronLeft,
   BsChevronRight,
   BsEject,
   BsPlusCircle,
@@ -53,6 +54,7 @@ export function NavbarBrand() {
       ),
     [data]
   );
+  const hasOnlyOneProject = useMemo(() => projects.length === 1, [projects]);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const x = pathname === CALCULATOR ? 50 : 300;
@@ -212,10 +214,15 @@ export function NavbarBrand() {
         </div>
       )}
       <div
-        className="cursor-pointer select-none flex items-center gap-3 text-2xl rounded-full focus:ring-0 focus:outline-0 active:opacity-85"
+        className="cursor-pointer select-none flex items-center text-2xl rounded-full focus:ring-0 focus:outline-0 active:opacity-85"
         onClick={brand.toggle}
       >
         <img src={LogoImage} alt="Logo" className="size-10 shrink-0" />
+        {hasOnlyOneProject && brand.isOpen && (
+          <div className="ml-4 animate-in fade-in zoom-in text-slate-500 scale-y-50">
+            <BsChevronLeft />
+          </div>
+        )}
       </div>
     </>
   );

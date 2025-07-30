@@ -153,13 +153,13 @@ const TimelineTopLeftCorner = () => {
           onClick={() => (canGame ? dispatch(startTransport()) : null)}
         >
           <div className="text-fuchsia-300 text-base">
-            Live Instructions Available
+            Instructions Available
           </div>
           <div className="text-slate-300 font-light text-sm">
             {!canGame
               ? `Select Track (${
                   game.trackId ? labelMap[game.trackId] : "?"
-                }) for Timed Hotkeys`
+                }) For Gestures`
               : `Press Space to Start!`}
           </div>
         </div>

@@ -2,7 +2,12 @@ import { alertModal } from "components/AlertModal";
 import { DEMOS_BY_KEY } from "lib/demos";
 import { ArrangePatternIcon, ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { CreateTreeIcon } from "lib/hotkeys/track";
-import { GiJackPlug, GiMisdirection, GiPathDistance } from "react-icons/gi";
+import {
+  GiCalculator,
+  GiJackPlug,
+  GiMisdirection,
+  GiPathDistance,
+} from "react-icons/gi";
 import { loadDemoProject } from "types/Project/ProjectLoaders";
 
 export const TOUR_STEPS = [
@@ -85,8 +90,8 @@ export const TOUR_STEPS = [
       title: `What is a Pose? (1/2)`,
       description: [
         "A Pose is a transformation applied to a Scale or Sampler.",
-        "- When applied to a Scale, it will cascade down the Tree.",
-        "- When applied to a Sampler, it will transform its Patterns.",
+        "- When applied to a Scale, it will transform and cascade.",
+        "- When applied to a Sampler, it will transform in place.",
         "Like Patterns, Poses are scheduled and arranged as Clips.",
       ],
     }),
@@ -122,7 +127,7 @@ export const TOUR_STEPS = [
     alertModal({
       title: `What are Gestures? (2/2)`,
       description: [
-        "Currently, Harmonia has three kinds of Gestures:",
+        "Currently, Harmonia has three kinds of gestures:",
         <>
           Transposition {<GiMisdirection className="inline-flex" />} — Create
           poses based on numerical offsets.
@@ -139,82 +144,57 @@ export const TOUR_STEPS = [
     }),
   () =>
     alertModal({
-      title: `Testing Your Gestures`,
+      title: `Gesture - Transposition`,
       description: [
-        "To test out some gestures, try these different actions:",
-        "- Hold V and press 1 to make the first sampler a little louder.",
-        "- Hold V and Minus and press 1 to make it a little quieter.",
+        "Transposition allows you to move along your scales.",
         "- Hold Q and press 1 to move one step up the first scale.",
-        "- Hold Q and Minus and press 1 to move one step down.",
+        "- Hold Q and press -1 to move one step down the scale.",
+        "- Hold T + Y and press 1 to move one semitone and octave up.",
+        "- Press 0 to clear all previous transpositions.",
       ],
     }),
   () =>
     alertModal({
-      title: `Saving Your Gestures`,
-      description:
-        "Harmonia allows you to turn Gestures into Instructions that can display keyboard shortcuts for you in real-time.",
-    }),
-  () =>
-    alertModal({
-      title: "Exploring Your Gestures",
-      description: `To complete this tutorial, we'll have you follow the Instructions of this project to see your Gestures in action.`,
-    }),
-  () =>
-    alertModal({
-      title: `What is a Voice Leading? (1/2)`,
+      title: `Gesture - Variation`,
       description: [
-        "Before you start, we need to prepare you about voice leading.",
-        "- In theory, a voice leading is a unique path taken by notes.",
-        "- In practice, this can be equivalent to transposition.",
-        "This means that Poses can be used to create voice leadings.",
+        "Variation allows you to transpose based on distance or degree.",
+        "- Hold C and press 1 to find the closest variation up.",
+        "- Hold C and press -1 to find the closest variation down.",
+        "- Hold D and press 4 to find the closest dominant chord.",
+        "- Hold D and press -4 to find the closest subdominant chord.",
       ],
     }),
   () =>
     alertModal({
-      title: `What is a Voice Leading? (2/2)`,
+      title: `Gesture - Dynamics`,
       description: [
-        "However, not all voice leadings are created equal.",
-        "Let's check out this piece and try to hear what's 'wrong'.",
-        "- Press Space to start the timeline when you're ready.",
-        "- Press Return to stop the timeline and proceed with the tour.",
+        "Dynamics allows you to move the volume of your samplers.",
+        "- Hold V and press 1 to make the first sampler a little louder.",
+        "- Hold V and press -1 to make the first sampler a little quieter.",
+        "- Hold M and press 1 to mute the first sampler.",
+        "- Hold M and press 0 to unmute all samplers.",
       ],
     }),
   () =>
     alertModal({
-      title: `What's the 'Problem' Here?'`,
+      title: `Gesture - Instructions`,
       description: [
-        "The 'problem' is that the melody moves too high up the scale.",
-        "- In theory, an 'efficient' voice leading keeps notes close.",
-        "- In practice, this can be achieved with opposing transpositions.",
-        "In this case, we could add Poses that move the melody down.",
+        "To aid with live performance, Harmonia allows you to schedule Gestures as Instructions that pop up for you during playback.",
       ],
     }),
   () =>
     alertModal({
-      title: `This is the Workflow!`,
+      title: `What are Instructions?`,
       description: [
-        "These 'musical puzzles' lie at the heart of Harmonia.",
-        "In theory, there are infinitely many solutions, all valid.",
-        "In practice, there are solutions we might prefer over others.",
-        "Exploring your different options is what it's all about!",
-      ],
-    }),
-  () =>
-    alertModal({
-      title: `The Final Exercise!`,
-      description: [
-        "Alright! Now it's your turn to perform the piece!",
-        "Your Instructions are displayed in the top left corner.",
-        "The goal is to follow the Instructions as best as you can.",
-        "To get ready, press Shift + 3 to select your third Track.",
+        "You may have noticed there are Instructions available for this project in the top left corner. Yes, you are about to perform!",
       ],
     }),
   () =>
     alertModal({
       title: "Have Fun!",
       description: [
-        "When you are ready, press Space to begin playback.",
-        "Follow the Instructions and have fun with the piece!",
+        "When you are ready, press Shift + 3 and Space to begin playback.",
+        "Follow the Instructions and press the shortcuts to the beat!",
         "If you make a mistake, don't worry, that's improv!",
         "Once you are done, press Return to stop and proceed.",
       ],

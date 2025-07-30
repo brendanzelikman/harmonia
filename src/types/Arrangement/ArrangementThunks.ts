@@ -1,4 +1,5 @@
 import {
+  ClipId,
   ClipType,
   isPatternClipId,
   isPortaledPatternClipId,
@@ -106,15 +107,20 @@ export const walkPortaledPatternClip =
     );
   };
 
+type WalkPortaledPatternClipPayload = {
+  clipIds?: ClipId[];
+  options?: Partial<StreamQueryOptions>;
+};
 // Walk all selected pattern clips using the given stream query
 export const walkSelectedPatternClips =
-  (payload: Payload<{ options?: Partial<StreamQueryOptions> } | null>): Thunk =>
+  (payload: Payload<WalkPortaledPatternClipPayload | null>): Thunk =>
   (dispatch, getProject) => {
+    const data = unpackData(payload);
     const project = getProject();
     const poses = selectPoses(project);
     const undoType = createUndoType("search", poses);
     const portaledClipIds = selectPortaledClipIds(project);
-    const selectedIds = selectSelectedClipIds(project);
+    const selectedIds = data?.clipIds ?? selectSelectedClipIds(project);
     const pcIds = portaledClipIds.filter(
       (pcId) =>
         isPortaledPatternClipId(pcId) &&

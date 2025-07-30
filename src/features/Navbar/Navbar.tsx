@@ -59,7 +59,7 @@ export function Navbar() {
       {pathname !== CALCULATOR ? (
         <NavbarGroup
           gap="gap-8"
-          className="ml-6 border-l border-l-slate-500 pl-6 border-r-0 *:text-xl *:text-slate-200 *:hover:text-slate-50 *:cursor-pointer *:select-none"
+          className="ml-4 border-l border-l-slate-500 pl-6 border-r-0 *:text-xl *:text-slate-200 *:hover:text-slate-50 *:cursor-pointer *:select-none"
         >
           <div
             data-active={brand.isOpen && !demos.isOpen}
@@ -136,8 +136,8 @@ export function Navbar() {
               </TabPanel>
               <TabPanel>
                 <NavbarLivePlay />
-                <NavbarLeadPlay />
                 <NavbarMixPlay />
+                <NavbarLeadPlay />
                 <NavbarGameMenu />
               </TabPanel>
             </TabPanels>

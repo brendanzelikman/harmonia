@@ -83,10 +83,10 @@ export const NavbarLeadPlay = () => {
 
   return (
     <NavbarActionButton
-      title="Gesture - Voice Leading"
+      title="Gesture - Variation"
       subtitle={
         isSelectingPatternClip
-          ? "Create Poses by Query"
+          ? "Create Poses by Closeness or Degree"
           : "Select a Pattern to Voice Lead"
       }
       subtitleClass="text-teal-400"
