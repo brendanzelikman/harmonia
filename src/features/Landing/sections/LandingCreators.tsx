@@ -1,6 +1,7 @@
 import { LandingSection } from "../components/LandingSection";
-import { PopupHeader } from "../components/LandingHeader";
 import { libraries } from "./LandingLibraries";
+import Brendan from "/media/brendan.png";
+import Dmitri from "/media/dmitri.png";
 
 const variants = {
   hidden: { opacity: 0, translateY: 20 },
@@ -21,7 +22,7 @@ export const LandingCreators = () => {
           >
             <img
               className="h-fit scale-200 min-w-0 -ml-20 max-sm:-ml-10 object-fill"
-              src="https://brendanzelikman.github.io/assets/portrait-DIvDyemr.png"
+              src={Brendan}
             />
           </a>
           <div className="flex flex-col text-base max-sm:text-sm">
@@ -54,10 +55,7 @@ export const LandingCreators = () => {
             href="https://dmitri.mycpanel.princeton.edu/"
             className="size-54 border-4 border-orange-400/80 shrink-0 rounded-full overflow-hidden"
           >
-            <img
-              className="h-fit object-fill"
-              src="https://kellercenter.princeton.edu/sites/default/files/styles/square/public/images/Dmitri.jpg?h=120c1784&itok=iEOjEFZS"
-            />
+            <img className="h-fit object-fill" src={Dmitri} />
           </a>
         </div>
         <div className="text-5xl pt-4 font-bold w-full text-center">
