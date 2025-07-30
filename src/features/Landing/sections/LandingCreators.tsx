@@ -1,12 +1,7 @@
 import { LandingSection } from "../components/LandingSection";
 import { libraries } from "./LandingLibraries";
 import Brendan from "/media/brendan.png";
-import Dmitri from "/media/dmitri.png";
-
-const variants = {
-  hidden: { opacity: 0, translateY: 20 },
-  show: { opacity: 1, translateY: 0 },
-};
+import Dmitri from "/media/dmitri.jpg";
 
 export const LandingCreators = () => {
   return (
