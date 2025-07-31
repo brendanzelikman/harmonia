@@ -41,7 +41,7 @@ export const LandingCreators = () => {
               Harvard, Oxford, UC Berkeley, and more
             </h2>
             <p className="mt-4 text-gray-300 w-xs">
-              Dmitri is the co-founder and intellectual inspiration of Harmonia,
+              Dmitri is a collaborator and intellectual inspiration of Harmonia,
               originally Brendan's advisor for his senior thesis. He is
               currently a Professor of Music at Princeton University.
             </p>

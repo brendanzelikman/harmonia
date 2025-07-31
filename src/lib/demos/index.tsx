@@ -26,6 +26,7 @@ import Wave from "lib/demos/wave.json";
 import WaveSnark from "lib/demos/waveAlt.json";
 import WaveLong from "lib/demos/waveLong.json";
 import GameBarry from "lib/demos/game_barry.json";
+import Tour from "lib/demos/tour.json";
 import GameCool from "lib/demos/game_cool.json";
 import GameMoonlight from "lib/demos/game_moonlight.json";
 import GameWave from "lib/demos/game_wave.json";
@@ -165,6 +166,11 @@ const GameBarryDemo: DemoProject = {
   blurb: "An improvisation over Fly Me to the Moon.",
   aliases: ["game_barry", "barry_game"],
 };
+const TourDemo: DemoProject = {
+  project: Tour as unknown as BaseProject,
+  blurb: "An improvisation over Fly Me to the Moon.",
+  aliases: ["tour"],
+};
 const GameCoolDemo: DemoProject = {
   project: GameCool as unknown as BaseProject,
   blurb: "The rhythm game of Cool Beat.",
@@ -236,7 +242,7 @@ export const DEMO_GENRES = [
   {
     key: "Rhythm Games",
     color: "border-red-400 text-red-400",
-    demos: [GameWaveDemo, GameBarryDemo, GameMoonlightDemo],
+    demos: [GameWaveDemo, TourDemo, GameMoonlightDemo],
   },
   {
     key: "Math Remixes",

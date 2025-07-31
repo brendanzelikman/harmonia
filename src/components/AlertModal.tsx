@@ -124,7 +124,7 @@ export const alertModal = (props: AlertModalProps): Promise<boolean> => {
     modalRoot.render(
       <AlertModal
         {...props}
-        autoselect={true}
+        autoselect={props.autoselect === undefined ? true : props.autoselect}
         isOpen={true}
         onSubmit={onSubmit}
         onCancel={onCancel}

@@ -1,13 +1,10 @@
+import { deleteProject, getProjects } from "app/projects";
 import { alertModal } from "components/AlertModal";
 import { DEMOS_BY_KEY } from "lib/demos";
 import { ArrangePatternIcon, ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { CreateTreeIcon } from "lib/hotkeys/track";
-import {
-  GiCalculator,
-  GiJackPlug,
-  GiMisdirection,
-  GiPathDistance,
-} from "react-icons/gi";
+import { GiJackPlug, GiMisdirection, GiPathDistance } from "react-icons/gi";
+import { selectProjectId, selectProjectName } from "types/Meta/MetaSelectors";
 import { loadDemoProject } from "types/Project/ProjectLoaders";
 
 export const TOUR_STEPS = [
@@ -157,7 +154,7 @@ export const TOUR_STEPS = [
     alertModal({
       title: `Gesture - Variation`,
       description: [
-        "Variation allows you to transpose based on distance or degree.",
+        "Variation allows you to move based on other rules.",
         "- Hold C and press 1 to find the closest variation up.",
         "- Hold C and press -1 to find the closest variation down.",
         "- Hold D and press 4 to find the closest dominant chord.",
@@ -177,23 +174,48 @@ export const TOUR_STEPS = [
     }),
   () =>
     alertModal({
-      title: `Gesture - Instructions`,
+      title: `Gesture - Instructions (1/2)`,
       description: [
         "To aid with live performance, Harmonia allows you to schedule Gestures as Instructions that pop up for you during playback.",
       ],
     }),
   () =>
     alertModal({
-      title: `What are Instructions?`,
+      title: `Gesture - Instructions (2/2)`,
       description: [
         "You may have noticed there are Instructions available for this project in the top left corner. Yes, you are about to perform!",
       ],
     }),
   () =>
     alertModal({
-      title: "Have Fun!",
+      autoselect: false,
+      title: `Your Performance (1/2)`,
       description: [
-        "When you are ready, press Shift + 3 and Space to begin playback.",
+        "Before you start, let's explain what you're about to do:",
+        "- Scale B has a harmonic progression that keeps moving up.",
+        "- Sampler C needs counteracting motion to stay in range.",
+        "Press Space to hear what the piece sounds like right now.",
+        "Press Return to stop playback and proceed with the tour.",
+      ],
+    }),
+  () =>
+    alertModal({
+      title: `Your Performance (2/2)`,
+      description: [
+        "Your performance will be one answer to this musical puzzle.",
+        "Whether you follow the Instructions or not is up to you.",
+        "You can also improvise and create your own Poses on the fly.",
+        "The goal is to get some experience using your shortcuts.",
+        "Alright, it is time for you to shine!",
+      ],
+    }),
+  () =>
+    alertModal({
+      autoselect: false,
+      title: "Take It Away!",
+      description: [
+        "To get ready, press Shift + 3 to select the third track.",
+        "When you are ready, press Space to begin playback.",
         "Follow the Instructions and press the shortcuts to the beat!",
         "If you make a mistake, don't worry, that's improv!",
         "Once you are done, press Return to stop and proceed.",
@@ -204,9 +226,9 @@ export const TOUR_STEPS = [
       title: "You Did It!",
       description: [
         "Congratulations, that was a fantastic performance!",
-        "We hope you are ready to create and explore on your own!",
-        "The top left icon can be clicked to see projects and demos.",
-        "We recommend opening other pieces to see what's possible.",
+        "We hope you had fun and learned something new.",
+        "Just in case, here's a final tip for you:",
+        "- The top left button is a menu for projects and demos.",
         "That's all for now, see you next time!",
       ],
     }),
@@ -221,5 +243,17 @@ export const startTour = async () => {
   return true;
 };
 
-export const playTour = () =>
-  loadDemoProject(DEMOS_BY_KEY["barry_game"].project, startTour);
+const tourId = DEMOS_BY_KEY["tour"].project.meta.id;
+const tourName = "Harmonia Tour";
+
+export const playTour = async () => {
+  const projects = await getProjects();
+  for (const project of projects) {
+    const id = selectProjectId(project);
+    const name = selectProjectName(project);
+    if (name === tourName) {
+      await deleteProject(id);
+    }
+  }
+  await loadDemoProject(DEMOS_BY_KEY["tour"].project, startTour);
+};
