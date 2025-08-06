@@ -2,6 +2,7 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { defaultGameRanks, GameAction, GameRank } from "./GameTypes";
 import {
   selectPoseClipMap,
+  selectPoseClips,
   selectPoseClipTickMap,
 } from "types/Clip/ClipSelectors";
 import { secondsToTicks } from "utils/duration";
@@ -20,7 +21,7 @@ import {
   updateGame,
 } from "./GameSlice";
 import { selectGame, selectHasGame } from "./GameSelectors";
-import { PoseClipId } from "types/Clip/ClipTypes";
+import { isPoseClipId, PoseClipId } from "types/Clip/ClipTypes";
 import { removePoseClip } from "types/Clip/ClipSlice";
 import { createUndoType } from "types/redux";
 import { nanoid } from "@reduxjs/toolkit";
@@ -208,40 +209,46 @@ export const deleteGamePoses = (): Thunk => (dispatch, getProject) => {
   const game = selectGame(project);
   if (!game.trackId) return;
   if (!game.actions.length) return;
-  const clipMap = selectPoseClipMap(project);
-  const clipTickMap = selectPoseClipTickMap(project);
-  const chainMap = selectScaleTrackChainIdsMap(project);
 
-  for (const action of game.actions) {
-    const { tick, key, value } = action;
-    let found = false;
-    for (let i = tick - game.leniency; i <= tick + game.leniency; i++) {
-      if (i < 0) continue; // Skip negative ticks
-      const clipIds = clipTickMap[i];
-      if (!clipIds?.length) continue;
-      for (const clipId of clipIds) {
-        const clip = clipMap[clipId];
-        if (!clip || clip.trackId !== game.trackId) continue;
-        const pose = selectPoseById(project, clip.poseId);
-        const trackId = clip.trackId;
-        if (!pose?.vector) continue;
-        const chain = chainMap[trackId];
-        if (!chain) continue;
-        const valueMap: Record<string, number | undefined> = {
-          q: chain.at(0) ? pose.vector[chain[0]] : undefined,
-          w: chain.at(1) ? pose.vector[chain[1]] : undefined,
-          e: chain.at(2) ? pose.vector[chain[2]] : undefined,
-          r: pose.vector.chordal,
-          t: pose.vector.chromatic,
-          y: pose.vector.octave,
-        };
-        if (valueMap[key] === value) {
-          dispatch(removePoseClip({ data: clipId, undoType }));
-          found = true;
-          break;
-        }
-      }
-      if (found) break;
+  const clips = selectPoseClips(project);
+  for (const clip of clips) {
+    if (isPoseClipId(clip.id) && clip.trackId === game.trackId) {
+      dispatch(removePoseClip({ data: clip.id, undoType }));
     }
   }
+  // const clipMap = selectPoseClipMap(project);
+  // const clipTickMap = selectPoseClipTickMap(project);
+  // const chainMap = selectScaleTrackChainIdsMap(project);
+  // for (const action of game.actions) {
+  //   const { tick, key, value } = action;
+  //   let found = false;
+  //   for (let i = tick - game.leniency; i <= tick + game.leniency; i++) {
+  //     if (i < 0) continue; // Skip negative ticks
+  //     const clipIds = clipTickMap[i];
+  //     if (!clipIds?.length) continue;
+  //     for (const clipId of clipIds) {
+  //       const clip = clipMap[clipId];
+  //       if (!clip || clip.trackId !== game.trackId) continue;
+  //       const pose = selectPoseById(project, clip.poseId);
+  //       const trackId = clip.trackId;
+  //       if (!pose?.vector) continue;
+  //       const chain = chainMap[trackId];
+  //       if (!chain) continue;
+  //       const valueMap: Record<string, number | undefined> = {
+  //         q: chain.at(0) ? pose.vector[chain[0]] : undefined,
+  //         w: chain.at(1) ? pose.vector[chain[1]] : undefined,
+  //         e: chain.at(2) ? pose.vector[chain[2]] : undefined,
+  //         r: pose.vector.chordal,
+  //         t: pose.vector.chromatic,
+  //         y: pose.vector.octave,
+  //       };
+  //       if (valueMap[key] === value) {
+  //         dispatch(removePoseClip({ data: clipId, undoType }));
+  //         found = true;
+  //         break;
+  //       }
+  //     }
+  //     if (found) break;
+  //   }
+  // }
 };

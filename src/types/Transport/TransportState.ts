@@ -1,6 +1,6 @@
 import { useEvent } from "hooks/useEvent";
 import { useState } from "react";
-import { dispatchCustomEvent } from "utils/event";
+import { dispatchCustomEvent, sleep } from "utils/event";
 import * as Tone from "tone";
 import { Thunk } from "types/Project/ProjectTypes";
 import { scheduleTransport } from "./TransportScheduler";

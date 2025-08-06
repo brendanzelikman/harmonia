@@ -6,7 +6,6 @@ import { PatternTrackBody } from "./components/TrackBody";
 import { TrackDropdownMenu } from "./components/TrackDropdownMenu";
 import { TrackName } from "./components/TrackName";
 import { TrackSliders } from "./components/TrackSlider";
-
 import { TrackPose } from "./components/TrackPose";
 
 export const PatternTrackFormatter = memo((props: { track: PatternTrack }) => {

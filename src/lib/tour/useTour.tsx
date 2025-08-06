@@ -1,4 +1,4 @@
-import { deleteProject, getProjects } from "app/projects";
+import { deleteProject, getCurrentProjectId, getProjects } from "app/projects";
 import { alertModal } from "components/AlertModal";
 import { DEMOS_BY_KEY } from "lib/demos";
 import { ArrangePatternIcon, ArrangePoseIcon } from "lib/hotkeys/timeline";
@@ -34,7 +34,7 @@ export const TOUR_STEPS = [
           sequences of clips in Samplers C and D.
         </>,
         <>
-          Pose {<ArrangePoseIcon className="inline-flex" />} — The cluster of
+          Pose {<ArrangePoseIcon className="inline-flex" />} — The scattered
           clips across Scales B and elsewhere.
         </>,
       ],
@@ -43,7 +43,7 @@ export const TOUR_STEPS = [
     alertModal({
       title: `What is a Tree? (1/2)`,
       description: [
-        "A Tree is a family of tracks created from Scales and Samplers.",
+        "A Tree is a family of tracks created out of Scales and Samplers.",
         "- Scales are groups of notes used to organize pitch.",
         "- Samplers are instruments used to organize timbre.",
         "Together, Scales and Samplers form a musical space of notes.",
@@ -98,7 +98,7 @@ export const TOUR_STEPS = [
       description: [
         "Poses can have many different applications in a project:",
         "- The Poses in Track #1 change around the octave and mode.",
-        "- The Poses in Track #1.1 create the central chord progression.",
+        "- The Poses in Track #1.1 create the main chord progression.",
         "- The Poses in Track #1.1.2 invert the background chords.",
         "Poses can even use custom functions written in JavaScript!",
       ],
@@ -189,7 +189,7 @@ export const TOUR_STEPS = [
   () =>
     alertModal({
       autoselect: false,
-      title: `Your Performance (1/2)`,
+      title: `Performance?! (1/2)`,
       description: [
         "Before you start, let's explain what you're about to do:",
         "- Scale B has a harmonic progression that keeps moving up.",
@@ -200,12 +200,12 @@ export const TOUR_STEPS = [
     }),
   () =>
     alertModal({
-      title: `Your Performance (2/2)`,
+      title: `Performance?! (2/2)`,
       description: [
-        "Your performance will be one answer to this musical puzzle.",
-        "Whether you follow the Instructions or not is up to you.",
-        "You can also improvise and create your own Poses on the fly.",
-        "The goal is to get some experience using your shortcuts.",
+        "This is a musical puzzle that can be solved in many ways.",
+        "Everyone will have their own unique approach and style.",
+        "The instructions in this project are just one possibility.",
+        "And every performance will be unique in its own way.",
         "Alright, it is time for you to shine!",
       ],
     }),
@@ -243,17 +243,29 @@ export const startTour = async () => {
   return true;
 };
 
-const tourId = DEMOS_BY_KEY["tour"].project.meta.id;
 const tourName = "Harmonia Tour";
 
 export const playTour = async () => {
   const projects = await getProjects();
+  const currentId = getCurrentProjectId();
+  let flag = false;
+
+  // Delete projects that match the tour name
   for (const project of projects) {
     const id = selectProjectId(project);
+    if (id === currentId) {
+      flag = true;
+      continue;
+    }
     const name = selectProjectName(project);
     if (name === tourName) {
       await deleteProject(id);
     }
   }
   await loadDemoProject(DEMOS_BY_KEY["tour"].project, startTour);
+
+  // Delete the previous tour after loading the new tour
+  if (currentId && flag) {
+    await deleteProject(currentId);
+  }
 };
