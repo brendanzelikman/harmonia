@@ -5,7 +5,11 @@ import { PatternTrackButtons } from "./components/TrackButtons";
 import { PatternTrackBody } from "./components/TrackBody";
 import { TrackDropdownMenu } from "./components/TrackDropdownMenu";
 import { TrackName } from "./components/TrackName";
-import { TrackSliders } from "./components/TrackSlider";
+import {
+  PanSlider,
+  TrackSliders,
+  VolumeSlider,
+} from "./components/TrackSlider";
 import { TrackPose } from "./components/TrackPose";
 
 export const PatternTrackFormatter = memo((props: { track: PatternTrack }) => {
@@ -14,7 +18,14 @@ export const PatternTrackFormatter = memo((props: { track: PatternTrack }) => {
   const isCollapsed = !!track.collapsed;
   return (
     <>
-      {!isCollapsed && <TrackSliders trackId={trackId} />}
+      {!isCollapsed && (
+        <div className="flex-shrink-0 mr-2 z-50">
+          <div className="flex" draggable onDragStart={cancelEvent}>
+            <VolumeSlider trackId={props.track.id} />
+            <PanSlider trackId={props.track.id} />
+          </div>
+        </div>
+      )}
       <div className="px-1 size-full flex flex-col">
         <div
           data-collapsed={isCollapsed}

@@ -84,9 +84,18 @@ export const VolumeSlider = (props: { trackId: TrackId }) => {
   );
   const cellHeight = useAppValue(selectCellHeight);
   const [draggingVolume, setDraggingVolume] = useState(false);
+
+  const id = instrument?.id;
+
+  const setVolume = useCallback(
+    throttle((volume: number) => {
+      if (id === undefined) return;
+      dispatch(updateInstrument({ data: { id, update: { volume } } }));
+    }, 100),
+    [id]
+  );
   if (!instrument) return null;
 
-  const id = instrument.id;
   const volume = instrument?.volume ?? DEFAULT_VOLUME;
   const volumePercent = percentize(volume, MIN_VOLUME, MAX_VOLUME);
   const sliderHeight = cellHeight - 55;
@@ -97,13 +106,6 @@ export const VolumeSlider = (props: { trackId: TrackId }) => {
   if (volume > -20) IconType = BsVolumeUpFill;
 
   const textColor = draggingVolume ? "text-emerald-400" : "text-white";
-
-  const setVolume = useCallback(
-    throttle((volume: number) => {
-      dispatch(updateInstrument({ data: { id, update: { volume } } }));
-    }, 100),
-    []
-  );
 
   return (
     <div className="w-5 h-full z-[90] relative">
@@ -135,9 +137,20 @@ export const PanSlider = (props: { trackId: TrackId }) => {
   const instrument = useAppValue((_) =>
     selectTrackInstrument(_, props.trackId)
   );
+  const id = instrument?.id;
+
+  // Update the instrument's pan when the slider changes
+  const onChange = useCallback(
+    throttle((pan: number) => {
+      if (id === undefined) return;
+      dispatch(updateInstrument({ data: { id, update: { pan } } }));
+    }, 100),
+    [id]
+  );
+
   if (!instrument) return null;
 
-  const pan = instrument?.pan ?? DEFAULT_PAN;
+  const pan = instrument.pan ?? DEFAULT_PAN;
   const sliderHeight = cellHeight - 55;
 
   /** The Pattern Track pan slider controls the pan of the track's instrument. */
@@ -151,13 +164,6 @@ export const PanSlider = (props: { trackId: TrackId }) => {
     { "text-teal-400": draggingPan },
     { "text-white": !draggingPan }
   );
-
-  // Update the instrument's pan when the slider changes
-  const onChange = useCallback((pan: number) => {
-    dispatch(
-      updateInstrument({ data: { id: instrument.id, update: { pan } } })
-    );
-  }, []);
 
   return (
     <div className="w-5 h-full z-[89] relative">
@@ -187,12 +193,13 @@ export const PanSlider = (props: { trackId: TrackId }) => {
   );
 };
 
-export const TrackSliders = (props: { trackId: TrackId }) => {
+export const TrackSliders = (props: { show: boolean; trackId: TrackId }) => {
+  if (!props.show) return null;
   return (
     <div className="flex-shrink-0 mr-2 z-50">
       <div className="flex" draggable onDragStart={cancelEvent}>
-        <VolumeSlider trackId={props.trackId} />
-        <PanSlider trackId={props.trackId} />
+        <VolumeSlider {...props} />
+        <PanSlider {...props} />
       </div>
     </div>
   );

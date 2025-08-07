@@ -327,7 +327,6 @@ export const duplicateTrack =
     const newTrackMap: Record<TrackId, TrackId> = {};
     const newScaleMap: Record<ScaleId, ScaleId> = {};
     const allTracks = [] as Track[];
-    const allClips = [] as Clip[];
 
     // A generic recursive function to add all children of a track
     const addChildren = (ids: TrackId[], parentId?: TrackId) => {
