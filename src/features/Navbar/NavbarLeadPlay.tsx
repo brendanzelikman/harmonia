@@ -62,6 +62,9 @@ export const NavbarLeadPlay = () => {
       if (isVoiceLeadingDegree) {
         const sign = isNegative ? "-" : "";
         const label = labelMap[scaleKey ?? "q"].label;
+        if (label === "*") {
+          return `Closest Pose With Degree ${sign}${keycode}`;
+        }
         const offset = `${label}${sign}${keycode}`;
         return `Closest Pose With ${offset}`;
       }

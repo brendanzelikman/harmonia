@@ -109,8 +109,8 @@ export const TOUR_STEPS = [
       description: [
         "Great job, you've reached the halfway point! Let's review:",
         "- Trees are used to organize your Scales and Samplers.",
-        "- Patterns are arranged as Clips to play out notes.",
-        "- Poses are arranged as Clips to transform notes.",
+        "- Patterns are sequences of notes played by Samplers.",
+        "- Poses are transformations applied to Scales and Samplers.",
         "Together, these objects form the structure of a project.",
       ],
     }),
@@ -130,8 +130,8 @@ export const TOUR_STEPS = [
           poses based on numerical offsets.
         </>,
         <>
-          Voice Leading {<GiPathDistance className="inline-flex" />} — Create
-          poses based on algorithmic rules.
+          Variation {<GiPathDistance className="inline-flex" />} — Create poses
+          based on algorithmic rules.
         </>,
         <>
           Dynamics {<GiJackPlug className="inline-flex" />} — Control the audio
