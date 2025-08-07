@@ -24,6 +24,9 @@ import { cancelEvent } from "utils/event";
 import { promptUserForScale } from "lib/prompts/scale";
 import { InstrumentIconMap } from "features/Editor/EditorSidebar";
 import { getInstrumentCategory } from "types/Instrument/InstrumentFunctions";
+import { createTrackPair } from "types/Track/TrackThunks";
+import { createUndoType } from "types/redux";
+import { nanoid } from "@reduxjs/toolkit";
 
 export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
   const { trackId } = props;
@@ -61,8 +64,18 @@ export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
         label="Nest Sampler"
         onClick={(e) => {
           cancelEvent(e);
+          const undoType = createUndoType("nestSampler", nanoid());
+          const { track } = dispatch(
+            createPatternTrack({
+              data: { track: { parentId: trackId } },
+              undoType,
+            })
+          );
           dispatch(
-            createPatternTrack({ data: { track: { parentId: trackId } } })
+            createTrackPair({
+              data: { trackId: track.id, randomize: false },
+              undoType,
+            })
           );
         }}
       >

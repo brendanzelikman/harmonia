@@ -138,7 +138,7 @@ export const TrackDropdownMenu = (props: {
                     }
                   />
                   <TrackDropdownButton
-                    content="Insert Random Scale"
+                    content="Suggest Random Tree"
                     divideEnd={!track?.parentId && !isPT}
                     icon={<CiRuler className="scale-110" />}
                     onClick={() => dispatch(insertRandomParent(trackId))}

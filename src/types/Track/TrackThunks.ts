@@ -701,13 +701,22 @@ export const insertRandomParent =
   };
 
 export const createTrackPair =
-  (data: Payload<TrackId>): Thunk =>
+  (
+    data: Payload<{ trackId: TrackId; autobind?: boolean; randomize?: boolean }>
+  ): Thunk =>
   (dispatch) => {
-    const trackId = unpackData(data);
+    const { trackId, autobind, randomize } = unpackData(data);
+    const isAutobind = autobind === undefined ? true : autobind;
+    const isRandomize = randomize === undefined ? true : randomize;
+    if (!trackId) return;
     const undoType = unpackUndoType(data, "createTrackPair");
     dispatch(
       createNewPatternClip({
-        data: { clip: { trackId }, randomize: true, autobind: true },
+        data: {
+          clip: { trackId },
+          randomize: isRandomize,
+          autobind: isAutobind,
+        },
         undoType,
       })
     );

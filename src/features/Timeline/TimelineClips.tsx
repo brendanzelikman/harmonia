@@ -109,7 +109,9 @@ export const useClipDrag = (pcId: PortaledClipId) => {
       const clientOffset = monitor.getClientOffset();
       const clipRect = clip.getBoundingClientRect();
       const offsetX = clientOffset ? clientOffset.x - clipRect.left : 0;
-      const isResizing = offsetX > clipRect.width - cellWidth;
+      const isSmall = clipRect.width - cellWidth < 1;
+      const isPast = offsetX > clipRect.width - cellWidth;
+      const isResizing = !isSmall && isPast;
       return { id: pcId, offsetX, isResizing };
     },
     collect: (monitor: any) => ({

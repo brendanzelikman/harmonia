@@ -41,6 +41,7 @@ import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { selectCurrentTimelineTick } from "types/Timeline/TimelineSelectors";
 import { updatePattern } from "types/Pattern/PatternSlice";
 import { autoBindStreamToTrack } from "../TrackUtils";
+import { getTransport } from "tone";
 
 /** Create a `PatternTrack` with an optional initial track. */
 export const createPatternTrack =
@@ -122,7 +123,9 @@ export const createNewPatternClip =
         undoType,
       })
     );
-    const tick = selectCurrentTimelineTick(project);
+    const isStarted = getTransport().state === "started";
+    const currentTick = selectCurrentTimelineTick(project);
+    const tick = isStarted ? 0 : currentTick;
     const patternClip = initializePatternClip({
       ...clip,
       patternId: pattern.id,
@@ -158,7 +161,9 @@ export const createNewPoseClip =
         undoType,
       })
     );
-    const tick = selectCurrentTimelineTick(getProject());
+    const isStarted = getTransport().state === "started";
+    const currentTick = selectCurrentTimelineTick(getProject());
+    const tick = isStarted ? 0 : currentTick;
     const poseClip = initializePoseClip({
       ...clip,
       poseId: pose.id,

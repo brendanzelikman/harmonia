@@ -188,7 +188,9 @@ export const createTreeFromString =
                 createPatternTrackFromString({ data, undoType })
               );
               if (track) {
-                dispatch(createTrackPair({ data: track.id, undoType }));
+                dispatch(
+                  createTrackPair({ data: { trackId: track.id }, undoType })
+                );
                 tracks.push(track);
               }
             }
@@ -204,7 +206,10 @@ export const createTreeFromString =
                 );
                 if (patternTrack) {
                   dispatch(
-                    createTrackPair({ data: patternTrack.id, undoType })
+                    createTrackPair({
+                      data: { trackId: patternTrack.id },
+                      undoType,
+                    })
                   );
                   tracks.push(patternTrack);
                 }
