@@ -5,11 +5,7 @@ import { PatternTrackButtons } from "./components/TrackButtons";
 import { PatternTrackBody } from "./components/TrackBody";
 import { TrackDropdownMenu } from "./components/TrackDropdownMenu";
 import { TrackName } from "./components/TrackName";
-import {
-  PanSlider,
-  TrackSliders,
-  VolumeSlider,
-} from "./components/TrackSlider";
+import { PanSlider, VolumeSlider } from "./components/TrackSliders";
 import { TrackPose } from "./components/TrackPose";
 
 export const PatternTrackFormatter = memo((props: { track: PatternTrack }) => {

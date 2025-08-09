@@ -1,11 +1,13 @@
 import { deleteProject, getCurrentProjectId, getProjects } from "app/projects";
 import { alertModal } from "components/AlertModal";
+import { dispatchClose } from "hooks/useToggle";
 import { DEMOS_BY_KEY } from "lib/demos";
 import { ArrangePatternIcon, ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { CreateTreeIcon } from "lib/hotkeys/track";
 import { GiJackPlug, GiMisdirection, GiPathDistance } from "react-icons/gi";
 import { selectProjectId, selectProjectName } from "types/Meta/MetaSelectors";
 import { loadDemoProject } from "types/Project/ProjectLoaders";
+import { dispatchCustomEvent } from "utils/event";
 
 export const TOUR_STEPS = [
   () =>
@@ -263,6 +265,7 @@ export const playTour = async () => {
     }
   }
   await loadDemoProject(DEMOS_BY_KEY["tour"].project, startTour);
+  dispatchClose("brand");
 
   // Delete the previous tour after loading the new tour
   if (currentId && flag) {

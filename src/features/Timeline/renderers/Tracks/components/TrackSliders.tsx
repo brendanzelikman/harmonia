@@ -192,15 +192,3 @@ export const PanSlider = (props: { trackId: TrackId }) => {
     </div>
   );
 };
-
-export const TrackSliders = (props: { show: boolean; trackId: TrackId }) => {
-  if (!props.show) return null;
-  return (
-    <div className="flex-shrink-0 mr-2 z-50">
-      <div className="flex" draggable onDragStart={cancelEvent}>
-        <VolumeSlider {...props} />
-        <PanSlider {...props} />
-      </div>
-    </div>
-  );
-};
