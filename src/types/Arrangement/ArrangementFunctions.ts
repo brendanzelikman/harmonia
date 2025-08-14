@@ -270,7 +270,7 @@ export const getTrackScaleChain = (
       });
     }
 
-    // Apply any base offets that are in the vector
+    // Apply any base offsets that are in the vector
     const r = vector.chordal;
     const t = vector.chromatic;
     const y = vector.octave;
