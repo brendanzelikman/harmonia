@@ -8,7 +8,12 @@ import {
 } from "features/Navbar/components/NavbarForm";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 import { NavbarFileGroup, NavbarFileLabel } from "./NavbarProject";
-import { BsQuestionCircle, BsTerminal } from "react-icons/bs";
+import {
+  BsGlobe,
+  BsQuestionCircle,
+  BsSignIntersection,
+  BsTerminal,
+} from "react-icons/bs";
 import { SyncedNumericalForm } from "components/SyncedForm";
 import { useToggle } from "hooks/useToggle";
 import {
@@ -18,6 +23,7 @@ import {
   setScroll,
 } from "types/Transport/TransportSlice";
 import { GiCog } from "react-icons/gi";
+import { ToggleCollabHotkey } from "lib/hotkeys/global";
 
 export function NavbarSettings() {
   const dispatch = useAppDispatch();
@@ -95,6 +101,14 @@ export function NavbarSettings() {
           <NavbarFileGroup onClick={Shortcuts.toggle}>
             <NavbarFileLabel>Open Shortcuts</NavbarFileLabel>
             <BsQuestionCircle className="ml-auto text-2xl" />
+          </NavbarFileGroup>
+          <NavbarFileGroup
+            onClick={(e) =>
+              ToggleCollabHotkey.callback(dispatch, e.nativeEvent)
+            }
+          >
+            <NavbarFileLabel>Open Connection</NavbarFileLabel>
+            <BsSignIntersection className="ml-auto text-2xl" />
           </NavbarFileGroup>
         </div>
       </NavbarHoverTooltip>

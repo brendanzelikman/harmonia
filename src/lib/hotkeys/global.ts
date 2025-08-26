@@ -11,6 +11,8 @@ import {
   increaseSubdivision,
 } from "types/Timeline/TimelineSlice";
 import { dispatchCustomEvent } from "utils/event";
+import { enableLANCollab } from "app/listener";
+import { promptUserForString } from "lib/prompts/html";
 
 // -----------------------------------------------
 // Global Hotkeys
@@ -65,6 +67,16 @@ export const IncreaseSubdivisionHotkey: Hotkey = {
   callback: (dispatch) => dispatch(increaseSubdivision()),
 };
 
+export const ToggleCollabHotkey: Hotkey = {
+  name: "Toggle Collab",
+  shortcut: "shift+'",
+  callback: promptUserForString({
+    title: "Join Local Session",
+    description: "Please enter the host IP address (e.g. 192.168.1.42)",
+    onSubmit: (string) => enableLANCollab(string),
+  }),
+};
+
 // -----------------------------------------------
 // Export Hotkeys
 // -----------------------------------------------
@@ -76,4 +88,5 @@ export const GlobalHotkeys = [
   DecreaseSubdivisionHotkey,
   IncreaseSubdivisionHotkey,
   CloseModalsHotkey,
+  ToggleCollabHotkey,
 ];

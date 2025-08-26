@@ -1,4 +1,4 @@
-import { Payload, unpackUndoType } from "types/redux";
+import { createUndoType, Payload, unpackUndoType } from "types/redux";
 import { union, difference, without, pick } from "lodash";
 import { exportClipsToMidi } from "types/Clip/ClipExporters";
 import { ClipId } from "types/Clip/ClipTypes";
@@ -14,6 +14,7 @@ import {
 import { setSelectedTrackId, updateMediaSelection } from "../TimelineSlice";
 import { selectProjectName } from "types/Meta/MetaSelectors";
 import { exportProjectToWAV } from "types/Project/ProjectExporters";
+import { nanoid } from "@reduxjs/toolkit";
 
 // ------------------------------------------------------------
 // Selected Track
@@ -43,7 +44,8 @@ export const selectNextTrack = (): Thunk => (dispatch, getProject) => {
 export const deleteSelectedTrack = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const trackId = selectSelectedTrackId(project);
-  if (trackId) dispatch(deleteTrack({ data: trackId }));
+  const undoType = createUndoType("deleteSelectedTrack", nanoid());
+  if (trackId) dispatch(deleteTrack({ data: trackId, undoType }));
 };
 
 /** Add a list of clip IDs to the current selection. */

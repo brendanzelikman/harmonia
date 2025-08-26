@@ -13,7 +13,6 @@ import {
 } from "types/Clip/ClipSelectors";
 import { addPatternClip, addPoseClip, updateClips } from "types/Clip/ClipSlice";
 import {
-  Clip,
   initializeClip,
   isPatternClip,
   isPoseClip,
@@ -102,6 +101,8 @@ import {
   createNewPoseClip,
 } from "./PatternTrack/PatternTrackThunks";
 import { randomizePattern } from "types/Pattern/PatternThunks";
+import { selectGame } from "types/Game/GameSelectors";
+import { resetGame } from "types/Game/GameSlice";
 
 // ------------------------------------------------------------
 // Track - CRUD
@@ -439,6 +440,8 @@ export const deleteTrack =
     const undoType = unpackUndoType(payload, "deleteTrack");
     const project = getProject();
     const track = selectTrackById(project, trackId);
+    const game = selectGame(project);
+    if (game.trackId === trackId) dispatch(resetGame({ undoType }));
     if (!track) return;
 
     const affectedTracks = selectTrackDescendants(project, trackId);
@@ -456,6 +459,7 @@ export const deleteTrack =
 
     // Remove all media elements
     for (const id of union(affectedTrackIds, [trackId])) {
+      if (game.trackId === trackId) dispatch(resetGame({ undoType }));
       const clips = selectClipsByTrackIds(project, [id]);
       const clipIds = clips.map((c) => c.id);
       const portals = selectPortalsByTrackIds(project, [id]);

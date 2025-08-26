@@ -85,7 +85,8 @@ export const autoBindNoteToTrack =
     const track = selectScaleTrackById(project, chainIds[0]);
     const trackScaleId = track?.scaleId;
     const tonicScale = selectTrackMidiScale(project, trackId);
-    const chromaticScale = range(tonicScale[0], tonicScale[0] + 12);
+    const tonicNote = tonicScale[0] ?? 60;
+    const chromaticScale = range(tonicNote, tonicNote + 12);
 
     // Get the current track and scale
     for (let i = idCount - 1; i >= 0; i--) {

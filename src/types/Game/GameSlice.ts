@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { defaultGame, Game, GameAction } from "./GameTypes";
 import { union } from "lodash";
 import { Action, unpackAction } from "types/redux";
@@ -34,7 +34,7 @@ export const gameSlice = createSlice({
         state.trackId = trackId;
       }
     },
-    resetGame: (state) => {
+    resetGame: (state, action: Action<{}, true>) => {
       state.actions = defaultGame.actions;
       state.ranks = defaultGame.ranks;
       state.leniency = defaultGame.leniency;

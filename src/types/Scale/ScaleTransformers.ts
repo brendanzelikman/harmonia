@@ -136,8 +136,8 @@ export const transposeNoteThroughScale = (
   if (isMidiNote(note)) return note;
 
   // Get the parent notes
-  const parentNotes = getScaleNotes(scale);
-  const modulus = parentNotes.length;
+  const notes = getScaleNotes(scale);
+  const modulus = notes.length;
 
   // Determine if the note has an offset for this scale
   const { degree, offset } = note;
@@ -146,7 +146,7 @@ export const transposeNoteThroughScale = (
 
   // Get the parent note using the new degree (+ offset)
   const newDegree = degree + degreeOffset;
-  const parentNote = parentNotes[mod(newDegree, modulus)];
+  const parentNote = notes[mod(newDegree, modulus)];
   if (!parentNote) return -1;
 
   // Adjust the octave displacement accordingly

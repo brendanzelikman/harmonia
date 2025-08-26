@@ -138,6 +138,9 @@ export const stopRecordingTransport = (): Thunk => async (_, getProject) => {
   }
   if (!channel) return;
   const fileName = `${selectProjectName(getProject())} Recording.mid`;
-  const blob = new Blob([midi.toArray()], { type: "audio/midi" });
+  const arrayBuffer = new ArrayBuffer(midi.toArray().buffer.byteLength);
+  const uint8Array = new Uint8Array(arrayBuffer);
+  uint8Array.set(new Uint8Array(midi.toArray().buffer));
+  const blob = new Blob([uint8Array], { type: "audio/midi" });
   downloadBlob(blob, fileName);
 };

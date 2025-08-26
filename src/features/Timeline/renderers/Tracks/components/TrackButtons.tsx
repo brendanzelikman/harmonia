@@ -146,7 +146,10 @@ export const PatternTrackButtons = memo(
             { "bg-red-400/60 text-white": mute },
             { "bg-emerald-600/20": !mute }
           )}
-          onClick={(e) => dispatch(toggleTrackMute(e.nativeEvent, trackId))}
+          onClick={(e) => {
+            cancelEvent(e);
+            dispatch(toggleTrackMute(e.nativeEvent, trackId));
+          }}
         >
           <span className="text-sm">M</span>
         </TooltipButton>

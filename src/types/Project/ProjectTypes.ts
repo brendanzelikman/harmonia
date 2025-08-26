@@ -89,10 +89,9 @@ export const initializeProject = (template: Project = defaultProject) => {
 /** Checks if a given object is of type `Project`. */
 export const isProject = (obj: unknown): obj is Project => isObject(obj);
 export const canUndo = (project: Project) => project.past.length > 0;
-export const canRedo = (project: Project) =>
-  project.future.length >
-  0; /** Sanitize the project and clear the undo history. */
+export const canRedo = (project: Project) => project.future.length > 0;
 
+/** Sanitize the project and clear the undo history. */
 export const sanitizeProject = (project: SafeProject): Project => ({
   _latestUnfiltered: sanitizeBaseProject(project?._latestUnfiltered),
   group: project?.group,

@@ -303,12 +303,10 @@ export const instrumentsSlice = createSlice({
       // Toggle mute in the live instrument
       const instance = LIVE_AUDIO_INSTANCES[id];
       if (!instance) return;
-      instance.mute = !instance.mute;
-
-      // Toggle mute in the state
-      instrument.mute = !instrument.mute;
+      const value = !instrument.mute;
+      instance.mute = value;
+      instrument.mute = value;
     },
-    /** Toggle an instrument's solo state. */
     toggleInstrumentSolo: (
       state,
       action: PayloadAction<ToggleInstrumentSoloPayload>
@@ -320,10 +318,9 @@ export const instrumentsSlice = createSlice({
       // Toggle solo in the live instrument
       const instance = LIVE_AUDIO_INSTANCES[id];
       if (!instance) return;
-      instance.solo = !instance.solo;
-
-      // Toggle solo in the state
-      instrument.solo = !instrument.solo;
+      const value = !instrument.solo;
+      instance.solo = value;
+      instrument.solo = value;
     },
     /** Mute all instruments. */
     muteInstruments: (state) => {

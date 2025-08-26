@@ -132,11 +132,6 @@ const TimelineTopLeftCorner = () => {
   const hasGame = !!game && actions.length > 0;
   const canGame = selectedTrackId === game?.trackId;
   useEvent(STOP_TRANSPORT, () => dispatch(deleteGamePoses()));
-  useEffect(() => {
-    if (!some(labelMap) || (game.trackId && !labelMap[game.trackId])) {
-      dispatch(resetGame());
-    }
-  }, [labelMap]);
 
   const Game = (
     <div className="w-full relative overflow-hidden">
