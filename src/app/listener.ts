@@ -1,7 +1,6 @@
 import { store } from "app/store";
 import { setProject } from "app/store";
 import dayjs from "dayjs";
-import { mergeBaseProjects } from "types/Project/ProjectMergers";
 import { timestampProject } from "types/Project/ProjectTypes";
 let socket: WebSocket | null = null;
 const CLIENT_ID = Math.random().toString(36).substring(2);

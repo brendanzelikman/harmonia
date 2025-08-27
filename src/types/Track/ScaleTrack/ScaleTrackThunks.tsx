@@ -1,4 +1,4 @@
-import { weightedSample } from "utils/math";
+import { mod, weightedSample } from "utils/math";
 import { addScale } from "types/Scale/ScaleSlice";
 import { capitalize, isEqual, sample, trim } from "lodash";
 import { PresetScaleList, PresetScaleNotes } from "lib/presets/scales";
@@ -48,6 +48,7 @@ import {
 import { isPitchClass, unpackScaleName } from "utils/pitch";
 import { MajorScale, MinorScale } from "lib/presets/scales/BasicScales";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
+import { PitchClass } from "types/units";
 
 /** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =
@@ -310,11 +311,15 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
         .split(/[,\s]+/)
         .map(capitalize);
       const scale: MidiScale = [];
-      for (const pitchClass of pitchClasses) {
+      const size = pitchClasses.length;
+      const tonic = 60 + getPitchClassDegree(pitchClasses[0] as PitchClass);
+      if (!size) return [];
+      for (let i = 0; i < size; i++) {
+        const pitchClass = pitchClasses[i];
         if (!isPitchClass(pitchClass)) return undefined;
         const number = getPitchClassDegree(pitchClass);
-        const match = parent?.find((c) => getMidiPitchClass(c) === pitchClass);
-        scale.push(number + 12 * getMidiOctaveNumber(12 + (match ?? 48)));
+        if (i === 0) scale.push(tonic);
+        else scale.push(scale[i - 1] + mod(number - (scale[i - 1] % 12), 12));
       }
       return scale;
     }
