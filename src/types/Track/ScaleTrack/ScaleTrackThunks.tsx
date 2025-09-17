@@ -312,14 +312,18 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
         .map(capitalize);
       const scale: MidiScale = [];
       const size = pitchClasses.length;
-      const tonic = 60 + getPitchClassDegree(pitchClasses[0] as PitchClass);
       if (!size) return [];
       for (let i = 0; i < size; i++) {
         const pitchClass = pitchClasses[i];
         if (!isPitchClass(pitchClass)) return undefined;
         const number = getPitchClassDegree(pitchClass);
-        if (i === 0) scale.push(tonic);
-        else scale.push(scale[i - 1] + mod(number - (scale[i - 1] % 12), 12));
+        if (i === 0) {
+          scale.push(60 + getPitchClassDegree(pitchClasses[0] as PitchClass));
+        } else {
+          const last = scale[i - 1];
+          const dist = mod(number - (last % 12), 12);
+          scale.push(last + dist);
+        }
       }
       return scale;
     }

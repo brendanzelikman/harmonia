@@ -22,6 +22,8 @@ import {
 } from "./TransportRecorder";
 import { getToggleValue } from "hooks/useToggle";
 import { parseValue } from "utils/math";
+import { selectTrackMap } from "types/Track/TrackSelectors";
+import { rhythmGate } from "utils/gate";
 
 let scheduleId: number | undefined = undefined;
 
@@ -102,6 +104,7 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
 
     // Select the memoized record of chords to be played at the current tick
     const chordRecord = selectMidiChordsByTicks(project)[newTick];
+    const trackMap = selectTrackMap(project);
     if (chordRecord === undefined) return;
 
     // Iterate over the instruments that are to be played at the current tick
@@ -113,6 +116,13 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
       const instance = LIVE_AUDIO_INSTANCES[instrumentId];
       const loaded = instance?.isLoaded();
       if (!loaded) continue;
+
+      // Check if the gate is available
+      const track = trackMap[instance.trackId];
+      if (track.gate !== undefined) {
+        const isOpen = rhythmGate(track.gate, newTick);
+        if (!isOpen) continue;
+      }
 
       // Play the realized pattern chord using the sampler
       playPatternChord(instance.sampler, chord, time);

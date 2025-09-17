@@ -21,7 +21,14 @@ import {
 } from "react-icons/bs";
 import { ReactNode } from "react";
 import { blurEvent, cancelEvent } from "utils/event";
-import { GiAudioCassette, GiFamilyTree } from "react-icons/gi";
+import {
+  GiAudioCassette,
+  GiFamilyTree,
+  GiGate,
+  GiLogicGateAnd,
+  GiTrafficCone,
+  GiTrafficLightsReadyToGo,
+} from "react-icons/gi";
 import { exportTrackClipsToMIDI } from "types/Clip/ClipExporters";
 import {
   insertScaleTrack,
@@ -33,6 +40,7 @@ import {
   selectTrackClips,
   insertRandomParent,
   collapseTrackDescendants,
+  updateTrack,
 } from "types/Track/TrackThunks";
 import { clearTrack } from "types/Arrangement/ArrangementThunks";
 import { TrackDropdownButton } from "./TrackDropdownButton";
@@ -51,6 +59,7 @@ import { promptUserForPose } from "lib/prompts/pose";
 import MidiImage from "assets/lib/midi.png";
 import { ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { CreateTreeIcon } from "lib/hotkeys/track";
+import { promptUserForString } from "lib/prompts/html";
 
 export const TrackDropdownMenu = (props: {
   track: Track;
@@ -117,6 +126,26 @@ export const TrackDropdownMenu = (props: {
                     }
                     onClick={() => dispatch(promptUserForPose(trackId))}
                   />
+                  <TrackDropdownButton
+                    content="Edit Track Gate"
+                    icon={<GiLogicGateAnd className="scale-110" />}
+                    onClick={promptUserForString({
+                      title: "Edit Track Gate",
+                      description: [
+                        'Please enter the gate as a string "A, B, C"',
+                        "A can be a list of beats (0 4 8) or a Euclidean cycle <X Y Z>",
+                        "B is the number of steps (optional, default = 16)",
+                        "C is the rotation (optional, default = 0)",
+                        'Example: "0 4 8 12" or "<5 7>, 16, 1"',
+                      ],
+                      defaultValue: track.gate,
+                      onSubmit: (input) => {
+                        dispatch(
+                          updateTrack({ data: { id: trackId, gate: input } })
+                        );
+                      },
+                    })}
+                  />
                   {isPT && (
                     <TrackDropdownButton
                       content="Upload Audio File"
@@ -130,6 +159,7 @@ export const TrackDropdownMenu = (props: {
                       }
                     />
                   )}
+
                   <TrackDropdownButton
                     content="Insert Parent Scale"
                     icon={<CiRuler className="scale-110" />}
