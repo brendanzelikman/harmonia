@@ -82,7 +82,8 @@ export const exportClipsToMidi =
     });
 
     // Create a MIDI blob and download it if requested
-    const blob = new Blob([midi.toArray()], { type: "audio/midi" });
+    const blobArray = new Uint8Array(midi.toArray());
+    const blob = new Blob([blobArray], { type: "audio/midi" });
     if (options?.download) {
       const name = options?.filename ?? meta.name ?? "file";
       downloadBlob(blob, `${name}.mid`);
