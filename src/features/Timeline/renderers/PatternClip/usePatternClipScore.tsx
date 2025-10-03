@@ -98,9 +98,13 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
     if (index === undefined) {
       dispatch(addPatternBlock({ data: { id, block }, undoType }));
     } else {
-      dispatch(updatePatternBlock({ data: { id, index, block }, undoType }));
+      if (asInsert) {
+        dispatch(insertPatternBlock({ data: { id, block, index }, undoType }));
+      } else {
+        dispatch(updatePatternBlock({ data: { id, index, block }, undoType }));
+      }
     }
-  }, [clip.patternId, index, duration]);
+  }, [clip.patternId, index, duration, asInsert]);
 
   // Add an auto-bound note or update if the cursor is showing
   const playNote = useCallback(

@@ -24,6 +24,7 @@ import {
 } from "types/Transport/TransportSlice";
 import { GiCog } from "react-icons/gi";
 import { ToggleCollabHotkey } from "lib/hotkeys/global";
+import { isLocal } from "app/listener";
 
 export function NavbarSettings() {
   const dispatch = useAppDispatch();
@@ -102,14 +103,16 @@ export function NavbarSettings() {
             <NavbarFileLabel>Open Shortcuts</NavbarFileLabel>
             <BsQuestionCircle className="ml-auto text-2xl" />
           </NavbarFileGroup>
-          <NavbarFileGroup
-            onClick={(e) =>
-              ToggleCollabHotkey.callback(dispatch, e.nativeEvent)
-            }
-          >
-            <NavbarFileLabel>Open Connection</NavbarFileLabel>
-            <BsSignIntersection className="ml-auto text-2xl" />
-          </NavbarFileGroup>
+          {isLocal() && (
+            <NavbarFileGroup
+              onClick={(e) =>
+                ToggleCollabHotkey.callback(dispatch, e.nativeEvent)
+              }
+            >
+              <NavbarFileLabel>Open Connection</NavbarFileLabel>
+              <BsSignIntersection className="ml-auto text-2xl" />
+            </NavbarFileGroup>
+          )}
         </div>
       </NavbarHoverTooltip>
     </div>

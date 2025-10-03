@@ -139,7 +139,11 @@ export const patternsSlice = createNormalSlice({
       const pattern = state.entities[id];
       if (!pattern) return;
       if (index < 0 || index > pattern.stream.length) return;
-      pattern.stream.splice(index, 0, block);
+      if (index === 0) {
+        pattern.stream.unshift(block);
+      } else {
+        pattern.stream.splice(index, 0, block);
+      }
     },
     /** Update a block in a pattern. */
     updatePatternBlock: (state, action: Action<UpdatePatternBlockPayload>) => {
@@ -220,7 +224,11 @@ export const patternsSlice = createNormalSlice({
         return;
       }
       if (index < 0 || index > pattern.stream.length) return;
-      pattern.stream.splice(index, 0, ...stream);
+      if (index === 0) {
+        pattern.stream.unshift(...stream);
+      } else {
+        pattern.stream.splice(index, 0, ...stream);
+      }
     },
   },
 });
