@@ -28,7 +28,7 @@ import { rhythmGate } from "utils/gate";
 let scheduleId: number | undefined = undefined;
 
 /** Schedule the main transport audio loop. */
-export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
+export const scheduleTransport = (): Thunk => (dispatch, getProject) => {
   let startTime = getTransport().now();
   let startSeconds = getTransport().seconds;
 
@@ -64,7 +64,7 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
     }
 
     // Compute the time using precise values
-    const seconds = time - startTime + startSeconds;
+    const seconds = Math.max(0, time - startTime + startSeconds);
     let newTick = Math.round((seconds * bpm * PPQ) / 60);
 
     // If looping, reset the tick to the loop start

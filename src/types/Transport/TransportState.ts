@@ -1,6 +1,6 @@
 import { useEvent } from "hooks/useEvent";
 import { useState } from "react";
-import { dispatchCustomEvent, sleep } from "utils/event";
+import { dispatchCustomEvent } from "utils/event";
 import * as Tone from "tone";
 import { Thunk } from "types/Project/ProjectTypes";
 import { scheduleTransport } from "./TransportScheduler";
@@ -51,8 +51,8 @@ export const useTransportState = () => {
 export const startTransport = (): Thunk => async (dispatch) => {
   if (Tone.getContext().state !== "running") return;
   dispatch(scheduleTransport());
-  dispatchStartTransport();
   Tone.getTransport().start();
+  dispatchStartTransport();
 };
 
 /** Pause the transport, canceling all scheduled events. */
