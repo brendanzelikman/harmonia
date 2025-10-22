@@ -354,3 +354,4 @@ export const DEMOS_BY_KEY: Record<string, DemoProject> = DEMO_PROJECTS.reduce(
   },
   {} as Record<string, DemoProject>
 );
+DEMOS_BY_KEY["tour"] = TourDemo;

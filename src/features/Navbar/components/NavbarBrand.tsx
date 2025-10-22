@@ -147,7 +147,11 @@ export function NavbarBrand() {
             {onDemos && (
               <div className="flex flex-col gap-4 shrink-0 pb-6 mb-2 border-b border-b-slate-600">
                 {DEMO_GENRES.map((genre) => (
-                  <Disclosure as="div" className="flex flex-col gap-4">
+                  <Disclosure
+                    key={genre.key}
+                    as="div"
+                    className="flex flex-col gap-4"
+                  >
                     <DisclosureButton
                       key={genre.key}
                       className="flex items-center text-xl group gap-2 cursor-pointer hover:bg-slate-700/50 bg-slate-900/50 border border-indigo-500/50 rounded-lg p-1 font-light"
