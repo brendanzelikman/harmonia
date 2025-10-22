@@ -137,6 +137,36 @@ export const MinorAddSharp4Chord: Pattern = {
   ],
 };
 
+export const PhrygianPentachord: Pattern = {
+  id: "pattern_preset_phrygian-pentachord",
+  name: "Phrygian Pentachord",
+  aliases: ["phrygian-pentachord"],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(61),
+      _.createQuarterNote(63),
+      _.createQuarterNote(65),
+      _.createQuarterNote(67),
+    ],
+  ],
+};
+
+export const LocrianPentachord: Pattern = {
+  id: "pattern_preset_locrian-pentachord",
+  name: "Locrian Pentachord",
+  aliases: ["locrian-pentachord"],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(61),
+      _.createQuarterNote(63),
+      _.createQuarterNote(65),
+      _.createQuarterNote(66),
+    ],
+  ],
+};
+
 export default {
   MinorChord,
   MinorAddFlat2Chord,
@@ -148,4 +178,6 @@ export default {
   MinorPentachord,
   MinorHexachord,
   MinorHeptachord,
+  PhrygianPentachord,
+  LocrianPentachord,
 };

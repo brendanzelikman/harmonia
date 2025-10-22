@@ -151,6 +151,21 @@ export const MajorAddSharp4Chord: Pattern = {
   ],
 };
 
+export const LydianPentachord: Pattern = {
+  id: "pattern_preset_lydian-pentachord",
+  name: "Lydian Pentachord",
+  aliases: ["lydian-pentachord"],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(62),
+      _.createQuarterNote(64),
+      _.createQuarterNote(66),
+      _.createQuarterNote(67),
+    ],
+  ],
+};
+
 export default {
   MajorChord,
   MajorAddFlat2Chord,
@@ -163,4 +178,5 @@ export default {
   MajorPentachord,
   MajorHexachord,
   MajorHeptachord,
+  LydianPentachord,
 };

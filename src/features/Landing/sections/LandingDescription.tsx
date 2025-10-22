@@ -51,8 +51,8 @@ export const LandingDescription = () => {
           <Article>
             <ArticleImage src={Easy} objectPosition="object-bottom-left" />
             <ArticleCaption
-              title="Apply Mathematical Transformations"
-              subtitle="Develop Notes Across Multidimensional Spaces"
+              title="Apply Complex Transformations"
+              subtitle="Develop Notes Across Multiple Dimensions"
             />
           </Article>
         </Link>
@@ -61,7 +61,7 @@ export const LandingDescription = () => {
           <Article>
             <ArticleImage src={Hotkeys} objectPosition="object-bottom-left" />
             <ArticleCaption
-              title="Perform Keyboard Gestures"
+              title="Perform With Your Keyboard"
               subtitle="Compose Quickly with Accessible Shortcuts"
             />
           </Article>

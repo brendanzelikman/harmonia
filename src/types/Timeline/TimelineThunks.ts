@@ -26,6 +26,7 @@ import {
   selectIsTrackSelected,
   selectTimelineState,
   selectCurrentTimelineTick,
+  selectSelectedPatternClips,
 } from "./TimelineSelectors";
 import {
   createUndoType,
@@ -69,6 +70,7 @@ import {
 import { updatePattern } from "types/Pattern/PatternSlice";
 import { initializeTrackPair } from "types/Track/TrackThunks";
 import { Midi } from "@tonejs/midi";
+import { randomizePattern } from "types/Pattern/PatternThunks";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -157,9 +159,20 @@ export const DEFAULT_TRACK_PROMPT = `C => C pentatonic => Cmaj => ${getInstrumen
 export const growTree = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const patternTrackIds = selectPatternTrackIds(project);
+  const patternClips = selectSelectedPatternClips(project);
   let trackId = selectSelectedTrackId(project);
   const undoType = createUndoType("toggleLivePlay", nanoid());
   const trackIds: TrackId[] = [];
+  if (patternClips.length == 1) {
+    const clip = patternClips[0];
+    dispatch(
+      randomizePattern({
+        data: { id: clip.patternId, trackId: trackId || clip.trackId },
+        undoType,
+      })
+    );
+    return;
+  }
 
   // If no track is selected, try to find one
   if (!isPatternTrackId(trackId)) {

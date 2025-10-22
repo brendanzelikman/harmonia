@@ -37,7 +37,7 @@ export const TOUR_STEPS = [
         </>,
         <>
           Pose {<ArrangePoseIcon className="inline-flex" />} — The scattered
-          clips across Scales B and elsewhere.
+          clips across Scale B and elsewhere.
         </>,
       ],
     }),
@@ -204,11 +204,11 @@ export const TOUR_STEPS = [
     alertModal({
       title: `Performance?! (2/2)`,
       description: [
-        "This is a musical puzzle that can be solved in many ways.",
-        "Everyone will have their own unique approach and style.",
-        "The instructions in this project are just one possibility.",
-        "And every performance will be unique in its own way.",
-        "Alright, it is time for you to shine!",
+        "Musical puzzles like these are at the heart of Harmonia!",
+        "There are infinitely many ways to approach the 'solution'.",
+        "The Instructions here guide you through one possible path.",
+        "But how much you move down, when, why, it's all up to you!",
+        "Alright, enough talking, it is time for you to shine!",
       ],
     }),
   () =>

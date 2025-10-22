@@ -6,6 +6,7 @@ import Carousel from "lib/demos/carousel.json";
 import Chat from "lib/demos/chat.json";
 import Exalted from "lib/demos/exalted.json";
 import Fonte from "lib/demos/fonte.json";
+import Groove from "lib/demos/groove.json";
 import Lavos from "lib/demos/lavos.json";
 import Prelude from "lib/demos/prelude.json";
 import Reminiscenza from "lib/demos/reminiscenza.json";
@@ -30,11 +31,35 @@ import Tour from "lib/demos/tour.json";
 import GameCool from "lib/demos/game_cool.json";
 import GameMoonlight from "lib/demos/game_moonlight.json";
 import GameWave from "lib/demos/game_wave.json";
+import GameGroove from "lib/demos/game_groove.json";
+import Scriabinism from "lib/demos/scriabinism.json";
+
+import RomanescaImage from "assets/images/demos/romanesca.png";
+import SentenceImage from "assets/images/demos/sentence.png";
+import SketchImage from "assets/images/demos/sketch.png";
+
+import PreludeImage from "assets/images/demos/prelude.png";
+import ScherzoImage from "assets/images/demos/scherzo.png";
+import ReminiscenzaImage from "assets/images/demos/reminiscenza.png";
+
+import LavosImage from "assets/images/demos/lavos.png";
+import ScriabinismImage from "assets/images/demos/scriabinism.png";
+import WaveImage from "assets/images/demos/wave.png";
+
+import CarouselImage from "assets/images/demos/carousel.png";
+import FonteImage from "assets/images/demos/fonte.png";
+import GrooveImage from "assets/images/demos/groove.png";
+import BarryImage from "assets/images/demos/barry.png";
+
+import SineImage from "assets/images/demos/sine.png";
+import BachTanImage from "assets/images/demos/bach_tan.png";
+import ClusterImage from "assets/images/demos/clusters.png";
 
 type DemoProject = {
   project: BaseProject;
   blurb: string;
   aliases?: string[];
+  image?: string;
 };
 
 // -----------------------------------
@@ -50,10 +75,13 @@ const PreludeDemo: DemoProject = {
   project: Prelude as unknown as BaseProject,
   blurb: "A recreation of Bach's C Major Prelude.",
   aliases: ["bach", "prelude"],
+  image: PreludeImage,
 };
 const ReminiscenzaDemo: DemoProject = {
   project: Reminiscenza as unknown as BaseProject,
   blurb: "A few bars from Medtner's Op. 38, No. 1.",
+  aliases: ["medtner", "reminiscenza"],
+  image: ReminiscenzaImage,
 };
 const WaterfallDemo: DemoProject = {
   project: Waterfall as unknown as BaseProject,
@@ -62,7 +90,9 @@ const WaterfallDemo: DemoProject = {
 };
 const ScherzoDemo: DemoProject = {
   project: Scherzo as unknown as BaseProject,
+  aliases: ["scherzo"],
   blurb: "A short piece based on Beethoven's Op. 106.",
+  image: ScherzoImage,
 };
 
 // -------------------------------------
@@ -71,8 +101,15 @@ const ScherzoDemo: DemoProject = {
 
 const BarryDemo: DemoProject = {
   project: Barry as unknown as BaseProject,
-  blurb: "A fun chorus with a Barry Harris voicing.",
+  blurb: "A fun chorus based on a Barry Harris voicing.",
   aliases: ["barry"],
+  image: BarryImage,
+};
+const GrooveDemo: DemoProject = {
+  project: Groove as unknown as BaseProject,
+  blurb: `An "groovy" improvisation over a ""jazz"" beat.`,
+  aliases: ["groove"],
+  image: GrooveImage,
 };
 const BirdDemo: DemoProject = {
   project: Bird as unknown as BaseProject,
@@ -82,15 +119,19 @@ const BirdDemo: DemoProject = {
 const CarouselDemo: DemoProject = {
   project: Carousel as unknown as BaseProject,
   blurb: "A turbulent pattern posing around.",
+  aliases: ["carousel"],
+  image: CarouselImage,
 };
 const FonteDemo: DemoProject = {
   project: Fonte as unknown as BaseProject,
-  blurb: "A playful riff over the Fonte progression.",
+  blurb: "A playful riff based on the famous schema.",
   aliases: ["fonte"],
+  image: FonteImage,
 };
 const RomanescaDemo: DemoProject = {
   project: Romanesca as unknown as BaseProject,
-  blurb: "A swung variant of the Romanesca",
+  blurb: "A simple and popular descending pattern.",
+  image: RomanescaImage,
 };
 
 // -------------------------------------
@@ -105,11 +146,13 @@ const LavosDemo: DemoProject = {
   project: Lavos as unknown as BaseProject,
   blurb: "An experimental hardcore techno beat.",
   aliases: ["lavos", "techno"],
+  image: LavosImage,
 };
 const WaveDemo: DemoProject = {
   project: Wave as unknown as BaseProject,
   blurb: "Piano and bass over a soothing progression.",
   aliases: ["wave"],
+  image: WaveImage,
 };
 const WaveSnarkDemo: DemoProject = {
   project: WaveSnark as unknown as BaseProject,
@@ -118,7 +161,13 @@ const WaveSnarkDemo: DemoProject = {
 };
 const WaveLongDemo: DemoProject = {
   project: WaveLong as unknown as BaseProject,
-  blurb: "An extended piece based on Wave.",
+  blurb: "An extended piece in the Wave family.",
+};
+const ScriabinismDemo: DemoProject = {
+  project: Scriabinism as unknown as BaseProject,
+  blurb: "A piece based on Scriabin's Sonata No. 5.",
+  aliases: ["scriabinism", "scriabin"],
+  image: ScriabinismImage,
 };
 
 // -------------------------------------
@@ -133,10 +182,13 @@ const ChatDemo: DemoProject = {
 const SentenceDemo: DemoProject = {
   project: Sentence as unknown as BaseProject,
   blurb: "A musical sentence (short, short, long).",
+  image: SentenceImage,
 };
 const SketchDemo: DemoProject = {
   project: Sketch as unknown as BaseProject,
   blurb: "A short piece based on a sketch of a melody.",
+  aliases: ["sketch"],
+  image: SketchImage,
 };
 
 // -------------------------------------
@@ -146,6 +198,7 @@ const SinDemo: DemoProject = {
   project: Sin as unknown as BaseProject,
   blurb: "A pattern oscillating through a sine wave.",
   aliases: ["sine"],
+  image: SineImage,
 };
 const CosDemo: DemoProject = {
   project: Cos as unknown as BaseProject,
@@ -165,6 +218,11 @@ const GameBarryDemo: DemoProject = {
   project: GameBarry as unknown as BaseProject,
   blurb: "An improvisation over Fly Me to the Moon.",
   aliases: ["game_barry", "barry_game"],
+};
+const GameGrooveDemo: DemoProject = {
+  project: GameGroove as unknown as BaseProject,
+  blurb: "The rhythm game of A Groove.",
+  aliases: ["game_groove", "groove_game"],
 };
 const TourDemo: DemoProject = {
   project: Tour as unknown as BaseProject,
@@ -205,6 +263,7 @@ const BachTanDemo: DemoProject = {
   project: BachTan as unknown as BaseProject,
   blurb: `Bach's Prelude slowly raised up to "Infinity".`,
   aliases: ["bach_tan"],
+  image: BachTanImage,
 };
 const BachPiDemo: DemoProject = {
   project: BachPi as unknown as BaseProject,
@@ -215,24 +274,43 @@ const ClusterVsChordDemo: DemoProject = {
   project: ClusterVsChord as unknown as BaseProject,
   blurb: "Bach's prelude with clusters, then chords.",
   aliases: ["bach_clusters", "bach_chords", "bach_battle"],
+  image: ClusterImage,
 };
 
 // Demo projects are organized by genre
 export const DEMO_GENRES = [
   {
+    key: "Introductory",
+    color: "border-green-400 text-green-400",
+    demos: [RomanescaDemo, SentenceDemo, SketchDemo],
+  },
+  {
     key: "Classical",
     color: "border-sky-400 text-sky-400",
-    demos: [PreludeDemo, WaterfallDemo, MoonlightDemo, ReminiscenzaDemo],
+    demos: [
+      PreludeDemo,
+      WaterfallDemo,
+      ScherzoDemo,
+      MoonlightDemo,
+      ReminiscenzaDemo,
+    ],
   },
   {
     key: "Jazz",
     color: "border-orange-300 text-orange-300",
-    demos: [FonteDemo, BirdDemo, CarouselDemo, BarryDemo],
+    demos: [FonteDemo, BirdDemo, CarouselDemo, BarryDemo, GrooveDemo],
   },
   {
     key: "Electronic",
     color: "border-red-400 text-red-400",
-    demos: [WaveDemo, WaveSnarkDemo, ExaltedDemo, LavosDemo],
+    demos: [
+      WaveDemo,
+      WaveSnarkDemo,
+      WaveLongDemo,
+      ScriabinismDemo,
+      ExaltedDemo,
+      LavosDemo,
+    ],
   },
   {
     key: "Basic Scripts",
@@ -242,7 +320,7 @@ export const DEMO_GENRES = [
   {
     key: "Rhythm Games",
     color: "border-red-400 text-red-400",
-    demos: [GameWaveDemo, TourDemo, GameMoonlightDemo],
+    demos: [GameWaveDemo, GameBarryDemo, GameGrooveDemo, GameMoonlightDemo],
   },
   {
     key: "Math Remixes",

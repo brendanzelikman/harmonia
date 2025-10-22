@@ -8,6 +8,7 @@ import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 export const SPLASH = "/";
 export const CALCULATOR = "/calculator";
 export const TUTORIAL = "/tutorial";
+export const GALLERY = "/gallery";
 export const TOUR = "/tour";
 export const ABOUT = "/about";
 
@@ -17,7 +18,7 @@ export const AppRouter = () => (
     <Routes>
       <Route path={SPLASH} element={<LandingPage />} />
       <Route path={ABOUT} element={<LandingCreators />} />
-      <Route path="/gallery" element={<LandingVideo />} />
+      <Route path={GALLERY} element={<LandingVideo />} />
       <Route path={CALCULATOR} element={<CalculatorPage />} />
       <Route path="/demo/:id" element={<CalculatorPage />} />
       <Route path={TUTORIAL} element={<CalculatorPage />} />

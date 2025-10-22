@@ -1,4 +1,4 @@
-import { ABOUT, CALCULATOR, SPLASH, TOUR } from "app/router";
+import { ABOUT, CALCULATOR, GALLERY, SPLASH, TOUR } from "app/router";
 import { NavbarBrand } from "features/Navbar/components/NavbarBrand";
 import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
@@ -34,7 +34,6 @@ import { NavbarTour } from "./NavbarTour";
 export function Navbar() {
   const { pathname } = useLocation();
   const hasTracks = useAppValue(selectHasTracks);
-  const onSplash = pathname === SPLASH;
   const brand = useToggle("brand");
   const demos = useToggle("demos");
   const openProjects = useCallback(() => {
@@ -79,8 +78,15 @@ export function Navbar() {
             Tutorial
           </Link>
           <Link
+            data-active={pathname === GALLERY}
+            to={pathname !== GALLERY ? GALLERY : SPLASH}
+            className="data-[active=true]:text-sky-400"
+          >
+            Gallery
+          </Link>
+          <Link
             data-active={pathname === ABOUT}
-            to={onSplash ? ABOUT : SPLASH}
+            to={pathname !== ABOUT ? ABOUT : SPLASH}
             className="data-[active=true]:text-sky-400"
           >
             About
