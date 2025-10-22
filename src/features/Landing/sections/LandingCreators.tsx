@@ -1,6 +1,6 @@
 import { LandingSection } from "../components/LandingSection";
 import { libraries } from "./LandingLibraries";
-import Brendan from "/media/brendan.png";
+import Brendan from "/media/brendan.jpg";
 import Dmitri from "/media/dmitri.jpg";
 
 export const LandingCreators = () => {

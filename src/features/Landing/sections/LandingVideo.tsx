@@ -22,7 +22,7 @@ export const LandingVideo = () => {
         </div>
         <div className="flex flex-col gap-0 min-h-0 h-min *:py-16">
           <VideoSection
-            title="Introductory"
+            title="Introductory / Exercises"
             subtitle="These pieces have a few transpositions to get you started."
             bg="bg-radial from-slate-950 via-sky-700/50 to-slate-950"
           >
@@ -46,7 +46,7 @@ export const LandingVideo = () => {
             />
           </VideoSection>
           <VideoSection
-            title="Classical"
+            title="Classical / Romantic"
             subtitle="These recreations of historical pieces reveal more complex uses of transposition."
             bg="bg-radial from-slate-950 via-emerald-700/50 to-slate-950"
           >
@@ -70,7 +70,7 @@ export const LandingVideo = () => {
             />
           </VideoSection>
           <VideoSection
-            title="Jazz"
+            title="Swing / Jazz"
             subtitle="These improvisatory pieces showcase examples with multiple layers of logic."
             bg="bg-radial from-slate-950 via-amber-600/40 to-slate-950"
           >
@@ -94,7 +94,7 @@ export const LandingVideo = () => {
             />
           </VideoSection>
           <VideoSection
-            title="Electronic"
+            title="Electronic / Techno"
             bg="bg-radial from-slate-950 via-red-500/30 to-slate-950"
             subtitle="These longer-scale projects showcase diverse variations in texture and form."
           >
@@ -105,10 +105,10 @@ export const LandingVideo = () => {
               link="/demo/wave"
             />
             <VideoCard
-              title="Scriabinism"
-              description="An upbeat piano-based electronic piece inspired by a theme from Scriabin's Sonata No. 5."
-              image={DEMOS_BY_KEY["scriabinism"].image}
-              link="/demo/scriabinism"
+              title="Exalted"
+              description="A piano-based rock opera that transforms its patterns through a harmonic journey."
+              image={DEMOS_BY_KEY["exalted"].image}
+              link="/demo/exalted"
             />
             <VideoCard
               title="Lavos"
@@ -118,7 +118,7 @@ export const LandingVideo = () => {
             />
           </VideoSection>
           <VideoSection
-            title="Mathematical"
+            title="Mathematical / Experimental"
             subtitle="These experimental pieces explore different possibilities for custom scripts."
             bg="bg-radial from-slate-950 via-rose-500/40 to-slate-950"
           >
@@ -142,7 +142,7 @@ export const LandingVideo = () => {
             />
           </VideoSection>
           <VideoSection
-            title="Rhythm Games"
+            title="Interactive / Rhythm Games"
             subtitle="These performance pieces let you transpose in real-time!"
             bg="bg-radial from-slate-950 via-pink-500/40 to-slate-950"
           >
@@ -214,15 +214,18 @@ function VideoSection(
         "total-center-col pt-8 gap-2 border-b border-b-slate-700 rounded"
       )}
     >
-      <div className="w-full text-center font-light drop-shadow-lg text-3xl">
+      <div className="w-full text-center font-semibold drop-shadow-lg text-3xl">
         {props.title}
       </div>
       {props.subtitle && (
-        <div className="w-full text-center text-lg font-light text-gray-400 drop-shadow">
-          {props.subtitle}
-        </div>
+        <>
+          <hr className="w-128 border-t border-t-slate-500 my-2" />
+          <div className="w-full text-center text-lg font-light text-gray-400 drop-shadow">
+            {props.subtitle}
+          </div>
+        </>
       )}
-      <m.div className="sm:p-6 flex justify-center flex-wrap max-sm:gap-6 gap-20 *:bg-slate-950 *:border-2 *:border-indigo-500 *:p-4 *:pt-2 *:px-4 *:rounded-lg *:flex *:flex-col *:items-center *:justify-between max-sm:*:text-lg *:text-3xl *:gap-4 *:font-light">
+      <m.div className="sm:p-6 flex justify-center flex-wrap max-sm:gap-6 gap-20 *:bg-slate-950 *:border-2 *:border-indigo-500/50 *:p-4 *:pt-2 *:px-4 *:rounded-lg *:flex *:flex-col *:items-center *:justify-between max-sm:*:text-lg *:text-3xl *:gap-4 *:font-light">
         {props.children}
       </m.div>
     </div>

@@ -42,6 +42,7 @@ import PreludeImage from "assets/images/demos/prelude.png";
 import ScherzoImage from "assets/images/demos/scherzo.png";
 import ReminiscenzaImage from "assets/images/demos/reminiscenza.png";
 
+import ExaltedImage from "assets/images/demos/exalted.png";
 import LavosImage from "assets/images/demos/lavos.png";
 import ScriabinismImage from "assets/images/demos/scriabinism.png";
 import WaveImage from "assets/images/demos/wave.png";
@@ -118,7 +119,7 @@ const BirdDemo: DemoProject = {
 };
 const CarouselDemo: DemoProject = {
   project: Carousel as unknown as BaseProject,
-  blurb: "A turbulent pattern posing around.",
+  blurb: "A turbulent pattern posing around as three.",
   aliases: ["carousel"],
   image: CarouselImage,
 };
@@ -140,7 +141,9 @@ const RomanescaDemo: DemoProject = {
 
 const ExaltedDemo: DemoProject = {
   project: Exalted as unknown as BaseProject,
-  blurb: "One might call it a piano-based rock opera.",
+  blurb: "One could call it a piano-based rock opera.",
+  aliases: ["exalted"],
+  image: ExaltedImage,
 };
 const LavosDemo: DemoProject = {
   project: Lavos as unknown as BaseProject,
