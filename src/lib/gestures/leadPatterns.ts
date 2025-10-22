@@ -36,7 +36,7 @@ export const leadPatternsToNthClosestPose =
     else if (keys[0] !== "chordal" && !keys[1]) keys.push("chordal");
 
     // Construct the options
-    const select = number;
+    const select = number - 1;
     const direction = isNegative() ? "down" : "up";
     const spread = Math.max(5, number);
     const options: StreamQueryOptions = { keys, select, direction, spread };
