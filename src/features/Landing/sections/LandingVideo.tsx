@@ -15,7 +15,7 @@ const variants = {
 
 export const LandingVideo = () => {
   return (
-    <main className="size-full overflow-scroll">
+    <main id="body" className="size-full overflow-scroll">
       <LandingSection className="animate-in fade-in duration-300 pt-nav pb-0">
         <div className="text-center text-5xl font-bold bg-radial from-slate-950/0 to-slate-950 border-b border-b-slate-700 py-10 select-none">
           Demo Gallery

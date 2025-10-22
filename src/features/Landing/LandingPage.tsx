@@ -10,7 +10,7 @@ export function LandingPage() {
   useTitle("Harmonia | Musical Calculator");
   return (
     <main className="size-full pt-nav">
-      <div className="size-full pt-5 overflow-scroll">
+      <div id="body" className="size-full pt-5 overflow-scroll">
         <LandingSplash />
         <LandingDescription />
         <LandingDetail />
