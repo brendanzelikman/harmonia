@@ -65,8 +65,7 @@ export const NavbarLeadPlay = () => {
         if (label === "*") {
           return `Closest Pose With Degree ${sign}${keycode}`;
         }
-        const offset = `${label}${sign}${keycode}`;
-        return `Closest Pose With ${offset}`;
+        return `Closest Pose at Scale (${label}) Degree ${sign}${keycode}`;
       }
 
       if (isVoiceLeadingClosest) {

@@ -62,8 +62,9 @@ export const leadPatternsToClosestNthPose =
     }
 
     // Construct the options
-    const step = isNegative() ? -number : number;
-    const spread = Math.max(5, number);
+    let base = number - 1;
+    const step = isNegative() ? -base : base;
+    const spread = Math.max(5, base);
     const direction = isNegative() ? "down" : "any";
     const options: PartialQueryOptions = { keys, step, spread, direction };
 
