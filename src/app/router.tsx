@@ -1,6 +1,7 @@
 import { CalculatorPage } from "features/Calculator/CalculatorPage";
 import { LandingPage } from "features/Landing/LandingPage";
 import { LandingCreators } from "features/Landing/sections/LandingCreators";
+import { LandingQML } from "features/Landing/sections/LandingQML";
 import { LandingVideo } from "features/Landing/sections/LandingVideo";
 import { Navbar } from "features/Navbar/Navbar";
 import { useLayoutEffect, useEffect } from "react";
@@ -30,6 +31,7 @@ export const AppRouter = () => {
         <Route path={GALLERY} element={<LandingVideo />} />
         <Route path={CALCULATOR} element={<CalculatorPage />} />
         <Route path="/demo/:id" element={<CalculatorPage />} />
+        <Route path="/qml" element={<LandingQML />} />
         <Route path={TUTORIAL} element={<CalculatorPage />} />
         <Route path={TOUR} element={<CalculatorPage />} />
         <Route path="*" element={<Navigate to={SPLASH} />} />
