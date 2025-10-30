@@ -119,6 +119,7 @@ export const scheduleTransport = (): Thunk => (dispatch, getProject) => {
 
       // Check if the gate is available
       const track = trackMap[instance.trackId];
+      if (!track) continue;
       if (track.gate !== undefined && track.gate !== "") {
         const isOpen = rhythmGate(track.gate, newTick);
         if (!isOpen) continue;
